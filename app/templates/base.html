@@ -1,0 +1,4070 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#172033">
+    <meta name="color-scheme" content="light">
+
+    <!-- Poppins Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <title>{% block title %}Recruitment System{% endblock %}</title>
+
+    <style>
+        :root {
+            --primary: #5267e8;
+            --primary-hover: #4055d6;
+            --primary-light: #eef0ff;
+
+            --sidebar: #172033;
+            --sidebar-hover: #222d45;
+            --sidebar-text: #aab5ca;
+            --sidebar-muted: #7f8ca7;
+
+            --bg: #f6f7fb;
+            --white: #ffffff;
+            --text: #20283c;
+            --muted: #7c879d;
+            --border: #e8ebf2;
+
+            --green: #169b69;
+            --green-light: #e7f7ef;
+            --orange: #d98522;
+            --orange-light: #fff3df;
+            --blue: #367bd6;
+            --blue-light: #eaf2ff;
+            --red: #d94b5b;
+            --red-light: #ffedef;
+
+            --sidebar-width: 258px;
+            --header-height: 82px;
+            --radius: 14px;
+            --shadow: 0 3px 14px rgba(25, 39, 74, 0.035);
+            --transition: 0.2s ease;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            min-height: 100%;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Inter", "Segoe UI", "Poppins", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: 'Poppins';
+        }
+
+        button,
+        a {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        button:focus-visible,
+        a:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible {
+            outline: 3px solid rgba(82, 103, 232, 0.35);
+            outline-offset: 3px;
+        }
+
+        /* ========================================
+           SIDEBAR
+        ======================================== */
+
+        .sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            z-index: 100;
+
+            display: flex;
+            flex-direction: column;
+
+            width: var(--sidebar-width);
+            height: 100vh;
+
+            background: var(--sidebar);
+            color: white;
+
+            box-shadow: 5px 0 25px rgba(17, 24, 39, 0.05);
+            transition: transform 0.25s ease;
+        }
+
+        .brand {
+            min-height: var(--header-height);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .brand-icon {
+            width: 62px;
+            height: 45px;
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 13px;
+            background: transparent;
+            overflow: hidden;
+            box-shadow: none;
+        }
+
+        .brand-icon .logo {
+            display: block;
+            width: 62px;
+            height: 45px;
+            object-fit: contain;
+            border: none;
+            border-radius: 0;
+            background: white;
+        }
+
+        .brand-name {
+            font-size: 12px;
+            font-weight: 650;
+            letter-spacing: -0.2px;
+            line-height: 1.4;
+            color: #ffffff;
+        }
+
+        .brand-subtitle {
+            margin-top: 4px;
+            font-size: 7px;
+            font-weight: 600;
+            line-height: 1.5;
+            letter-spacing: 0.6px;
+            color: var(--sidebar-muted);
+        }
+
+        .nav {
+            flex: 1;
+            min-height: 0;
+            padding: 20px 13px;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .nav::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        .nav-label {
+            padding: 17px 12px 9px;
+            color: var(--sidebar-muted);
+            font-size: 10px;
+            font-weight: 750;
+            letter-spacing: 1.4px;
+        }
+
+        .nav-link {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            min-height: 45px;
+            margin: 4px 0;
+            padding: 11px 13px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--sidebar-text);
+            text-align: left;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 550;
+            transition:
+                background var(--transition),
+                color var(--transition),
+                border-color var(--transition);
+        }
+
+        .nav-link:hover {
+            background: var(--sidebar-hover);
+            color: white;
+        }
+
+        .nav-link.active {
+            background: rgba(99, 116, 255, 0.17);
+            border-color: rgba(127, 141, 255, 0.18);
+            color: #ffffff;
+        }
+
+        .nav-link.active::before {
+            content: "";
+            position: absolute;
+            left: -13px;
+            top: 9px;
+            bottom: 9px;
+            width: 3px;
+            border-radius: 0 4px 4px 0;
+            background: #8290ff;
+        }
+
+        .nav-icon {
+            width: 22px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .nav-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* ========================================
+           SUBMENU
+        ======================================== */
+
+        .nav-group {
+            margin: 4px 0;
+        }
+
+        .nav-group-toggle {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            min-height: 45px;
+            padding: 11px 13px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--sidebar-text);
+            text-align: left;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 550;
+            cursor: pointer;
+            transition:
+                background var(--transition),
+                color var(--transition),
+                border-color var(--transition);
+        }
+
+        .nav-group-toggle:hover {
+            background: var(--sidebar-hover);
+            color: white;
+        }
+
+        .nav-group-toggle.active {
+            background: rgba(99, 116, 255, 0.17);
+            border-color: rgba(127, 141, 255, 0.18);
+            color: #ffffff;
+        }
+
+        .nav-group-toggle.active::before {
+            content: "";
+            position: absolute;
+            left: -13px;
+            top: 9px;
+            bottom: 9px;
+            width: 3px;
+            border-radius: 0 4px 4px 0;
+            background: #8290ff;
+        }
+
+        .nav-caret {
+            width: 16px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            font-size: 11px;
+            transition: transform var(--transition);
+        }
+
+        .nav-group.open .nav-caret {
+            transform: rotate(90deg);
+        }
+
+        .nav-submenu {
+            display: none;
+            margin: 2px 0 4px;
+            padding-left: 34px;
+        }
+
+        .nav-group.open .nav-submenu {
+            display: block;
+        }
+
+        .nav-submenu .nav-link {
+            min-height: 38px;
+            padding: 8px 12px;
+            margin: 2px 0;
+            font-size: 12.5px;
+            font-weight: 500;
+        }
+
+        .nav-submenu .nav-link::before {
+            display: none;
+        }
+
+        .nav-submenu .nav-icon {
+            width: 18px;
+            font-size: 13px;
+        }
+
+        .sidebar-bottom {
+            padding: 13px 13px 17px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .logout-link {
+            color: #ffabb5;
+        }
+
+        .logout-link:hover {
+            color: #ffffff;
+            background: rgba(217, 75, 91, 0.16);
+        }
+
+        /* ========================================
+           MAIN LAYOUT
+        ======================================== */
+
+        .main {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            min-height: 100vh;
+            margin-left: var(--sidebar-width);
+        }
+
+        /* ========================================
+           TOPBAR
+        ======================================== */
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            min-height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 16px 32px;
+            background: linear-gradient(110deg, #e6ebf8 35%, #89a4f7 100%);
+            border-bottom: 1px solid #dce4ff;
+            box-shadow: 0 4px 18px rgba(82, 103, 232, 0.07);
+            backdrop-filter: blur(12px);
+        }
+
+        .topbar-left,
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-width: 0;
+        }
+
+        .page-heading {
+            min-width: 0;
+        }
+
+        .page-heading h1 {
+            color: #4055b5;
+            font-size: 21px;
+            font-weight: 750;
+            letter-spacing: -0.6px;
+            line-height: 1.35;
+        }
+
+        .page-heading p {
+            margin-top: 4px;
+            color: #7c879d;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .today {
+            white-space: nowrap;
+            padding: 9px 13px;
+            border: 1px solid #dce4ff;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.75);
+            color: #596da8;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding-left: 19px;
+            border-left: 1px solid #dce3f3;
+        }
+
+        .avatar {
+            width: 41px;
+            height: 41px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border: 1px solid #dfe4ff;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #e8edff 0%, #d7e0ff 100%);
+            color: #5267e8;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .user-info {
+            min-width: 0;
+        }
+
+        .user-name {
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #26334d;
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .user-role {
+            margin-top: 3px;
+            color: #7c879d;
+            font-size: 10px;
+            font-weight: 550;
+            text-transform: capitalize;
+        }
+
+        .menu-toggle {
+            display: none;
+            width: 39px;
+            height: 39px;
+            flex-shrink: 0;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #dce4ff;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.85);
+            color: #5267e8;
+            font-size: 17px;
+            cursor: pointer;
+            transition:
+                background var(--transition),
+                color var(--transition);
+        }
+
+        .menu-toggle:hover {
+            background: #e8edff;
+            color: #4055d6;
+        }
+
+        /* ========================================
+           NOTIFICATION BELL
+        ======================================== */
+
+        .notification-toggle {
+            position: relative;
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.78);
+            color: #5267e8;
+            font-size: 17px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .notification-toggle:hover {
+            background: #ffffff;
+            color: #4055d6;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(82, 103, 232, 0.12);
+        }
+
+        .notification-toggle.has-unread i {
+            animation: notificationBell 2.5s ease-in-out infinite;
+        }
+
+        @keyframes notificationBell {
+            0%, 85%, 100% {
+                transform: rotate(0);
+            }
+            88% {
+                transform: rotate(12deg);
+            }
+            91% {
+                transform: rotate(-12deg);
+            }
+            94% {
+                transform: rotate(8deg);
+            }
+            97% {
+                transform: rotate(-5deg);
+            }
+        }
+
+        .notification-count {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            min-width: 19px;
+            height: 19px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            border: 2px solid #e3eaf9;
+            border-radius: 20px;
+            background: #e7475b;
+            color: #ffffff;
+            font-size: 9px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .notification-count[hidden] {
+            display: none;
+        }
+
+        /* ========================================
+           NOTIFICATION MODAL
+        ======================================== */
+
+        .notification-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(20, 29, 49, 0.48);
+            backdrop-filter: blur(5px);
+        }
+
+        .notification-overlay[hidden] {
+            display: none;
+        }
+
+        .notification-modal {
+            width: 100%;
+            max-width: 510px;
+            max-height: min(690px, 85vh);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            border-radius: 19px;
+            background: #ffffff;
+            box-shadow: 0 24px 75px rgba(15, 23, 42, 0.23);
+            animation: notificationModalIn 0.2s ease;
+        }
+
+        @keyframes notificationModalIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .notification-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 21px 23px 18px;
+            border-bottom: 1px solid #edf0f6;
+        }
+
+        .notification-header h2 {
+            color: #20283c;
+            font-size: 18px;
+            font-weight: 750;
+            letter-spacing: -0.4px;
+        }
+
+        .notification-header p {
+            margin-top: 4px;
+            color: #8791a5;
+            font-size: 11px;
+        }
+
+        .notification-close {
+            width: 34px;
+            height: 34px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border: 1px solid #e9edf4;
+            border-radius: 10px;
+            background: #f8f9fc;
+            color: #69758c;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .notification-close:hover {
+            background: #ffedef;
+            border-color: #ffd9de;
+            color: #d94b5b;
+        }
+
+        .notification-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 23px;
+            background: #fafbfe;
+            border-bottom: 1px solid #edf0f6;
+        }
+
+        .notification-unread-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #52617c;
+            font-size: 11px;
+            font-weight: 650;
+        }
+
+        .notification-live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #5267e8;
+            box-shadow: 0 0 0 3px #eef0ff;
+        }
+
+        .notification-read-all {
+            border: none;
+            background: transparent;
+            color: #5267e8;
+            font-size: 11px;
+            font-weight: 650;
+            cursor: pointer;
+        }
+
+        .notification-read-all:hover {
+            color: #344acb;
+            text-decoration: underline;
+        }
+
+        .notification-read-all:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            text-decoration: none;
+        }
+
+        /* .notification-list {
+            flex: 1;
+            min-height: 120px;
+            overflow-y: auto;
+            padding: 9px 12px;
+            scrollbar-width: thin;
+            scrollbar-color: #d8deec transparent;
+        }
+
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+            padding: 15px 12px;
+            margin: 3px 0;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        } */
+
+        .notification-list {
+            flex: 0 1 auto;
+            min-height: 0;
+            max-height: none;
+            overflow-y: visible;
+            overflow-x: hidden;
+            padding: 9px 12px;
+        }
+
+        /* Only when notification count exceeds 4 */
+        .notification-list.has-scroll {
+            flex: 1 1 auto;
+            min-height: 120px;
+            max-height: 460px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+
+        /* Date Group */
+        .notification-date-group {
+            margin-bottom: 10px;
+        }
+
+        .notification-date-label {
+            position: sticky;
+            top: -9px;
+            z-index: 5;
+
+            display: flex;
+            align-items: center;
+            gap: 9px;
+
+            padding: 11px 12px 9px;
+
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
+
+            color: #5267e8;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .notification-date-label::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #e9ecf5;
+        }
+
+        .notification-date-label span {
+            white-space: nowrap;
+        }
+
+        .notification-date-group:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Notification Item */
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+
+            padding: 15px 12px;
+            margin: 3px 0;
+
+            border: 1px solid transparent;
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            transition:
+                background 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+        /* Scrollbar */
+        .notification-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notification-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .notification-list::-webkit-scrollbar-thumb {
+            background: #d8deec;
+            border-radius: 10px;
+        }
+
+        .notification-list::-webkit-scrollbar-thumb:hover {
+            background: #aeb9d2;
+        }
+        .notification-item:hover {
+            background: #f7f8ff;
+            border-color: #edf0ff;
+        }
+
+        .notification-item.unread {
+            background: #f5f6ff;
+        }
+
+        .notification-item.unread:hover {
+            background: #eef0ff;
+        }
+
+        .notification-item-icon {
+            width: 39px;
+            height: 39px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            font-size: 15px;
+        }
+
+        .notification-item-icon.today {
+            background: #eaf2ff;
+            color: #367bd6;
+        }
+
+        .notification-item-icon.overdue {
+            background: #fff1e8;
+            color: #dc7b36;
+        }
+
+        .notification-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-item-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .notification-item-title {
+            color: #27334b;
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .notification-item.unread .notification-item-title {
+            color: #4055c8;
+        }
+
+        .notification-item-message {
+            margin-top: 5px;
+            color: #748097;
+            font-size: 11px;
+            line-height: 1.65;
+            overflow-wrap: anywhere;
+        }
+
+        .notification-item-date {
+            display: block;
+            margin-top: 7px;
+            color: #a0a9b9;
+            font-size: 9px;
+            font-weight: 550;
+        }
+
+        .notification-unread-dot {
+            width: 7px;
+            height: 7px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: #5267e8;
+        }
+
+        .notification-empty,
+        .notification-loading,
+        .notification-error {
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 15px;
+            text-align: center;
+        }
+
+        .notification-empty-icon {
+            width: 55px;
+            height: 55px;
+            display: grid;
+            place-items: center;
+            margin-bottom: 13px;
+            border-radius: 17px;
+            background: #f0f2ff;
+            color: #7180e8;
+            font-size: 21px;
+        }
+
+        .notification-empty h3 {
+            color: #34405a;
+            font-size: 13px;
+            font-weight: 750;
+        }
+
+        .notification-empty p {
+            max-width: 260px;
+            margin-top: 5px;
+            color: #939db0;
+            font-size: 10px;
+            line-height: 1.7;
+        }
+
+        .notification-loading,
+        .notification-error {
+            color: #8791a5;
+            font-size: 11px;
+            gap: 10px;
+        }
+
+        .notification-loading i {
+            color: #5267e8;
+            font-size: 20px;
+        }
+
+        .notification-error i {
+            color: #d94b5b;
+            font-size: 20px;
+        }
+
+        .notification-retry {
+            margin-top: 7px;
+            padding: 7px 13px;
+            border: 1px solid #dce2ff;
+            border-radius: 8px;
+            background: #f3f4ff;
+            color: #5267e8;
+            font-size: 10px;
+            font-weight: 650;
+            cursor: pointer;
+        }
+
+        .notification-footer {
+            padding: 12px 20px;
+            border-top: 1px solid #edf0f6;
+            background: #fafbfe;
+            color: #a0a9b9;
+            text-align: center;
+            font-size: 9px;
+            letter-spacing: 0.3px;
+        }
+
+        /* ========================================
+           CONTENT
+        ======================================== */
+
+        .content {
+            flex: 1 0 auto;
+            width: 100%;
+            max-width: 1700px;
+            min-width: 0;
+            margin: 0 auto;
+            padding: 30px 32px;
+        }
+
+        /* ========================================
+           FLASH MESSAGES
+        ======================================== */
+
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .flash-message {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 13px 16px;
+            margin-bottom: 9px;
+            border: 1px solid #dbe8ff;
+            border-radius: 10px;
+            background: var(--blue-light);
+            color: #2867b5;
+            font-size: 13px;
+            font-weight: 550;
+        }
+
+        .flash-message.success {
+            background: var(--green-light);
+            border-color: #cceedd;
+            color: var(--green);
+        }
+
+        .flash-message.error,
+        .flash-message.danger {
+            background: var(--red-light);
+            border-color: #ffd7dc;
+            color: var(--red);
+        }
+
+        .flash-message.warning {
+            background: var(--orange-light);
+            border-color: #ffe5bd;
+            color: var(--orange);
+        }
+
+        /* ========================================
+           COMMON DESIGN HELPERS
+        ======================================== */
+
+        .card {
+            min-width: 0;
+            padding: 22px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--white);
+            box-shadow: var(--shadow);
+        }
+
+        .card-title {
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 750;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: 1px solid var(--primary);
+            border-radius: 9px;
+            background: var(--primary);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 650;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background var(--transition);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        /* ========================================
+           REAL SITE FOOTER
+        ======================================== */
+
+        .site-footer {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+            width: 100%;
+            margin-top: auto;
+            padding: 19px 32px;
+            background: linear-gradient(110deg, #ffffff 0%, #f7f8ff 100%);
+            border-top: 1px solid #e6eaf5;
+            color: #7c879d;
+            font-size: 11px;
+        }
+
+        .site-footer::before {
+            content: "";
+            position: absolute;
+            top: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #5267e8 0%, #8795ff 45%, #b9c6ff 100%);
+        }
+
+        .footer-brand,
+        .footer-meta,
+        .footer-status {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+        .footer-meta{
+            color: rgb(10, 10, 24);
+            font-weight: 450;
+        }
+        .footer-brand {
+            color: #35415d;
+            font-weight: 750;
+            letter-spacing: 0.1px;
+        }
+
+        .footer-brand-icon {
+            display: grid;
+            place-items: center;
+            width: 31px;
+            height: 31px;
+            flex-shrink: 0;
+            border-radius: 9px;
+            background: linear-gradient(135deg, #5267e8, #8291ff);
+            color: #ffffff;
+            font-size: 13px;
+            box-shadow: 0 3px 8px rgba(82, 103, 232, 0.18);
+        }
+
+        .footer-meta {
+            flex-wrap: wrap;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .footer-divider {
+            width: 4px;
+            height: 4px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: #b5bfd2;
+        }
+
+        .footer-status {
+            padding: 6px 10px;
+            border: 1px solid #d7f0e3;
+            border-radius: 20px;
+            background: #effaf4;
+            color: #16865b;
+            font-size: 10px;
+            font-weight: 650;
+            white-space: nowrap;
+        }
+
+        .footer-status-dot {
+            width: 7px;
+            height: 7px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: #22b477;
+            box-shadow: 0 0 0 3px rgba(34, 180, 119, 0.12);
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            .footer-status-dot {
+                animation: footerPulse 2s ease-in-out infinite;
+            }
+
+            @keyframes footerPulse {
+                0%, 100% {
+                    box-shadow: 0 0 0 3px rgba(34, 180, 119, 0.12);
+                }
+                50% {
+                    box-shadow: 0 0 0 5px rgba(34, 180, 119, 0.04);
+                }
+            }
+        }
+
+        /* ========================================
+           MOBILE OVERLAY
+        ======================================== */
+
+        .overlay {
+            display: none;
+        }
+
+        /* ========================================
+           TABLET
+        ======================================== */
+
+        @media (max-width: 1100px) {
+            :root {
+                --sidebar-width: 235px;
+            }
+
+            .topbar {
+                padding: 16px 24px;
+            }
+
+            .content {
+                padding: 25px 24px;
+            }
+
+        }
+
+        /* ========================================
+           MOBILE
+        ======================================== */
+
+        @media (max-width: 760px) {
+            .sidebar {
+                width: 270px;
+                max-width: 85vw;
+                transform: translateX(-105%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .overlay.show {
+                display: block;
+                position: fixed;
+                inset: 0;
+                z-index: 90;
+                background: rgba(15, 23, 42, 0.48);
+                backdrop-filter: blur(2px);
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .topbar {
+                min-height: 70px;
+                padding: 13px 17px;
+                gap: 10px;
+            }
+
+            .topbar-left,
+            .topbar-right {
+                gap: 10px;
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            .page-heading h1 {
+                font-size: 17px;
+                letter-spacing: -0.3px;
+            }
+
+            .page-heading p {
+                display: none;
+            }
+
+            .user-menu {
+                gap: 0;
+                padding-left: 10px;
+                border-left: 0;
+            }
+
+            .avatar {
+                width: 37px;
+                height: 37px;
+                border-radius: 11px;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .content {
+                padding: 20px 15px;
+            }
+
+            .card {
+                padding: 17px;
+                border-radius: 12px;
+            }
+
+            .site-footer {
+                justify-content: center;
+                gap: 12px;
+                padding: 19px 15px;
+                text-align: center;
+            }
+
+            .footer-brand,
+            .footer-meta,
+            .footer-status {
+                justify-content: center;
+            }
+
+            .footer-brand {
+                width: 100%;
+            }
+
+            .footer-meta {
+                width: 100%;
+                order: 2;
+            }
+
+            .footer-status {
+                order: 1;
+            }
+
+            .notification-modal {
+                max-height: 88vh;
+                border-radius: 16px;
+            }
+
+            .notification-header {
+                padding: 17px 17px 15px;
+            }
+
+            .notification-toolbar {
+                padding: 11px 17px;
+            }
+
+            .notification-list {
+                padding: 7px;
+            }
+
+            .notification-item {
+                padding: 13px 9px;
+                gap: 10px;
+            }
+        }
+
+        /* ========================================
+           SMALL MOBILE
+        ======================================== */
+
+        @media (max-width: 380px) {
+            .topbar {
+                padding: 12px;
+            }
+
+            .page-heading h1 {
+                font-size: 15px;
+            }
+
+            .content {
+                padding: 15px 11px;
+            }
+
+            .notification-toggle {
+                width: 37px;
+                height: 37px;
+            }
+
+            .notification-header h2 {
+                font-size: 16px;
+            }
+        }
+
+        /* ========================================
+           REDUCED MOTION
+        ======================================== */
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+            }
+        }
+        /* ========================================
+        PROFILE DROPDOWN
+        ======================================== */
+
+        .profile-menu-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-icon-btn {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.82);
+            color: #5267e8;
+            font-size: 17px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .profile-icon-btn:hover,
+        .profile-icon-btn[aria-expanded="true"] {
+            background: #ffffff;
+            color: #4055d6;
+            box-shadow: 0 5px 15px rgba(82, 103, 232, 0.13);
+            transform: translateY(-1px);
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: calc(100% + 13px);
+            right: 0;
+            z-index: 200;
+            width: 270px;
+            padding: 10px;
+            border: 1px solid #e9edf5;
+            border-radius: 15px;
+            background: #ffffff;
+            box-shadow: 0 15px 45px rgba(25, 39, 74, 0.16);
+            animation: profileDropdownIn 0.18s ease;
+        }
+
+        .profile-dropdown[hidden] {
+            display: none;
+        }
+
+        @keyframes profileDropdownIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile-dropdown-heading {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 10px 9px 13px;
+        }
+
+        .profile-dropdown-avatar {
+            width: 41px;
+            height: 41px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #e9edff, #dce4ff);
+            color: #5267e8;
+            font-size: 16px;
+        }
+
+        .profile-dropdown-user {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            gap: 3px;
+        }
+
+        .profile-dropdown-user strong {
+            overflow: hidden;
+            color: #27334b;
+            font-size: 12px;
+            font-weight: 750;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .profile-dropdown-user span {
+            color: #8791a5;
+            font-size: 10px;
+            text-transform: capitalize;
+        }
+
+        .profile-dropdown-divider {
+            height: 1px;
+            margin: 0 3px 7px;
+            background: #edf0f6;
+        }
+
+        .profile-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            width: 100%;
+            padding: 11px 9px;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .profile-dropdown-item:hover {
+            background: #f6f7ff;
+        }
+
+        .profile-dropdown-item-icon {
+            width: 36px;
+            height: 36px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .profile-item-blue {
+            background: #edf2ff;
+            color: #5267e8;
+        }
+
+        .profile-item-purple {
+            background: #f2edff;
+            color: #8561d9;
+        }
+
+        .profile-dropdown-item > span:nth-child(2) {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .profile-dropdown-item strong {
+            color: #34405a;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .profile-dropdown-item small {
+            color: #939db0;
+            font-size: 9px;
+        }
+
+        .profile-item-arrow {
+            color: #aab3c3;
+            font-size: 10px;
+        }
+
+
+        /* ========================================
+        ACCOUNT MODALS
+        ======================================== */
+
+        .account-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(20, 29, 49, 0.52);
+            backdrop-filter: blur(5px);
+        }
+
+        .account-modal-overlay[hidden] {
+            display: none;
+        }
+
+        .account-modal {
+            width: 100%;
+            max-width: 490px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            border-radius: 19px;
+            background: #ffffff;
+            box-shadow: 0 25px 75px rgba(15, 23, 42, 0.24);
+            animation: accountModalIn 0.2s ease;
+        }
+
+        @keyframes accountModalIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .account-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 21px 23px;
+            border-bottom: 1px solid #edf0f6;
+        }
+
+        .account-modal-heading {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .account-modal-heading-icon {
+            width: 43px;
+            height: 43px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            border-radius: 12px;
+            background: #edf1ff;
+            color: #5267e8;
+            font-size: 17px;
+        }
+
+        .password-heading-icon {
+            background: #f2edff;
+            color: #8561d9;
+        }
+
+        .account-modal-heading h2 {
+            color: #20283c;
+            font-size: 17px;
+            font-weight: 750;
+            letter-spacing: -0.4px;
+        }
+
+        .account-modal-heading p {
+            margin-top: 4px;
+            color: #8791a5;
+            font-size: 10px;
+        }
+
+        .account-modal-close {
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            border: 1px solid #e9edf4;
+            border-radius: 10px;
+            background: #f8f9fc;
+            color: #69758c;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .account-modal-close:hover {
+            background: #ffedef;
+            border-color: #ffd9de;
+            color: #d94b5b;
+        }
+
+
+        /* PROFILE DETAILS */
+
+        .profile-modal-body {
+            padding: 22px 23px;
+        }
+
+        .profile-cover {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 17px;
+            margin-bottom: 19px;
+            border: 1px solid #e8ebff;
+            border-radius: 13px;
+            background: linear-gradient(120deg, #f3f5ff, #f9faff);
+        }
+
+        .profile-cover-avatar {
+            width: 53px;
+            height: 53px;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #5267e8, #8795ff);
+            color: #ffffff;
+            font-size: 21px;
+        }
+
+        .profile-cover-info {
+            min-width: 0;
+        }
+
+        .profile-cover-info h3 {
+            overflow-wrap: anywhere;
+            color: #283653;
+            font-size: 14px;
+            font-weight: 750;
+        }
+
+        .profile-cover-info p {
+            margin-top: 4px;
+            color: #7d89a2;
+            font-size: 10px;
+            text-transform: capitalize;
+        }
+
+        .profile-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .profile-detail-card {
+            min-width: 0;
+            padding: 13px;
+            border: 1px solid #edf0f6;
+            border-radius: 11px;
+            background: #ffffff;
+        }
+
+        .profile-detail-card.full {
+            grid-column: 1 / -1;
+        }
+
+        .profile-detail-label {
+            display: block;
+            margin-bottom: 6px;
+            color: #929caf;
+            font-size: 9px;
+            font-weight: 650;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .profile-detail-value {
+            display: block;
+            overflow-wrap: anywhere;
+            color: #34405a;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .profile-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #159568;
+        }
+
+        .profile-status::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #20b77c;
+        }
+
+        .account-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 150px;
+            color: #8791a5;
+            font-size: 12px;
+        }
+
+        .account-loading i {
+            color: #5267e8;
+        }
+
+
+        /* PASSWORD FORM */
+
+        .password-modal-body {
+            padding: 22px 23px;
+        }
+
+        .password-security-note {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            padding: 12px;
+            margin-bottom: 21px;
+            border: 1px solid #e4e9ff;
+            border-radius: 10px;
+            background: #f5f6ff;
+            color: #6877ca;
+            font-size: 10px;
+            line-height: 1.6;
+        }
+
+        .password-security-note i {
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .password-field-group {
+            margin-bottom: 17px;
+        }
+
+        .password-field-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34405a;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .password-input-wrap {
+            position: relative;
+        }
+
+        .password-input-wrap input {
+            width: 100%;
+            height: 45px;
+            padding: 0 45px 0 13px;
+            border: 1px solid #e2e7f0;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #283653;
+            font-family: inherit;
+            font-size: 12px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .password-input-wrap input::placeholder {
+            color: #aab2c1;
+        }
+
+        .password-input-wrap input:focus {
+            outline: none;
+            border-color: #8492f0;
+            box-shadow: 0 0 0 3px rgba(82, 103, 232, 0.10);
+        }
+
+        .password-visibility {
+            position: absolute;
+            top: 50%;
+            right: 13px;
+            display: grid;
+            place-items: center;
+            width: 25px;
+            height: 25px;
+            transform: translateY(-50%);
+            border: 0;
+            background: transparent;
+            color: #929caf;
+            cursor: pointer;
+        }
+
+        .password-visibility:hover {
+            color: #5267e8;
+        }
+
+        .password-match-message {
+            display: block;
+            min-height: 16px;
+            margin-top: 6px;
+            font-size: 10px;
+        }
+
+        .password-match-message.match {
+            color: #159568;
+        }
+
+        .password-match-message.mismatch {
+            color: #d94b5b;
+        }
+
+        .password-form-message {
+            display: none;
+            padding: 10px 12px;
+            margin-top: 12px;
+            border-radius: 9px;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .password-form-message.success {
+            display: block;
+            border: 1px solid #cceedd;
+            background: #e7f7ef;
+            color: #169b69;
+        }
+
+        .password-form-message.error {
+            display: block;
+            border: 1px solid #ffd7dc;
+            background: #ffedef;
+            color: #d94b5b;
+        }
+
+
+        /* MODAL FOOTER */
+
+        .account-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 9px;
+            padding: 15px 23px;
+            border-top: 1px solid #edf0f6;
+            background: #fafbfe;
+        }
+
+        .account-secondary-btn,
+        .account-primary-btn {
+            min-height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 9px 15px;
+            border-radius: 9px;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .account-secondary-btn {
+            border: 1px solid #e2e7f0;
+            background: #ffffff;
+            color: #69758c;
+        }
+
+        .account-secondary-btn:hover {
+            background: #f1f3f8;
+        }
+
+        .account-primary-btn {
+            border: 1px solid #5267e8;
+            background: #5267e8;
+            color: #ffffff;
+            box-shadow: 0 3px 8px rgba(82, 103, 232, 0.15);
+        }
+
+        .account-primary-btn:hover {
+            border-color: #4055d6;
+            background: #4055d6;
+        }
+
+        .account-primary-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+
+        /* MOBILE */
+
+        @media (max-width: 480px) {
+            .profile-icon-btn {
+                width: 38px;
+                height: 38px;
+            }
+
+            .notification-toggle{
+                width: 38px;
+                height: 38px;
+            }
+            
+            .profile-dropdown {
+                right: -3px;
+                width: min(270px, calc(100vw - 25px));
+            }
+
+            .account-modal-overlay {
+                padding: 11px;
+            }
+
+            .account-modal {
+                border-radius: 15px;
+            }
+
+            .account-modal-header {
+                padding: 17px;
+            }
+
+            .account-modal-heading h2 {
+                font-size: 15px;
+            }
+
+            .account-modal-heading p {
+                font-size: 9px;
+            }
+
+            .profile-modal-body,
+            .password-modal-body {
+                padding: 17px;
+            }
+
+            .account-modal-footer {
+                padding: 13px 17px;
+            }
+
+            .profile-detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-detail-card.full {
+                grid-column: auto;
+            }
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+    {% block responsive_css %}{% endblock %}
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+
+        <div class="brand">
+            <div class="brand-icon">
+                <img class="logo"
+                    src="https://portal.sdpghc.net/assets/img/finallogo.png"
+                    alt="">
+            </div>
+
+            <div>
+                <div class="brand-name">Pro1 Global Home Center</div>
+                <div class="brand-subtitle">
+                    RECRUITMENT CANDIDATE TRACKING SYSTEM
+                </div>
+            </div>
+        </div>
+
+        <nav class="nav" aria-label="Main navigation">
+
+            <div class="nav-label">WORKSPACE</div>
+
+            <a href="{{ url_for('main.dashboard') }}"
+                class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}"
+                {% if request.endpoint == 'main.dashboard' %}aria-current="page"{% endif %}>
+
+                <span class="nav-icon">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </span>
+
+                <span class="nav-text">Dashboard</span>
+            </a>
+
+            {% if session.get('role') == 'super_admin' %}
+
+            <div class="nav-label">ADMINISTRATION</div>
+
+            {% set dept_endpoints = [
+                'main.manage_departments',
+                'main.add_department'
+            ] %}
+
+            {% set dept_open = request.endpoint in dept_endpoints %}
+
+            <div class="nav-group {% if dept_open %}open{% endif %}" id="deptNavGroup">
+
+                <button type="button"
+                    class="nav-group-toggle {% if dept_open %}active{% endif %}"
+                    id="deptNavToggle"
+                    aria-expanded="{{ 'true' if dept_open else 'false' }}"
+                    aria-controls="deptSubmenu">
+
+                    <span class="nav-icon">
+                        <i class="fa-solid fa-building"></i>
+                    </span>
+
+                    <span class="nav-text">Department</span>
+
+                    <span class="nav-caret">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </span>
+                </button>
+
+                <div class="nav-submenu" id="deptSubmenu">
+
+                    <a href="{{ url_for('main.add_department') }}"
+                        class="nav-link {% if request.endpoint == 'main.add_department' %}active{% endif %}"
+                        {% if request.endpoint == 'main.add_department' %}aria-current="page"{% endif %}>
+
+                        <span class="nav-icon">
+                            <i class="fa-solid fa-plus"></i>
+                        </span>
+
+                        <span class="nav-text">Add Department</span>
+                    </a>
+
+                    <a href="{{ url_for('main.manage_departments') }}"
+                        class="nav-link {% if request.endpoint == 'main.manage_departments' %}active{% endif %}"
+                        {% if request.endpoint == 'main.manage_departments' %}aria-current="page"{% endif %}>
+
+                        <span class="nav-icon">
+                            <i class="fa-solid fa-list"></i>
+                        </span>
+
+                        <span class="nav-text">View Department</span>
+                    </a>
+
+                </div>
+            </div>
+
+            {% set head_endpoints = [
+                'main.manage_department_heads',
+                'main.add_department_head'
+            ] %}
+
+            {% set head_open = request.endpoint in head_endpoints %}
+
+            <div class="nav-group {% if head_open %}open{% endif %}" id="headNavGroup">
+
+                <button type="button"
+                    class="nav-group-toggle {% if head_open %}active{% endif %}"
+                    id="headNavToggle"
+                    aria-expanded="{{ 'true' if head_open else 'false' }}"
+                    aria-controls="headSubmenu">
+
+                    <span class="nav-icon">
+                        <i class="fa-solid fa-users-gear"></i>
+                    </span>
+
+                    <span class="nav-text">Department Head</span>
+
+                    <span class="nav-caret">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </span>
+                </button>
+
+                <div class="nav-submenu" id="headSubmenu">
+
+                    <a href="{{ url_for('main.add_department_head') }}"
+                        class="nav-link {% if request.endpoint == 'main.add_department_head' %}active{% endif %}"
+                        {% if request.endpoint == 'main.add_department_head' %}aria-current="page"{% endif %}>
+
+                        <span class="nav-icon">
+                            <i class="fa-solid fa-user-plus"></i>
+                        </span>
+
+                        <span class="nav-text">Add Department Head</span>
+                    </a>
+
+                    <a href="{{ url_for('main.manage_department_heads') }}"
+                        class="nav-link {% if request.endpoint == 'main.manage_department_heads' %}active{% endif %}"
+                        {% if request.endpoint == 'main.manage_department_heads' %}aria-current="page"{% endif %}>
+
+                        <span class="nav-icon">
+                            <i class="fa-solid fa-list"></i>
+                        </span>
+
+                        <span class="nav-text">View Department Head</span>
+                    </a>
+
+                </div>
+            </div>
+
+                        <!-- EXAM QUESTIONS -->
+            {% set exam_question_endpoints = [
+                'exam.exam_create',
+                'exam.exam_list'
+            ] %}
+
+            {% set exam_question_open =
+                request.endpoint in exam_question_endpoints
+            %}
+
+            <div class="nav-group {% if exam_question_open %}open{% endif %}"
+                id="examQuestionNavGroup">
+
+                <button type="button"
+                    class="nav-group-toggle {% if exam_question_open %}active{% endif %}"
+                    id="examQuestionNavToggle"
+                    aria-expanded="{{ 'true' if exam_question_open else 'false' }}"
+                    aria-controls="examQuestionSubmenu">
+
+                    <span class="nav-icon">
+                        <i class="fa-solid fa-book-open"></i>
+                    </span>
+
+                    <span class="nav-text">Exam Questions</span>
+
+                    <span class="nav-caret">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </span>
+                </button>
+
+                <div class="nav-submenu" id="examQuestionSubmenu">
+
+                    <!-- Create Questions -->
+                    <a href="{{ url_for('exam.exam_create') }}"
+                        class="nav-link {% if request.endpoint == 'exam.exam_create' %}active{% endif %}"
+                        {% if request.endpoint == 'exam.exam_create' %}aria-current="page"{% endif %}>
+
+                        <span class="nav-icon">
+                            <i class="fa-solid fa-circle-plus"></i>
+                        </span>
+
+                        <span class="nav-text">Create Questions</span>
+                    </a>
+
+                    <!-- Created Questions -->
+                    <a href="{{ url_for('exam.exam_list') }}"
+                        class="nav-link {% if request.endpoint == 'exam.exam_list' %}active{% endif %}"
+                        {% if request.endpoint == 'exam.exam_list' %}aria-current="page"{% endif %}>
+
+                        <span class="nav-icon">
+                            <i class="fa-solid fa-list-check"></i>
+                        </span>
+
+                        <span class="nav-text">Manage Questions</span>
+                    </a>
+
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="nav-label">RECRUITMENT</div>
+
+            {% set candidate_endpoints = [
+                'candidate.candidates',
+                'candidate.add_candidate_page',
+                'candidate.view_candidate',
+                'candidate.candidate_history',
+                'candidate.view_candidates'
+            ] %}
+
+            {% set candidate_open =
+                request.endpoint in candidate_endpoints
+                and request.args.get('return_to') != 'records'
+            %}
+
+            <div class="nav-group {% if candidate_open %}open{% endif %}" id="candidateNavGroup">
+
+                <button type="button"
+                    class="nav-group-toggle {% if candidate_open %}active{% endif %}"
+                    id="candidateNavToggle"
+                    aria-expanded="{{ 'true' if candidate_open else 'false' }}"
+                    aria-controls="candidateSubmenu">
+
+                    <span class="nav-icon">
+                        <i class="fa-solid fa-users"></i>
+                    </span>
+
+                    <span class="nav-text">Candidates</span>
+
+                    <span class="nav-caret">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </span>
+                </button>
+
+                <div class="nav-submenu" id="candidateSubmenu">
+
+                    <!-- Add Candidate -->
+                    <a href="{{ url_for('candidate.add_candidate_page') }}"
+                        class="nav-link {% if request.endpoint == 'candidate.add_candidate_page' %}active{% endif %}"
+                        {% if request.endpoint == 'candidate.add_candidate_page' %}aria-current="page"{% endif %}>
+
+                        <span class="nav-icon">
+                            <i class="fa-solid fa-user-plus"></i>
+                        </span>
+
+                        <span class="nav-text">Add Candidate</span>
+                    </a>
+
+                    <!-- View Candidates -->
+                    <a href="{{ url_for('candidate.view_candidates') }}"
+                        class="nav-link {% if request.endpoint == 'candidate.view_candidates' %}active{% endif %}"
+                        {% if request.endpoint == 'candidate.view_candidates' %}aria-current="page"{% endif %}>
+
+                        <span class="nav-icon">
+                            <i class="fa-solid fa-diagram-project"></i>
+                        </span>
+
+                        <span class="nav-text">Manage Candidates</span>
+                    </a>
+
+                    <!-- Candidate Workflow -->
+                    <a href="{{ url_for('candidate.candidates') }}"
+                        class="nav-link {% if request.endpoint == 'candidate.candidates' %}active{% endif %}"
+                        {% if request.endpoint == 'candidate.candidates' %}aria-current="page"{% endif %}>
+
+                        <span class="nav-icon">
+                            <i class="fa-solid fa-list"></i>
+                        </span>
+
+                        <span class="nav-text">Candidate Workflow</span>
+                    </a>
+
+                    <!-- Interview Schedules -->
+                    <a href="{{ url_for('candidate.interview_schedules') }}"
+                        class="nav-link {% if request.endpoint == 'candidate.interview_schedules' %}active{% endif %}"
+                        {% if request.endpoint == 'candidate.interview_schedules' %}aria-current="page"{% endif %}>
+
+                        <span class="nav-icon">
+                            <i class="fa-regular fa-calendar-check"></i>
+                        </span>
+
+                        <span class="nav-text">Interview Schedules</span>
+                    </a>
+
+                </div>
+            </div>
+
+                        <!-- EXAM ASSIGNMENT -->
+            {% set exam_assignment_open =
+                request.endpoint in [
+                    'exam.exam_assign',
+                    'exam.exam_preview',
+                    'exam.exam_qr'
+                ]
+            %}
+
+            <div class="nav-group {% if exam_assignment_open %}open{% endif %}"
+                id="examNavGroup">
+
+                <button type="button"
+                    class="nav-group-toggle {% if exam_assignment_open %}active{% endif %}"
+                    id="examNavToggle"
+                    aria-expanded="{{ 'true' if exam_assignment_open else 'false' }}"
+                    aria-controls="examSubmenu">
+
+                    <span class="nav-icon">
+                        <i class="fa-solid fa-file-circle-check"></i>
+                    </span>
+
+                    <span class="nav-text">Exam</span>
+
+                    <span class="nav-caret">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </span>
+                </button>
+
+                <div class="nav-submenu" id="examSubmenu">
+
+                    <!-- Exam Assignment -->
+                    <a href="{{ url_for('exam.exam_assign') }}"
+                    class="nav-link {% if request.endpoint == 'exam.exam_assign' %}active{% endif %}"
+                    {% if request.endpoint == 'exam.exam_assign' %}aria-current="page"{% endif %}>
+
+                        <span class="nav-icon">
+                            <i class="fa-solid fa-user-check"></i>
+                        </span>
+
+                        <span class="nav-text">Exam Assignment</span>
+                    </a>
+
+                    <!-- Exam Results -->
+                    <a href="{{ url_for('exam.exam_results') }}"
+                    class="nav-link {% if request.endpoint == 'exam.exam_results' %}active{% endif %}"
+                    {% if request.endpoint == 'exam.exam_results' %}aria-current="page"{% endif %}>
+
+                        <span class="nav-icon">
+                            <i class="fa-solid fa-chart-column"></i>
+                        </span>
+
+                        <span class="nav-text">Exam Results</span>
+                    </a>
+
+                </div>
+            </div>
+
+            <a href="{{ url_for('candidate.records') }}"
+                class="nav-link {% if request.endpoint == 'candidate.records' or (request.endpoint in ['candidate.view_candidate', 'candidate.candidate_history'] and request.args.get('return_to') == 'records') %}active{% endif %}"
+                {% if request.endpoint == 'candidate.records' %}aria-current="page"{% endif %}>
+
+                <span class="nav-icon">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </span>
+
+                <span class="nav-text">Candidate Records</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <a href="{{ url_for('main.logout') }}" class="nav-link logout-link">
+
+                <span class="nav-icon">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </span>
+
+                <span class="nav-text">Log out</span>
+            </a>
+
+        </div>
+
+    </aside>
+
+    <!-- MOBILE OVERLAY -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+
+            <div class="topbar-left">
+
+                <button class="menu-toggle"
+                    id="menuToggle"
+                    aria-label="Open navigation"
+                    aria-expanded="false"
+                    aria-controls="sidebar"
+                    type="button">
+
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <div class="page-heading">
+
+                    <h1>{% block page_heading %}Dashboard{% endblock %}</h1>
+
+                    <p>
+                        {% block page_subtitle %}
+                        Recruitment Candidate Tracking System
+                        {% endblock %}
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="topbar-right">
+
+                <!-- NOTIFICATION BELL -->
+                <button type="button"
+                    class="notification-toggle"
+                    id="notificationToggle"
+                    aria-label="Open notifications"
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                    aria-controls="notificationOverlay">
+
+                    <i class="fa-regular fa-bell"></i>
+
+                    <span class="notification-count"
+                        id="notificationCount"
+                        hidden>
+                        0
+                    </span>
+
+                </button>
+
+                <!-- PROFILE MENU -->
+                <div class="profile-menu-wrap" id="profileMenuWrap">
+
+                    <button type="button"
+                        class="profile-icon-btn"
+                        id="profileMenuToggle"
+                        aria-label="Open profile menu"
+                        aria-expanded="false"
+                        aria-controls="profileDropdown">
+
+                        <i class="fa-solid fa-user"></i>
+                    </button>
+
+                    <div class="profile-dropdown" id="profileDropdown" hidden>
+
+                        <div class="profile-dropdown-heading">
+                            <span class="profile-dropdown-avatar">
+                                <i class="fa-solid fa-user"></i>
+                            </span>
+
+                            <div class="profile-dropdown-user">
+                                <strong>{{ session.get('user_name', 'User') }}</strong>
+                                <span>
+                                    {{ session.get('role', 'user')|replace('_', ' ')|title }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="profile-dropdown-divider"></div>
+
+                        <button type="button"
+                            class="profile-dropdown-item"
+                            id="openProfileModal">
+
+                            <span class="profile-dropdown-item-icon profile-item-blue">
+                                <i class="fa-regular fa-user"></i>
+                            </span>
+
+                            <span>
+                                <strong>My Profile</strong>
+                                <small>View your account details</small>
+                            </span>
+
+                            <i class="fa-solid fa-chevron-right profile-item-arrow"></i>
+                        </button>
+
+                        <button type="button"
+                            class="profile-dropdown-item"
+                            id="openPasswordModal">
+
+                            <span class="profile-dropdown-item-icon profile-item-purple">
+                                <i class="fa-solid fa-lock"></i>
+                            </span>
+
+                            <span>
+                                <strong>Change Password</strong>
+                                <small>Update your account password</small>
+                            </span>
+
+                            <i class="fa-solid fa-chevron-right profile-item-arrow"></i>
+                        </button>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </header>
+
+        <!-- PAGE CONTENT -->
+        <section class="content">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+
+            {% if messages %}
+
+            <div class="flash-messages" role="status" aria-live="polite">
+
+                {% for category, message in messages %}
+
+                <div class="flash-message {{ category }}">
+
+                    {% if category == 'success' %}
+                    <i class="fa-solid fa-circle-check"></i>
+
+                    {% elif category in ['error', 'danger'] %}
+                    <i class="fa-solid fa-circle-exclamation"></i>
+
+                    {% elif category == 'warning' %}
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+
+                    {% else %}
+                    <i class="fa-solid fa-circle-info"></i>
+                    {% endif %}
+
+                    <span>{{ message }}</span>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+
+        </section>
+
+        <!-- REAL SITE FOOTER -->
+        <footer class="site-footer">
+
+            <!-- <div class="footer-brand">
+
+                <span class="footer-brand-icon">P</span>
+
+                <span>Pro1 Global Home</span>
+
+            </div> -->
+
+            <div class="footer-meta">
+
+                <span>
+                    &copy; <span id="footerYear"></span>
+                </span>
+
+                <span class="footer-divider"></span>
+
+                <span>Recruitment Candidate Tracking System</span>
+
+            </div>
+
+            <div class="footer-status">
+
+                <span class="footer-status-dot"></span>
+
+                <span>System Portal</span>
+
+            </div>
+
+        </footer>
+
+    </main>
+
+    <!-- ========================================
+         NOTIFICATION MODAL
+    ======================================== -->
+
+    <div class="notification-overlay"
+        id="notificationOverlay"
+        hidden>
+
+        <section class="notification-modal"
+            id="notificationModal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="notificationTitle">
+
+            <div class="notification-header">
+
+                <div>
+
+                    <h2 id="notificationTitle">
+                        Notifications
+                    </h2>
+
+                    <p>
+                        Stay updated with your interview activities.
+                    </p>
+
+                </div>
+
+                <button type="button"
+                    class="notification-close"
+                    id="notificationClose"
+                    aria-label="Close notifications">
+
+                    <i class="fa-solid fa-xmark"></i>
+
+                </button>
+
+            </div>
+
+            <div class="notification-toolbar">
+
+                <div class="notification-unread-label">
+
+                    <span class="notification-live-dot"></span>
+
+                    <span id="notificationUnreadLabel">
+                        0 unread
+                    </span>
+
+                </div>
+
+                <button type="button"
+                    class="notification-read-all"
+                    id="notificationReadAll">
+
+                    Mark all as read
+
+                </button>
+
+            </div>
+
+            <div class="notification-list"
+                id="notificationList"
+                aria-live="polite"
+                aria-busy="false">
+
+                <div class="notification-loading">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Loading notifications...</span>
+                </div>
+
+            </div>
+
+            <div class="notification-footer">
+                RECRUITMENT CANDIDATE TRACKING SYSTEM
+            </div>
+
+        </section>
+
+    </div>
+    <!-- PROFILE MODAL -->
+    <div class="account-modal-overlay" id="profileModalOverlay" hidden>
+
+        <section class="account-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="profileModalTitle">
+
+            <div class="account-modal-header">
+
+                <div class="account-modal-heading">
+                    <div class="account-modal-heading-icon">
+                        <i class="fa-regular fa-user"></i>
+                    </div>
+
+                    <div>
+                        <h2 id="profileModalTitle">My Profile</h2>
+                        <p>Your account information and details</p>
+                    </div>
+                </div>
+
+                <button type="button"
+                    class="account-modal-close"
+                    data-close-account-modal
+                    aria-label="Close profile">
+
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+            </div>
+
+            <div class="profile-modal-body" id="profileDetails">
+
+                <div class="account-loading">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    Loading profile...
+                </div>
+
+            </div>
+
+            <div class="account-modal-footer">
+                <button type="button"
+                    class="account-secondary-btn"
+                    data-close-account-modal>
+                    Close
+                </button>
+            </div>
+
+        </section>
+    </div>
+
+
+    <!-- CHANGE PASSWORD MODAL -->
+    <div class="account-modal-overlay" id="passwordModalOverlay" hidden>
+
+        <section class="account-modal password-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="passwordModalTitle">
+
+            <div class="account-modal-header">
+
+                <div class="account-modal-heading">
+                    <div class="account-modal-heading-icon password-heading-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+
+                    <div>
+                        <h2 id="passwordModalTitle">Change Password</h2>
+                        <p>Create a new secure password for your account</p>
+                    </div>
+                </div>
+
+                <button type="button"
+                    class="account-modal-close"
+                    data-close-account-modal
+                    aria-label="Close password modal">
+
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+            </div>
+
+            <form id="changePasswordForm" autocomplete="off">
+
+                <div class="password-modal-body">
+
+                    <div class="password-security-note">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>
+                            Your new password must contain at least 8 characters.
+                        </span>
+                    </div>
+
+                    <div class="password-field-group">
+
+                        <label for="newPassword">
+                            New Password
+                        </label>
+
+                        <div class="password-input-wrap">
+
+                            <input type="password"
+                                id="newPassword"
+                                name="new_password"
+                                placeholder="Enter new password"
+                                minlength="8"
+                                maxlength="128"
+                                autocomplete="new-password"
+                                required>
+
+                            <button type="button"
+                                class="password-visibility"
+                                data-password-target="newPassword"
+                                aria-label="Show password">
+
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <div class="password-field-group">
+
+                        <label for="renewPassword">
+                            Re-enter New Password
+                        </label>
+
+                        <div class="password-input-wrap">
+
+                            <input type="password"
+                                id="renewPassword"
+                                name="confirm_password"
+                                placeholder="Re-enter new password"
+                                minlength="8"
+                                maxlength="128"
+                                autocomplete="new-password"
+                                required>
+
+                            <button type="button"
+                                class="password-visibility"
+                                data-password-target="renewPassword"
+                                aria-label="Show password">
+
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+
+                        </div>
+
+                        <small class="password-match-message"
+                            id="passwordMatchMessage"></small>
+
+                    </div>
+
+                    <div class="password-form-message"
+                        id="passwordFormMessage"
+                        role="status"
+                        aria-live="polite"></div>
+
+                </div>
+
+                <div class="account-modal-footer">
+
+                    <button type="button"
+                        class="account-secondary-btn"
+                        data-close-account-modal>
+                        Close
+                    </button>
+
+                    <button type="submit"
+                        class="account-primary-btn"
+                        id="changePasswordSubmit">
+
+                        <i class="fa-solid fa-lock"></i>
+                        Update Password
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+    </div>
+
+    <!-- Flask Route Configuration -->
+    <div
+        id="app-route-config"
+        hidden
+        data-notifications-url="{{ url_for('notification.notifications_api') }}"
+        data-read-all-url="{{ url_for('notification.mark_all_notifications_read') }}"
+        data-read-url-template="{{ url_for('notification.mark_notification_read', notification_id=0) }}"
+        data-profile-url="{{ url_for('main.profile_api') }}"
+        data-change-password-url="{{ url_for('main.change_password_api') }}"
+    ></div>
+    <!-- ========================================
+         MAIN JAVASCRIPT
+    ======================================== -->
+
+    <script>
+
+        "use strict";
+
+        // Current date
+        const todayElement = document.getElementById("todayDate");
+
+        if (todayElement) {
+            todayElement.textContent = new Date().toLocaleDateString("en-US", {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+                year: "numeric"
+            });
+        }
+
+        // Footer copyright year
+        const footerYear = document.getElementById("footerYear");
+
+        if (footerYear) {
+            footerYear.textContent = new Date().getFullYear();
+        }
+
+        // Responsive sidebar
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("overlay");
+        const menuToggle = document.getElementById("menuToggle");
+
+        function closeSidebar() {
+            if (!sidebar || !overlay || !menuToggle) return;
+
+            sidebar.classList.remove("open");
+            overlay.classList.remove("show");
+
+            menuToggle.setAttribute("aria-expanded", "false");
+            menuToggle.setAttribute("aria-label", "Open navigation");
+        }
+
+        function toggleSidebar() {
+            if (!sidebar || !overlay || !menuToggle) return;
+
+            const isOpen = sidebar.classList.toggle("open");
+
+            overlay.classList.toggle("show", isOpen);
+
+            menuToggle.setAttribute("aria-expanded", String(isOpen));
+
+            menuToggle.setAttribute(
+                "aria-label",
+                isOpen ? "Close navigation" : "Open navigation"
+            );
+        }
+
+        if (sidebar && overlay && menuToggle) {
+
+            menuToggle.addEventListener("click", toggleSidebar);
+
+            overlay.addEventListener("click", closeSidebar);
+
+            window.addEventListener("resize", function () {
+
+                if (window.innerWidth > 760) {
+                    closeSidebar();
+                }
+
+            });
+
+            document.addEventListener("keydown", function (event) {
+
+                if (event.key === "Escape") {
+                    closeSidebar();
+                }
+
+            });
+
+        }
+
+        // Sidebar navigation and submenu event delegation
+        document.addEventListener("click", function (event) {
+
+            // Submenu toggle
+            const toggle = event.target.closest(".nav-group-toggle");
+
+            if (toggle) {
+
+                const group = toggle.closest(".nav-group");
+
+                if (!group) return;
+
+                const isOpen = group.classList.toggle("open");
+
+                toggle.setAttribute("aria-expanded", String(isOpen));
+
+                return;
+            }
+
+            // Close mobile sidebar after clicking a navigation link
+            const navLink = event.target.closest(".nav-link");
+
+            if (navLink && window.innerWidth <= 760) {
+                closeSidebar();
+            }
+
+        });
+
+    </script>
+
+    <!-- ========================================
+         NOTIFICATION JAVASCRIPT
+    ======================================== -->
+
+    <script>
+
+        (function () {
+
+            "use strict";
+
+            const notificationToggle =
+                document.getElementById("notificationToggle");
+
+            const notificationCount =
+                document.getElementById("notificationCount");
+
+            const notificationOverlay =
+                document.getElementById("notificationOverlay");
+
+            const notificationModal =
+                document.getElementById("notificationModal");
+
+            const notificationClose =
+                document.getElementById("notificationClose");
+
+            const notificationList =
+                document.getElementById("notificationList");
+
+            const notificationUnreadLabel =
+                document.getElementById("notificationUnreadLabel");
+
+            const notificationReadAll =
+                document.getElementById("notificationReadAll");
+
+
+            if (
+                !notificationToggle ||
+                !notificationCount ||
+                !notificationOverlay ||
+                !notificationModal ||
+                !notificationClose ||
+                !notificationList ||
+                !notificationUnreadLabel ||
+                !notificationReadAll
+            ) {
+                return;
+            }
+
+
+           // Flask API URLs
+            const routeConfig = document.getElementById("app-route-config");
+
+            if (!routeConfig) {
+                console.error("App route configuration not found.");
+                return;
+            }
+
+            const notificationsUrl =
+                routeConfig.dataset.notificationsUrl;
+
+            const readAllUrl =
+                routeConfig.dataset.readAllUrl;
+
+            const readUrlTemplate =
+                routeConfig.dataset.readUrlTemplate;
+
+            let unreadCount = 0;
+            let notificationItems = [];
+            let isLoading = false;
+
+
+            // Escape HTML to prevent XSS
+            function escapeHtml(value) {
+
+                return String(value ?? "").replace(
+                    /[&<>"']/g,
+                    function (character) {
+
+                        const entities = {
+                            "&": "&amp;",
+                            "<": "&lt;",
+                            ">": "&gt;",
+                            '"': "&quot;",
+                            "'": "&#39;"
+                        };
+
+                        return entities[character];
+
+                    }
+                );
+
+            }
+
+
+            // Update unread badge
+            function updateUnreadCount(count) {
+
+                unreadCount = Number(count) || 0;
+
+                notificationUnreadLabel.textContent =
+                    unreadCount + " unread";
+
+                if (unreadCount > 0) {
+
+                    notificationCount.hidden = false;
+
+                    notificationCount.textContent =
+                        unreadCount > 99 ? "99+" : unreadCount;
+
+                    notificationToggle.classList.add("has-unread");
+
+                    notificationReadAll.disabled = false;
+
+                } else {
+
+                    notificationCount.hidden = true;
+
+                    notificationCount.textContent = "0";
+
+                    notificationToggle.classList.remove("has-unread");
+
+                    notificationReadAll.disabled = true;
+
+                }
+
+            }
+
+
+            // Loading UI
+            function showLoading() {
+
+                notificationList.setAttribute("aria-busy", "true");
+
+                notificationList.innerHTML = `
+                    <div class="notification-loading">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <span>Loading notifications...</span>
+                    </div>
+                `;
+
+            }
+
+
+            // Error UI
+            function showError() {
+
+                notificationList.setAttribute("aria-busy", "false");
+
+                notificationList.innerHTML = `
+                    <div class="notification-error">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span>Unable to load notifications.</span>
+                        <button type="button"
+                            class="notification-retry"
+                            id="notificationRetry">
+                            Try again
+                        </button>
+                    </div>
+                `;
+
+            }
+
+
+            // Empty notification UI
+            function showEmpty() {
+
+                notificationList.setAttribute("aria-busy", "false");
+
+                notificationList.innerHTML = `
+                    <div class="notification-empty">
+
+                        <div class="notification-empty-icon">
+                            <i class="fa-regular fa-bell-slash"></i>
+                        </div>
+
+                        <h3>You're all caught up!</h3>
+
+                        <p>
+                            There are no interview notifications
+                            available at the moment.
+                        </p>
+
+                    </div>
+                `;
+
+            }
+
+
+            // Get notification date group (Myanmar timezone)
+            function getNotificationDateGroup(dateValue) {
+
+                if (!dateValue) {
+                    return "OLDER";
+                }
+
+                // Backend က ပေးပို့တဲ့ ရက်စွဲ (ဥပမာ - "2026-11-07")
+                const notificationDateStr = String(dateValue).trim();
+
+                // ဒီနေ့ရက်စွဲကို မြန်မာစံတော်ချိန် (Asia/Yangon) အတိုင်း "YYYY-MM-DD" ပုံစံဖြင့် ယူမယ်
+                const todayDateStr = new Intl.DateTimeFormat("en-CA", {
+                    timeZone: "Asia/Yangon",
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit"
+                }).format(new Date());
+
+                // မနေ့က ရက်စွဲကို တွက်မယ် (မြန်မာစံတော်ချိန်အတိုင်း)
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayDateStr = new Intl.DateTimeFormat("en-CA", {
+                    timeZone: "Asia/Yangon",
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit"
+                }).format(yesterday);
+
+                // သီတင်းပတ် ကွာခြားချက်ကို တွက်ဖို့ ရက်စွဲတွေကို UTC Timestamp အဖြစ် ပြောင်းမယ် (တွက်ချက်ဖို့သက်သက်ပါ)
+                const notificationMs = new Date(notificationDateStr + "T00:00:00Z").getTime();
+                const todayMs = new Date(todayDateStr + "T00:00:00Z").getTime();
+                
+                const diffDays = Math.round((todayMs - notificationMs) / 86400000);
+
+                // ရက်စွဲ String တွေ တိုက်ရိုက် ညီမညီ အရင်စစ်မယ်
+                if (notificationDateStr === todayDateStr) {
+                    return "TODAY";
+                }
+                
+                if (notificationDateStr === yesterdayDateStr) {
+                    return "YESTERDAY";
+                }
+
+                if (diffDays >= 2 && diffDays <= 6) {
+                    return "EARLIER THIS WEEK";
+                }
+
+                if (diffDays >= 7 && diffDays <= 13) {
+                    return "LAST WEEK";
+                }
+
+                return "OLDER";
+            }
+                        
+
+            // Render notifications
+            function renderNotifications(items) {
+                
+                notificationList.classList.toggle(
+                    "has-scroll",
+                    Array.isArray(items) && items.length > 4
+                );
+
+                notificationList.setAttribute("aria-busy", "false");
+
+                if (!Array.isArray(items) || items.length === 0) {
+                    showEmpty();
+                    return;
+                }
+
+                // Group notifications by date
+                const groupedNotifications = {};
+
+                const groupOrder = [
+                    "TODAY",
+                    "YESTERDAY",
+                    "EARLIER THIS WEEK",
+                    "LAST WEEK",
+                    "OLDER"
+                ];
+
+                items.forEach(function (item) {
+
+                    const group = getNotificationDateGroup(
+                        item.created_date
+                    );
+
+                    if (!groupedNotifications[group]) {
+                        groupedNotifications[group] = [];
+                    }
+
+                    groupedNotifications[group].push(item);
+
+                });
+
+
+                // Render grouped notifications
+                notificationList.innerHTML = groupOrder.map(function (group) {
+
+                    const groupItems = groupedNotifications[group];
+
+                    if (!groupItems || groupItems.length === 0) {
+                        return "";
+                    }
+
+                    const notificationHTML = groupItems.map(function (item) {
+
+                        const isOverdue =
+                            item.notification_type === "overdue_interview";
+
+                        const iconClass =
+                            isOverdue ? "overdue" : "today";
+
+                        const icon =
+                            isOverdue
+                                ? "fa-triangle-exclamation"
+                                : "fa-calendar-check";
+
+                        const unreadClass =
+                            item.is_read ? "" : "unread";
+
+                        const unreadDot =
+                            item.is_read
+                                ? ""
+                                : '<span class="notification-unread-dot"></span>';
+
+                        return `
+                            <div class="notification-item ${unreadClass}"
+                                data-id="${escapeHtml(item.id)}"
+                                data-url="${escapeHtml(item.url)}"
+                                role="button"
+                                tabindex="0"
+                                aria-label="${escapeHtml(item.title)}">
+
+                                <div class="notification-item-icon ${iconClass}">
+                                    <i class="fa-solid ${icon}"></i>
+                                </div>
+
+                                <div class="notification-item-content">
+
+                                    <div class="notification-item-top">
+
+                                        <span class="notification-item-title">
+                                            ${escapeHtml(item.title)}
+                                        </span>
+
+                                        ${unreadDot}
+
+                                    </div>
+
+                                    <p class="notification-item-message">
+                                        ${escapeHtml(item.message)}
+                                    </p>
+
+                                    <span class="notification-item-date">
+                                        <i class="fa-regular fa-clock"></i>
+                                        ${escapeHtml(item.created_label)}
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        `;
+
+                    }).join("");
+
+
+                    return `
+                        <div class="notification-date-group">
+
+                            <div class="notification-date-label">
+                                <span>${group}</span>
+                            </div>
+
+                            ${notificationHTML}
+
+                        </div>
+                    `;
+
+                }).join("");
+
+            }
+
+            // Load notifications from Flask API
+            async function loadNotifications() {
+
+                if (isLoading) return;
+
+                isLoading = true;
+
+                showLoading();
+
+                try {
+
+                    const response = await fetch(notificationsUrl, {
+                        method: "GET",
+                        headers: {
+                            "Accept": "application/json",
+                            "X-Requested-With": "XMLHttpRequest"
+                        },
+                        credentials: "same-origin",
+                        cache: "no-store"
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("Notification API failed.");
+                    }
+
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error("Invalid notification response.");
+                    }
+
+                    notificationItems =
+                        Array.isArray(data.notifications)
+                            ? data.notifications
+                            : [];
+
+                    updateUnreadCount(data.unread_count);
+
+                    renderNotifications(notificationItems);
+
+                } catch (error) {
+
+                    console.error(
+                        "Notification loading error:",
+                        error
+                    );
+
+                    showError();
+
+                } finally {
+
+                    isLoading = false;
+
+                }
+
+            }
+
+
+            // Open modal
+            function openNotificationModal() {
+
+                notificationOverlay.hidden = false;
+
+                notificationToggle.setAttribute(
+                    "aria-expanded",
+                    "true"
+                );
+
+                document.body.style.overflow = "hidden";
+
+                loadNotifications();
+
+                notificationClose.focus();
+
+            }
+
+
+            // Close modal
+            function closeNotificationModal() {
+
+                notificationOverlay.hidden = true;
+
+                notificationToggle.setAttribute(
+                    "aria-expanded",
+                    "false"
+                );
+
+                document.body.style.overflow = "";
+
+                notificationToggle.focus();
+
+            }
+
+
+            
+            // Mark one notification as read
+            async function markNotificationRead(notificationId) {
+
+                const readUrl = readUrlTemplate.replace(
+                    /\/0\/read$/,
+                    "/" + encodeURIComponent(notificationId) + "/read"
+                );
+
+                const response = await fetch(readUrl, {
+
+                    method: "POST",
+
+                    headers: {
+                        "Accept": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+
+                    credentials: "same-origin"
+
+                });
+
+                if (!response.ok) {
+                    throw new Error("Unable to mark notification as read.");
+                }
+
+                return response.json();
+            }
+
+
+            // Mark all notifications as read
+            async function markAllNotificationsRead() {
+
+                if (unreadCount === 0) return;
+
+                notificationReadAll.disabled = true;
+
+                try {
+
+                    const response = await fetch(readAllUrl, {
+
+                        method: "POST",
+
+                        headers: {
+                            "Accept": "application/json",
+                            "X-Requested-With": "XMLHttpRequest"
+                        },
+
+                        credentials: "same-origin"
+
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("Unable to mark all as read.");
+                    }
+
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        throw new Error("Operation failed.");
+                    }
+
+                    notificationItems = notificationItems.map(
+                        function (item) {
+
+                            return {
+                                ...item,
+                                is_read: true
+                            };
+
+                        }
+                    );
+
+                    updateUnreadCount(0);
+
+                    renderNotifications(notificationItems);
+
+                } catch (error) {
+
+                    console.error(
+                        "Mark all notifications error:",
+                        error
+                    );
+
+                    notificationReadAll.disabled = false;
+
+                    alert("Unable to mark notifications as read. Please try again.");
+
+                }
+
+            }
+
+
+            // Open selected notification
+            async function openSelectedNotification(element) {
+
+                if (!element) return;
+
+                const notificationId = element.dataset.id;
+
+                const targetUrl = element.dataset.url;
+
+                if (!notificationId || !targetUrl) return;
+
+                const selectedItem = notificationItems.find(
+                    function (item) {
+                        return String(item.id) === String(notificationId);
+                    }
+                );
+
+                if (!selectedItem) return;
+
+                try {
+
+                    if (!selectedItem.is_read) {
+
+                        await markNotificationRead(notificationId);
+
+                        selectedItem.is_read = true;
+
+                        updateUnreadCount(
+                            Math.max(0, unreadCount - 1)
+                        );
+
+                    }
+
+                    window.location.href = targetUrl;
+
+                } catch (error) {
+
+                    console.error(
+                        "Notification read error:",
+                        error
+                    );
+
+                    alert("Unable to open this notification. Please try again.");
+
+                }
+
+            }
+
+
+            // Notification button
+            notificationToggle.addEventListener(
+                "click",
+                openNotificationModal
+            );
+
+
+            // Close button
+            notificationClose.addEventListener(
+                "click",
+                closeNotificationModal
+            );
+
+
+            // Close when clicking outside the modal
+            notificationOverlay.addEventListener(
+                "click",
+                function (event) {
+
+                    if (event.target === notificationOverlay) {
+                        closeNotificationModal();
+                    }
+
+                }
+            );
+
+
+            // Keyboard Escape
+            document.addEventListener(
+                "keydown",
+                function (event) {
+
+                    if (
+                        event.key === "Escape" &&
+                        !notificationOverlay.hidden
+                    ) {
+                        closeNotificationModal();
+                    }
+
+                }
+            );
+
+
+            // Mark all as read
+            notificationReadAll.addEventListener(
+                "click",
+                markAllNotificationsRead
+            );
+
+
+            // Retry loading
+            notificationList.addEventListener(
+                "click",
+                function (event) {
+
+                    if (event.target.closest("#notificationRetry")) {
+                        loadNotifications();
+                        return;
+                    }
+
+                    const item = event.target.closest(
+                        ".notification-item"
+                    );
+
+                    if (item) {
+                        openSelectedNotification(item);
+                    }
+
+                }
+            );
+
+
+            // Keyboard support for notification items
+            notificationList.addEventListener(
+                "keydown",
+                function (event) {
+
+                    if (
+                        event.key !== "Enter" &&
+                        event.key !== " "
+                    ) {
+                        return;
+                    }
+
+                    const item = event.target.closest(
+                        ".notification-item"
+                    );
+
+                    if (!item) return;
+
+                    event.preventDefault();
+
+                    openSelectedNotification(item);
+
+                }
+            );
+
+
+            // Initial unread count and notification sync
+            // API is called when the page loads.
+            loadNotifications();
+
+        })();
+
+    </script>
+
+    <script>
+    (function () {
+        "use strict";
+
+        const menuWrap = document.getElementById("profileMenuWrap");
+        const menuToggle = document.getElementById("profileMenuToggle");
+        const dropdown = document.getElementById("profileDropdown");
+
+        const profileOverlay = document.getElementById("profileModalOverlay");
+        const passwordOverlay = document.getElementById("passwordModalOverlay");
+
+        const profileDetails = document.getElementById("profileDetails");
+
+        const passwordForm = document.getElementById("changePasswordForm");
+        const passwordMessage = document.getElementById("passwordFormMessage");
+        const passwordMatchMessage = document.getElementById("passwordMatchMessage");
+
+        const newPassword = document.getElementById("newPassword");
+        const renewPassword = document.getElementById("renewPassword");
+        const passwordSubmit = document.getElementById("changePasswordSubmit");
+
+        if (
+            !menuWrap || !menuToggle || !dropdown ||
+            !profileOverlay || !passwordOverlay ||
+            !profileDetails || !passwordForm
+        ) {
+            return;
+        }
+
+        const routeConfig = document.getElementById("app-route-config");
+
+        if (!routeConfig) {
+            console.error("App route configuration not found.");
+            return;
+        }
+
+        const profileUrl =
+            routeConfig.dataset.profileUrl;
+
+        const changePasswordUrl =
+            routeConfig.dataset.changePasswordUrl;
+
+        function escapeHtml(value) {
+            return String(value ?? "").replace(/[&<>"']/g, function (character) {
+                const entities = {
+                    "&": "&amp;",
+                    "<": "&lt;",
+                    ">": "&gt;",
+                    '"': "&quot;",
+                    "'": "&#39;"
+                };
+
+                return entities[character];
+            });
+        }
+
+        function closeDropdown() {
+            dropdown.hidden = true;
+            menuToggle.setAttribute("aria-expanded", "false");
+        }
+
+        function openDropdown() {
+            dropdown.hidden = false;
+            menuToggle.setAttribute("aria-expanded", "true");
+        }
+
+        function closeAccountModals() {
+            profileOverlay.hidden = true;
+            passwordOverlay.hidden = true;
+            document.body.style.overflow = "";
+        }
+
+        function openAccountModal(overlay) {
+            closeDropdown();
+            closeAccountModals();
+
+            overlay.hidden = false;
+            document.body.style.overflow = "hidden";
+
+            const closeButton = overlay.querySelector("[data-close-account-modal]");
+
+            if (closeButton) {
+                closeButton.focus();
+            }
+        }
+
+        menuToggle.addEventListener("click", function (event) {
+            event.stopPropagation();
+
+            if (dropdown.hidden) {
+                openDropdown();
+            } else {
+                closeDropdown();
+            }
+        });
+
+        document.addEventListener("click", function (event) {
+            if (!menuWrap.contains(event.target)) {
+                closeDropdown();
+            }
+        });
+
+        document.getElementById("openProfileModal").addEventListener("click", async function () {
+            openAccountModal(profileOverlay);
+
+            profileDetails.innerHTML = `
+                <div class="account-loading">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    Loading profile...
+                </div>
+            `;
+
+            try {
+                const response = await fetch(profileUrl, {
+                    method: "GET",
+                    headers: { "Accept": "application/json" },
+                    credentials: "same-origin",
+                    cache: "no-store"
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || "Unable to load profile.");
+                }
+
+                const user = data.profile;
+
+                profileDetails.innerHTML = `
+                    <div class="profile-cover">
+                        <div class="profile-cover-avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+
+                        <div class="profile-cover-info">
+                            <h3>${escapeHtml(user.name)}</h3>
+                            <p>${escapeHtml(user.role)}</p>
+                        </div>
+                    </div>
+
+                    <div class="profile-detail-grid">
+
+                        <div class="profile-detail-card">
+                            <span class="profile-detail-label">Employee Code</span>
+                            <span class="profile-detail-value">
+                                ${escapeHtml(user.employee_code)}
+                            </span>
+                        </div>
+
+                        <div class="profile-detail-card">
+                            <span class="profile-detail-label">Role</span>
+                            <span class="profile-detail-value">
+                                ${escapeHtml(user.role)}
+                            </span>
+                        </div>
+
+                        <div class="profile-detail-card full">
+                            <span class="profile-detail-label">
+                                ${String(user.role || "").toLowerCase() === "super_admin"
+                                    ? "Access Permission"
+                                    : "Assigned Departments"}
+                            </span>
+
+                            <span class="profile-detail-value">
+                                ${
+                                    String(user.role || "").toLowerCase() === "super_admin"
+                                        ? '<span class="profile-status">All Access</span>'
+                                        : (
+                                            Array.isArray(user.departments) &&
+                                            user.departments.length > 0
+                                                ? user.departments
+                                                    .map(function (department) {
+                                                        return escapeHtml(department);
+                                                    })
+                                                    .join(", ")
+                                                : "Not assigned"
+                                        )
+                                }
+                            </span>
+                        </div>
+
+                        <div class="profile-detail-card full">
+                            <span class="profile-detail-label">Account Status</span>
+                            <span class="profile-detail-value profile-status">
+                                ${escapeHtml(user.status)}
+                            </span>
+                        </div>
+
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error("Profile loading error:", error);
+
+                profileDetails.innerHTML = `
+                    <div class="account-loading">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        ${escapeHtml(error.message)}
+                    </div>
+                `;
+            }
+        });
+
+        document.getElementById("openPasswordModal").addEventListener("click", function () {
+            passwordForm.reset();
+
+            passwordMessage.className = "password-form-message";
+            passwordMessage.textContent = "";
+
+            passwordMatchMessage.textContent = "";
+            passwordMatchMessage.className = "password-match-message";
+
+            document.querySelectorAll(".password-visibility i").forEach(function (icon) {
+                icon.className = "fa-regular fa-eye";
+            });
+
+            newPassword.type = "password";
+            renewPassword.type = "password";
+
+            openAccountModal(passwordOverlay);
+        });
+
+        document.querySelectorAll("[data-close-account-modal]").forEach(function (button) {
+            button.addEventListener("click", closeAccountModals);
+        });
+
+        [profileOverlay, passwordOverlay].forEach(function (overlay) {
+            overlay.addEventListener("click", function (event) {
+                if (event.target === overlay) {
+                    closeAccountModals();
+                }
+            });
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                closeDropdown();
+
+                if (!profileOverlay.hidden || !passwordOverlay.hidden) {
+                    closeAccountModals();
+                }
+            }
+        });
+
+        document.querySelectorAll("[data-password-target]").forEach(function (button) {
+            button.addEventListener("click", function () {
+                const target = document.getElementById(button.dataset.passwordTarget);
+
+                if (!target) return;
+
+                const isPassword = target.type === "password";
+                target.type = isPassword ? "text" : "password";
+
+                const icon = button.querySelector("i");
+
+                if (icon) {
+                    icon.className = isPassword
+                        ? "fa-regular fa-eye-slash"
+                        : "fa-regular fa-eye";
+                }
+
+                button.setAttribute(
+                    "aria-label",
+                    isPassword ? "Hide password" : "Show password"
+                );
+            });
+        });
+
+        function validatePasswordMatch() {
+            const first = newPassword.value;
+            const second = renewPassword.value;
+
+            if (!first || !second) {
+                passwordMatchMessage.textContent = "";
+                passwordMatchMessage.className = "password-match-message";
+                return false;
+            }
+
+            if (first === second) {
+                passwordMatchMessage.textContent = "Passwords match.";
+                passwordMatchMessage.className = "password-match-message match";
+                return true;
+            }
+
+            passwordMatchMessage.textContent = "Passwords do not match.";
+            passwordMatchMessage.className = "password-match-message mismatch";
+            return false;
+        }
+
+        newPassword.addEventListener("input", validatePasswordMatch);
+        renewPassword.addEventListener("input", validatePasswordMatch);
+
+        passwordForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const first = newPassword.value;
+            const second = renewPassword.value;
+
+            passwordMessage.className = "password-form-message";
+            passwordMessage.textContent = "";
+
+            if (first.length < 8) {
+                passwordMessage.textContent =
+                    "Password must contain at least 8 characters.";
+                passwordMessage.classList.add("error");
+                newPassword.focus();
+                return;
+            }
+
+            if (first !== second) {
+                passwordMessage.textContent =
+                    "The two passwords do not match.";
+                passwordMessage.classList.add("error");
+                renewPassword.focus();
+                return;
+            }
+
+            passwordSubmit.disabled = true;
+            passwordSubmit.innerHTML = `
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Updating...
+            `;
+
+            try {
+                const response = await fetch(changePasswordUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    credentials: "same-origin",
+                    body: JSON.stringify({
+                        new_password: first,
+                        confirm_password: second
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || "Unable to update password.");
+                }
+
+                passwordMessage.textContent = data.message;
+                passwordMessage.className = "password-form-message success";
+
+                passwordForm.reset();
+
+                passwordMatchMessage.textContent = "";
+
+                setTimeout(function () {
+                    closeAccountModals();
+                    passwordMessage.className = "password-form-message";
+                    passwordMessage.textContent = "";
+                }, 1400);
+
+            } catch (error) {
+                passwordMessage.textContent = error.message;
+                passwordMessage.className = "password-form-message error";
+
+            } finally {
+                passwordSubmit.disabled = false;
+                passwordSubmit.innerHTML = `
+                    <i class="fa-solid fa-lock"></i>
+                    Update Password
+                `;
+            }
+        });
+
+    })();
+    </script>
+
+    {% block extra_js %}{% endblock %}
+
+</body>
+
+</html>

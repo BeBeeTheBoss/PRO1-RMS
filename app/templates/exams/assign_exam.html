@@ -1,0 +1,1765 @@
+{% extends "base.html" %}
+
+{% block title %}Assign Exam{% endblock %}
+{% block page_heading %}Examination Management{% endblock %}
+{% block page_subtitle %}Assign assessments and manage candidate examination links.{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --exam-primary: #635bdb;
+    --exam-primary-dark: #5148c7;
+    --exam-primary-soft: #f1f0ff;
+    --exam-text: #26324b;
+    --exam-muted: #8791a7;
+    --exam-border: #e8eaf2;
+    --exam-bg: #f8f9fd;
+    --exam-green: #159b76;
+}
+
+.assign-wrap { max-width:1250px; margin:0 auto; padding-bottom:30px; }
+
+.exam-intro {
+    position:relative; overflow:hidden; padding:25px 28px;
+    margin-bottom:22px; border-radius:20px;
+    background:linear-gradient(120deg,#635bdb,#818cf8);
+    color:white; box-shadow:0 10px 28px rgba(99,91,219,.17);
+}
+.exam-intro::after {
+    content:""; position:absolute; width:220px; height:220px;
+    right:-55px; top:-110px; border:35px solid rgba(255,255,255,.09);
+    border-radius:50%;
+}
+.intro-content { position:relative; z-index:1; }
+.intro-content h2 { font-size:21px; font-weight:800; margin:0 0 7px; }
+.intro-content p { font-size:13px; color:rgba(255,255,255,.82); margin:0; line-height:1.7; }
+
+.exam-tabs {
+    display:flex; gap:7px; padding:6px; background:#eef0f8;
+    border:1px solid #e8eaf3; border-radius:14px;
+    width:fit-content; max-width:100%; margin-bottom:22px;
+}
+.exam-tab {
+    display:inline-flex; align-items:center; justify-content:center; gap:9px;
+    border:0; border-radius:10px; padding:12px 22px;
+    background:transparent; color:#7b8499; font-size:13px;
+    font-weight:700; cursor:pointer; transition:all .2s ease;
+}
+.exam-tab:hover { color:var(--exam-primary); }
+.exam-tab.active {
+    color:var(--exam-primary); background:white;
+    box-shadow:0 3px 12px rgba(32,42,75,.09);
+}
+
+.panel {
+    background:#fff; border:1px solid var(--exam-border);
+    border-radius:17px; padding:23px; margin-bottom:18px;
+    box-shadow:0 4px 18px rgba(32,42,75,.035);
+}
+.panel-header {
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; margin-bottom:20px;
+}
+.panel-heading { display:flex; align-items:center; gap:11px; }
+.panel-icon {
+    width:39px; height:39px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--exam-primary); background:var(--exam-primary-soft);
+    font-size:16px;
+}
+.panel-title { color:var(--exam-text); font-size:15px; font-weight:800; margin:0; }
+.panel-subtitle { color:var(--exam-muted); font-size:11px; margin-top:4px; }
+
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:17px; }
+.field label {
+    display:block; font-size:12px; font-weight:700;
+    color:#59647c; margin-bottom:8px;
+}
+.field input,.field select {
+    width:100%; min-height:44px; padding:11px 13px;
+    border:1px solid #e1e5ef; border-radius:10px;
+    font-family:inherit; font-size:12px; background:#fff;
+    color:#34405a; outline:none; transition:.2s;
+}
+.field input:focus,.field select:focus {
+    border-color:#8279ed; box-shadow:0 0 0 3px rgba(99,91,219,.10);
+}
+.field input::placeholder { color:#aab1c0; }
+
+.candidate-toolbar {
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; margin-bottom:13px; flex-wrap:wrap;
+}
+.candidate-search { position:relative; flex:1; min-width:220px; }
+.candidate-search i {
+    position:absolute; left:13px; top:50%; transform:translateY(-50%);
+    color:#a0a8b8; font-size:13px;
+}
+.candidate-search input {
+    width:100%; height:43px; padding:10px 13px 10px 38px;
+    border:1px solid #e3e6ef; border-radius:10px; outline:none;
+    font-family:inherit; font-size:12px; color:var(--exam-text);
+}
+.candidate-search input:focus {
+    border-color:#8179ed; box-shadow:0 0 0 3px rgba(99,91,219,.09);
+}
+.candidate-count {
+    font-size:11px; font-weight:700; color:#7c869d;
+    background:#f3f4f9; border-radius:8px; padding:9px 12px;
+    white-space:nowrap;
+}
+.candidate-list {
+    border:1px solid #e9ebf2; border-radius:13px;
+    overflow:hidden; background:white;
+}
+.candidate-row {
+    display:flex; align-items:center; gap:13px; padding:14px 15px;
+    border-bottom:1px solid #eff0f5; cursor:pointer; transition:background .18s;
+}
+.candidate-row:last-child { border-bottom:0; }
+.candidate-row:hover { background:#fafaff; }
+.candidate-row:has(input:checked) { background:#f4f3ff; }
+.candidate-row input {
+    width:17px; height:17px; flex-shrink:0;
+    accent-color:var(--exam-primary); cursor:pointer;
+}
+.candidate-avatar {
+    width:39px; height:39px; border-radius:12px;
+    background:linear-gradient(135deg,#eeedff,#e2e6ff);
+    color:var(--exam-primary); display:flex; align-items:center;
+    justify-content:center; font-size:14px; font-weight:800; flex-shrink:0;
+}
+.candidate-details { flex:1; min-width:0; }
+.candidate-name {
+    font-size:13px; font-weight:800; color:#303b55;
+    display:block; overflow-wrap:anywhere;
+}
+.candidate-meta {
+    font-size:11px; color:#929bad; margin-top:5px;
+    display:block; line-height:1.6;
+}
+.candidate-time {
+    flex-shrink:0; color:#159b76; background:#eaf8f3;
+    padding:7px 10px; border-radius:8px;
+    font-size:10px; font-weight:800;
+}
+.candidate-pagination {
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; flex-wrap:wrap; padding:13px 2px 0;
+}
+.pagination-info { font-size:11px; color:#8992a6; }
+.pagination-buttons { display:flex; align-items:center; gap:5px; }
+.page-btn {
+    min-width:33px; height:33px; padding:0 9px;
+    border:1px solid #e6e8f0; border-radius:8px;
+    background:white; color:#727d94; font-size:11px;
+    font-weight:700; cursor:pointer; transition:.2s;
+}
+.page-btn:hover:not(:disabled) {
+    border-color:var(--exam-primary); color:var(--exam-primary);
+}
+.page-btn.active {
+    background:var(--exam-primary); color:white;
+    border-color:var(--exam-primary);
+}
+.page-btn:disabled { opacity:.4; cursor:not-allowed; }
+
+.empty { text-align:center; padding:30px 15px; color:#939caf; font-size:12px; }
+.empty i { display:block; font-size:25px; margin-bottom:10px; color:#c3c9d9; }
+
+.choice-row { display:flex; gap:10px; flex-wrap:wrap; }
+.choice {
+    border:1px solid #e4e7f0; border-radius:11px; padding:12px 15px;
+    display:inline-flex; align-items:center; gap:9px;
+    font-size:12px; color:#59647c; font-weight:600;
+    cursor:pointer; transition:.2s;
+}
+.choice:hover { border-color:#b6b0f4; background:#faf9ff; }
+.choice:has(input:checked) {
+    border-color:#8179ed; background:#f4f3ff; color:var(--exam-primary);
+}
+.choice input { accent-color:var(--exam-primary); }
+
+.question-list {
+    margin-top:13px; max-height:none; overflow:visible;
+    border:1px solid #edf0f5; border-radius:11px; background:#fff;
+}
+.question-item {
+    padding:13px 14px; min-height:48px;
+    border-bottom:1px solid #edf0f5; font-size:12px;
+    color:#59647c; display:flex; gap:10px;
+    align-items:flex-start; cursor:pointer; transition:background .18s;
+}
+.question-item:hover { background:#fafaff; }
+.question-item:has(input:checked) { background:#f4f3ff; }
+.question-item:last-child { border-bottom:0; }
+.question-item input { accent-color:var(--exam-primary); margin-top:2px; }
+
+/* RANDOM PREVIEW */
+.random-preview {
+    margin-top:16px; padding:16px;
+    background:#fbfaff; border:1px solid #e9e7ff;
+    border-radius:13px;
+}
+.random-preview-toolbar {
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; flex-wrap:wrap;
+}
+.random-preview-status {
+    font-size:11px; color:#858da2; line-height:1.6;
+}
+.random-preview-status.success { color:#159b76; font-weight:700; }
+.random-preview .question-list { margin-top:14px; }
+.random-preview .question-item { cursor:default; }
+.random-preview .question-item:hover { background:#fff; }
+.random-preview .candidate-pagination { padding-bottom:2px; }
+.random-preview-empty {
+    text-align:center; padding:24px 12px;
+    color:#929bad; font-size:12px;
+}
+.random-preview-empty i {
+    display:block; font-size:22px; margin-bottom:8px; color:#aaa5e8;
+}
+
+.info {
+    background:#f2f4ff; border:1px solid #e8e7ff;
+    border-radius:11px; padding:13px 15px;
+    color:#6972a0; font-size:11px; margin-top:17px; line-height:1.7;
+}
+.info i { margin-right:6px; color:var(--exam-primary); }
+
+.btn {
+    border:0; border-radius:10px; padding:12px 17px; min-height:42px;
+    font-family:inherit; font-weight:700; font-size:12px;
+    cursor:pointer; text-decoration:none; display:inline-flex;
+    align-items:center; justify-content:center; gap:8px; transition:.2s;
+}
+.primary {
+    background:var(--exam-primary); color:#fff;
+    box-shadow:0 4px 10px rgba(99,91,219,.14);
+}
+.primary:hover { background:var(--exam-primary-dark); transform:translateY(-1px); }
+.primary:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+.light { background:#f0f2f8; color:#59647c; }
+.light:hover { background:#e7e9f2; }
+.actions { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+.qr-container { max-width:900px; margin:auto; }
+.qr-card { padding:28px; }
+.qr-top { text-align:center; padding-bottom:23px; border-bottom:1px solid #edf0f5; }
+.qr-icon {
+    width:58px; height:58px; margin:0 auto 14px;
+    border-radius:17px; background:linear-gradient(135deg,#f0efff,#e7eaff);
+    color:var(--exam-primary); display:flex; align-items:center;
+    justify-content:center; font-size:24px;
+}
+.qr-card h2 {
+    color:#26324c; font-size:21px; font-weight:800;
+    margin:0 0 8px; overflow-wrap:anywhere;
+}
+.qr-description { color:#929bad; font-size:12px; line-height:1.7; margin:0; }
+.qr-main-content {
+    display:grid; grid-template-columns:minmax(230px,.85fr) 1.15fr;
+    gap:25px; align-items:center; padding:25px 0;
+}
+.qr-visual {
+    text-align:center; background:#fafaff; border:1px solid #edecfb;
+    border-radius:16px; padding:22px 15px;
+}
+.qr-image-wrap {
+    width:230px; height:230px; max-width:100%; margin:0 auto 12px;
+    background:white; border:1px solid #e9eaf1; border-radius:13px;
+    padding:10px; display:flex; justify-content:center; align-items:center;
+}
+.qr-image-wrap img { width:100%; height:100%; object-fit:contain; }
+.qr-placeholder { color:#9ba4b7; font-size:12px; }
+.qr-scan-label { color:var(--exam-primary); font-size:11px; font-weight:800; }
+.qr-details { min-width:0; }
+.qr-details-heading {
+    font-size:13px; color:#35405a; font-weight:800; margin-bottom:13px;
+}
+.candidate-info { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.info-item {
+    background:#f8f9fc; border:1px solid #edf0f5;
+    border-radius:11px; padding:13px; min-width:0;
+}
+.info-item small {
+    display:block; color:#929bad; font-size:9px; font-weight:800;
+    text-transform:uppercase; letter-spacing:.5px; margin-bottom:7px;
+}
+.info-item strong {
+    font-size:12px; color:#34405a; display:block;
+    overflow-wrap:anywhere; line-height:1.5;
+}
+.expiry {
+    background:#fff8e9; border:1px solid #f7edcf; color:#a77923;
+    border-radius:10px; padding:12px 14px; font-size:11px;
+    margin-top:15px; line-height:1.6;
+}
+.expiry i { margin-right:6px; }
+.link-section { border-top:1px solid #edf0f5; padding-top:21px; }
+.link-section label {
+    display:block; font-size:11px; font-weight:800;
+    color:#59647c; margin-bottom:9px;
+}
+.link-box { display:flex; gap:9px; }
+.link-box input {
+    flex:1; min-width:0; height:43px; padding:10px 12px;
+    border:1px solid #e1e5ef; border-radius:10px;
+    font-size:11px; color:#59647c; background:#fafbfe; outline:none;
+}
+.qr-actions {
+    display:flex; justify-content:flex-end; gap:10px;
+    flex-wrap:wrap; margin-top:22px;
+}
+.qr-empty { text-align:center; padding:65px 20px; }
+.qr-empty-icon {
+    width:75px; height:75px; border-radius:22px;
+    background:#f1f0ff; color:#8b84e9; display:flex;
+    align-items:center; justify-content:center; margin:0 auto 18px;
+    font-size:30px;
+}
+.qr-empty h3 { color:#45516a; font-size:17px; margin:0 0 9px; }
+.qr-empty p {
+    color:#929bad; font-size:12px; line-height:1.7;
+    max-width:390px; margin:0 auto 20px;
+}
+
+.required-star { color:#e53935; font-weight:800; margin-left:3px; }
+
+@media(max-width:800px) {
+    .qr-main-content { grid-template-columns:1fr; }
+    .qr-visual { max-width:390px; width:100%; margin:auto; }
+}
+@media(max-width:600px) {
+    .assign-wrap { padding-bottom:15px; }
+    .exam-intro { padding:21px 19px; border-radius:15px; }
+    .intro-content h2 { font-size:18px; }
+    .exam-tabs { width:100%; gap:4px; }
+    .exam-tab { flex:1; padding:11px 7px; font-size:11px; gap:6px; }
+    .panel { padding:16px; border-radius:14px; }
+    .grid { grid-template-columns:1fr; }
+    .candidate-row { padding:12px 10px; gap:9px; }
+    .candidate-avatar { width:34px; height:34px; border-radius:10px; }
+    .candidate-time { font-size:9px; padding:6px 7px; }
+    .candidate-pagination { align-items:flex-start; flex-direction:column; }
+    .pagination-buttons { width:100%; justify-content:flex-end; }
+    .actions { flex-direction:column-reverse; }
+    .actions > * { width:100%; }
+    .candidate-info { grid-template-columns:1fr; }
+    .link-box { flex-direction:column; }
+    .link-box .btn { width:100%; }
+    .qr-card { padding:18px 13px; }
+    .qr-card h2 { font-size:18px; }
+    .qr-actions { flex-direction:column; }
+    .qr-actions .btn { width:100%; }
+    .random-preview-toolbar { align-items:flex-start; flex-direction:column; }
+    .random-preview-toolbar .btn { width:100%; }
+}
+
+@media print {
+    @page { size:A4; margin:15mm; }
+    body * { visibility:hidden !important; }
+    #qrTab,#qrTab * { visibility:visible !important; }
+    #qrTab { position:absolute; left:0; top:0; width:100%; }
+    .qr-actions,.exam-tabs,.exam-intro,.link-section { display:none !important; }
+    .qr-card { border:none !important; box-shadow:none !important; }
+    .qr-main-content { grid-template-columns:1fr 1fr; }
+    .qr-image-wrap { width:220px; height:220px; }
+}
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="assign-wrap" data-page-mode="{{ page_mode|default('assign') }}">
+
+    <div class="exam-intro">
+        <div class="intro-content">
+            <h2><i class="fa-solid fa-graduation-cap"></i> Examination Management</h2>
+            <p>Assign assessments to candidates and manage secure examination access.</p>
+        </div>
+    </div>
+
+    <div class="exam-tabs">
+        <button type="button"
+                class="exam-tab {% if page_mode != 'qr' %}active{% endif %}"
+                id="assignTabButton"
+                onclick="switchExamTab('assign')">
+            <i class="fa-solid fa-file-circle-check"></i>
+            Assign Exam
+        </button>
+
+        <button type="button"
+                class="exam-tab {% if page_mode == 'qr' %}active{% endif %}"
+                id="qrTabButton"
+                onclick="switchExamTab('qr')">
+            <i class="fa-solid fa-qrcode"></i>
+            QR Code / Link
+        </button>
+    </div>
+
+    <div class="tab-content {% if page_mode != 'qr' %}active{% endif %}" id="assignTab">
+
+        <form method="POST" id="assignForm" action="{{ url_for('exam.exam_assign') }}">
+
+            <!-- CANDIDATE SELECTION -->
+            <section class="panel">
+                <div class="panel-header">
+                    <div class="panel-heading">
+                        <div class="panel-icon"><i class="fa-solid fa-users"></i></div>
+                        <div>
+                            <h3 class="panel-title">Today's Scheduled Interviews</h3>
+                            <div class="panel-subtitle">Select one candidate to assign an examination.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="candidate-toolbar">
+                    <div class="candidate-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="search" id="candidateSearch"
+                               placeholder="Search name, position or department...">
+                    </div>
+                    <div class="candidate-count" id="candidateCount">
+                        {{ candidates|length }} Candidates
+                    </div>
+                </div>
+
+                <div class="candidate-list" id="candidateList">
+                    {% for candidate in candidates %}
+                    <label class="candidate-row"
+                           data-department-id="{{ candidate.department_id }}"
+                           data-department-name="{{ candidate.department_name|e }}"
+                           data-search="{{ (candidate.name ~ ' ' ~ (candidate.position or '') ~ ' ' ~ candidate.department_name ~ ' ' ~ (candidate.interview_stage or ''))|lower }}">
+
+                        <input type="radio" name="interview_id"
+                               value="{{ candidate.interview_id }}" required>
+
+                        <span class="candidate-avatar">{{ candidate.name[:1]|upper }}</span>
+
+                        <span class="candidate-details">
+                            <span class="candidate-name">{{ candidate.name }}</span>
+                            <span class="candidate-meta">
+                                {{ candidate.position or 'Position not specified' }}
+                                · {{ candidate.department_name }}
+                                · {{ candidate.interview_stage|replace('_',' ')|title }}
+                            </span>
+                        </span>
+
+                        <span class="candidate-time">
+                            <i class="fa-regular fa-clock"></i>
+                            {{ candidate.interview_time.strftime('%I:%M %p') if candidate.interview_time else 'Time not set' }}
+                        </span>
+                    </label>
+                    {% else %}
+                    <div class="empty">
+                        <i class="fa-regular fa-calendar-xmark"></i>
+                        No scheduled interviews available today.
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="candidate-pagination" id="candidatePagination" style="display:none">
+                    <div class="pagination-info" id="paginationInfo">Showing 0–0 of 0 candidates</div>
+                    <div class="pagination-buttons" id="paginationButtons"></div>
+                </div>
+            </section>
+
+            <!-- EXAM CONFIGURATION -->
+            <section class="panel">
+                <div class="panel-header">
+                    <div class="panel-heading">
+                        <div class="panel-icon"><i class="fa-solid fa-file-circle-check"></i></div>
+                        <div>
+                            <h3 class="panel-title">Exam Configuration</h3>
+                            <div class="panel-subtitle">
+                                Select a candidate first. Their department will determine the available question banks.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="field">
+                        <label>Department <span class="required-star">*</span></label>
+                        <input type="text" id="candidateDepartment"
+                               placeholder="Automatically displayed" readonly required>
+                    </div>
+
+                    <div class="field">
+                        <label>Question Bank <span class="required-star">*</span></label>
+                        <select name="exam_set_id" id="examSet" required disabled>
+                            <option value="">Select a candidate first</option>
+                            {% for item in exam_sets %}
+                                {% if item.is_active %}
+                                <option value="{{ item.id }}"
+                                        data-count="{{ item.question_count }}"
+                                        data-department="{{ item.department_name|e }}">
+                                    {{ item.exam_title }} ({{ item.question_count }} questions)
+                                </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Number of Questions <span class="required-star">*</span></label>
+                        <input type="number" name="question_count" id="questionCount"
+                               min="1" value="10" required>
+                    </div>
+                </div>
+
+                <div style="margin-top:22px">
+                    <label style="display:block;font-size:12px;font-weight:800;color:#59647c;margin-bottom:11px">
+                        Question Selection Method
+                    </label>
+
+                    <div class="choice-row">
+                        <label class="choice">
+                            <input type="radio" name="selection_method" value="random" checked>
+                            Random Questions
+                        </label>
+
+                        <label class="choice">
+                            <input type="radio" name="selection_method" value="manual">
+                            Select Manually
+                        </label>
+                    </div>
+
+                    <!-- RANDOM QUESTION PREVIEW -->
+                    <div id="randomQuestions" class="random-preview">
+
+                        <div class="random-preview-toolbar">
+                            <div>
+                                <div style="font-size:12px;font-weight:800;color:#46516b;margin-bottom:5px">
+                                    <i class="fa-solid fa-shuffle" style="color:#635bdb"></i>
+                                    Random Question Preview
+                                </div>
+                                <div class="random-preview-status" id="randomPreviewStatus">
+                                    Select a candidate and question bank, then preview your random questions.
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn primary"
+                                    id="previewRandomButton" onclick="previewRandomQuestions()">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                Preview Random Questions
+                            </button>
+                        </div>
+
+                        <div id="randomPreviewContent" style="display:none">
+                            <div class="question-list" id="randomQuestionList"></div>
+
+                            <div class="candidate-pagination" id="randomQuestionPagination" style="display:none">
+                                <div class="pagination-info" id="randomQuestionPaginationInfo"></div>
+                                <div class="pagination-buttons" id="randomQuestionPaginationButtons"></div>
+                            </div>
+                        </div>
+
+                        <!-- Selected random question IDs are submitted with the form -->
+                        <div id="randomQuestionInputs"></div>
+                    </div>
+
+                    <!-- MANUAL QUESTION SELECTION -->
+                    <div id="manualQuestions" style="display:none">
+                        <div class="question-list" id="questionList"></div>
+
+                        <div class="candidate-pagination" id="questionPagination" style="display:none">
+                            <div class="pagination-info" id="questionPaginationInfo">
+                                Showing 0–0 of 0 questions
+                            </div>
+                            <div class="pagination-buttons" id="questionPaginationButtons"></div>
+                        </div>
+
+                        <p id="manualCount" class="candidate-meta">
+                            Select the required number of questions.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="info">
+                    <i class="fa-solid fa-circle-info"></i>
+                    The candidate's department is selected automatically. Only active question banks belonging to that department will be available.
+                </div>
+            </section>
+
+            <!-- EXAM DELIVERY -->
+            <section class="panel">
+                <div class="panel-header">
+                    <div class="panel-heading">
+                        <div class="panel-icon"><i class="fa-solid fa-paper-plane"></i></div>
+                        <div>
+                            <h3 class="panel-title">Exam Delivery</h3>
+                            <div class="panel-subtitle">Choose how the candidate will access the examination.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="choice-row">
+                    <label class="choice">
+                        <input type="radio" name="exam_method" value="direct" checked>
+                        Direct Exam
+                    </label>
+                    <label class="choice">
+                        <input type="radio" name="exam_method" value="qr">
+                        QR Code / Public Link
+                    </label>
+                </div>
+
+                <div class="info">
+                    <i class="fa-solid fa-clock"></i>
+                    Exam duration: <strong>30 minutes</strong>.
+                    QR / Public link expires after <strong>60 minutes</strong>.
+                </div>
+            </section>
+
+            <div class="actions">
+                <a href="{{ url_for('exam.exam_list') }}" class="btn light">
+                    <i class="fa-solid fa-arrow-left"></i> Back
+                </a>
+                <button type="submit" class="btn primary">Assign Exam</button>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- QR CODE TAB -->
+    <div class="tab-content {% if page_mode == 'qr' %}active{% endif %}" id="qrTab">
+        <div class="qr-container">
+
+            {% if page_mode == 'qr' and assignment %}
+            <section class="panel qr-card">
+                <div class="qr-top">
+                    <div class="qr-icon"><i class="fa-solid fa-qrcode"></i></div>
+                    <h2>{{ assignment.exam_title }}</h2>
+                    <p class="qr-description">
+                        Scan the QR code or share the secure examination link with the candidate.
+                    </p>
+                </div>
+
+                <div class="qr-main-content">
+                    <div class="qr-visual">
+                        <div class="qr-image-wrap">
+                            {% if qr_url %}
+                            <img src="{{ qr_url }}" alt="Candidate Exam QR Code">
+                            {% else %}
+                            <div class="qr-placeholder">QR Code is unavailable.</div>
+                            {% endif %}
+                        </div>
+                        <div class="qr-scan-label">
+                            <i class="fa-solid fa-mobile-screen-button"></i>
+                            SCAN TO START EXAM
+                        </div>
+                    </div>
+
+                    <div class="qr-details">
+                        <div class="qr-details-heading">
+                            <i class="fa-solid fa-user-check"></i>
+                            Candidate Examination Details
+                        </div>
+
+                        <div class="candidate-info">
+                            <div class="info-item">
+                                <small>Candidate</small>
+                                <strong>{{ assignment.candidate_name }}</strong>
+                            </div>
+                            <div class="info-item">
+                                <small>Department</small>
+                                <strong>{{ assignment.department_name }}</strong>
+                            </div>
+                            <div class="info-item">
+                                <small>Question Bank</small>
+                                <strong>{{ assignment.exam_title }}</strong>
+                            </div>
+                            <div class="info-item">
+                                <small>Sub Department</small>
+                                <strong>{{ assignment.sub_department }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="expiry">
+                            <i class="fa-solid fa-clock"></i>
+                            Link expires:
+                            <strong>
+                                {{ expires_at.strftime('%Y-%m-%d %H:%M:%S %Z') if expires_at else '—' }}
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="link-section">
+                    <label><i class="fa-solid fa-link"></i> Candidate Exam Link</label>
+                    <div class="link-box">
+                        <input type="text" id="examLink" readonly value="{{ public_url }}">
+                        <button type="button" class="btn primary" onclick="copyExamLink()">
+                            <i class="fa-solid fa-copy"></i> Copy Link
+                        </button>
+                    </div>
+                </div>
+
+                <div class="qr-actions">
+                    <button type="button" class="btn light" onclick="switchExamTab('assign')">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Assignment
+                    </button>
+                    <button type="button" class="btn primary" onclick="window.print()">
+                        <i class="fa-solid fa-print"></i> Print QR Code
+                    </button>
+                </div>
+            </section>
+
+            {% else %}
+            <section class="panel qr-empty">
+                <div class="qr-empty-icon"><i class="fa-solid fa-qrcode"></i></div>
+                <h3>No QR Code Available</h3>
+                <p>
+                    Assign an exam using QR Code / Public Link.
+                    The generated QR code and candidate examination link will appear here.
+                </p>
+                <button type="button" class="btn primary" onclick="switchExamTab('assign')">
+                    <i class="fa-solid fa-plus"></i> Create QR Assignment
+                </button>
+            </section>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+
+/* ==========================
+   TAB SWITCHING
+========================== */
+
+function switchExamTab(tab) {
+    const assignTab = document.getElementById('assignTab');
+    const qrTab = document.getElementById('qrTab');
+    const assignButton = document.getElementById('assignTabButton');
+    const qrButton = document.getElementById('qrTabButton');
+
+    if (!assignTab || !qrTab || !assignButton || !qrButton) return;
+
+    assignTab.classList.toggle('active', tab === 'assign');
+    qrTab.classList.toggle('active', tab === 'qr');
+    assignButton.classList.toggle('active', tab === 'assign');
+    qrButton.classList.toggle('active', tab === 'qr');
+
+    if (tab === 'qr') {
+        history.replaceState(null, '', '#qr-code');
+    } else {
+        history.replaceState(null, '', '#assign');
+    }
+}
+
+
+/* ==========================
+   COPY EXAM LINK
+========================== */
+
+async function copyExamLink() {
+    const input = document.getElementById('examLink');
+
+    if (!input || !input.value) {
+        alert('Exam link is not available.');
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(input.value);
+        alert('Exam link copied successfully!');
+    } catch (error) {
+        input.select();
+        input.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+        alert('Exam link copied successfully!');
+    }
+}
+
+
+/* ==========================
+   CANDIDATE PAGINATION
+   5 CANDIDATES PER PAGE
+========================== */
+
+const candidateSearch = document.getElementById('candidateSearch');
+const candidateList = document.getElementById('candidateList');
+const candidateCount = document.getElementById('candidateCount');
+const candidatePagination = document.getElementById('candidatePagination');
+const paginationInfo = document.getElementById('paginationInfo');
+const paginationButtons = document.getElementById('paginationButtons');
+
+const candidatesPerPage = 5;
+let currentCandidatePage = 1;
+let filteredCandidates = [];
+
+const allCandidateRows = candidateList
+    ? Array.from(candidateList.querySelectorAll('.candidate-row'))
+    : [];
+
+function getFilteredCandidates() {
+    const query = candidateSearch
+        ? candidateSearch.value.trim().toLowerCase()
+        : '';
+
+    return allCandidateRows.filter(row => {
+        const searchText = row.dataset.search || '';
+        return searchText.includes(query);
+    });
+}
+
+function renderCandidatePagination() {
+    filteredCandidates = getFilteredCandidates();
+
+    const totalCandidates = filteredCandidates.length;
+    const totalPages = Math.ceil(totalCandidates / candidatesPerPage);
+
+    if (currentCandidatePage > totalPages) {
+        currentCandidatePage = Math.max(1, totalPages);
+    }
+    if (currentCandidatePage < 1) currentCandidatePage = 1;
+
+    allCandidateRows.forEach(row => row.style.display = 'none');
+
+    if (candidateCount) {
+        candidateCount.textContent =
+            `${totalCandidates} Candidate${totalCandidates !== 1 ? 's' : ''}`;
+    }
+
+    if (totalCandidates === 0) {
+        if (candidateList) {
+            candidateList.innerHTML = `
+                <div class="empty">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    No matching candidates found.
+                </div>
+            `;
+        }
+        if (candidatePagination) candidatePagination.style.display = 'none';
+        return;
+    }
+
+    if (candidateList) {
+        candidateList.innerHTML = '';
+        allCandidateRows.forEach(row => candidateList.appendChild(row));
+    }
+
+    const startIndex = (currentCandidatePage - 1) * candidatesPerPage;
+    const endIndex = Math.min(startIndex + candidatesPerPage, totalCandidates);
+
+    filteredCandidates.slice(startIndex, endIndex).forEach(row => {
+        row.style.display = 'flex';
+    });
+
+    if (candidatePagination) {
+        candidatePagination.style.display =
+            totalCandidates > candidatesPerPage ? 'flex' : 'none';
+    }
+
+    if (paginationInfo) {
+        paginationInfo.textContent =
+            `Showing ${startIndex + 1}–${endIndex} of ${totalCandidates} candidates`;
+    }
+
+    renderPaginationButtons(totalPages);
+}
+
+function renderPaginationButtons(totalPages) {
+    if (!paginationButtons) return;
+
+    paginationButtons.innerHTML = '';
+    if (totalPages <= 1) return;
+
+    const previousButton = document.createElement('button');
+    previousButton.type = 'button';
+    previousButton.className = 'page-btn';
+    previousButton.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+    previousButton.disabled = currentCandidatePage === 1;
+
+    previousButton.addEventListener('click', function () {
+        if (currentCandidatePage > 1) {
+            currentCandidatePage--;
+            renderCandidatePagination();
+        }
+    });
+    paginationButtons.appendChild(previousButton);
+
+    for (let page = 1; page <= totalPages; page++) {
+        const pageButton = document.createElement('button');
+        pageButton.type = 'button';
+        pageButton.className =
+            `page-btn ${page === currentCandidatePage ? 'active' : ''}`;
+        pageButton.textContent = page;
+
+        pageButton.addEventListener('click', function () {
+            currentCandidatePage = page;
+            renderCandidatePagination();
+        });
+        paginationButtons.appendChild(pageButton);
+    }
+
+    const nextButton = document.createElement('button');
+    nextButton.type = 'button';
+    nextButton.className = 'page-btn';
+    nextButton.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+    nextButton.disabled = currentCandidatePage === totalPages;
+
+    nextButton.addEventListener('click', function () {
+        if (currentCandidatePage < totalPages) {
+            currentCandidatePage++;
+            renderCandidatePagination();
+        }
+    });
+    paginationButtons.appendChild(nextButton);
+}
+
+if (candidateSearch) {
+    candidateSearch.addEventListener('input', function () {
+        currentCandidatePage = 1;
+        renderCandidatePagination();
+    });
+}
+
+if (candidateList) {
+    candidateList.addEventListener('change', function (event) {
+        if (event.target.matches('input[name="interview_id"]')) {
+            allCandidateRows.forEach(row => row.classList.remove('selected'));
+
+            const selectedRow = event.target.closest('.candidate-row');
+            if (selectedRow) selectedRow.classList.add('selected');
+        }
+    });
+}
+
+renderCandidatePagination();
+
+
+/* ==========================
+   DEPARTMENT & QUESTION BANK
+========================== */
+
+const examSet = document.getElementById('examSet');
+const questionCount = document.getElementById('questionCount');
+const manualBox = document.getElementById('manualQuestions');
+const questionList = document.getElementById('questionList');
+const manualCount = document.getElementById('manualCount');
+const candidateDepartment = document.getElementById('candidateDepartment');
+
+const questionPagination = document.getElementById('questionPagination');
+const questionPaginationInfo = document.getElementById('questionPaginationInfo');
+const questionPaginationButtons = document.getElementById('questionPaginationButtons');
+
+const questionsPerPage = 10;
+let currentQuestionPage = 1;
+let allQuestionRows = [];
+let selectedDepartmentName = '';
+
+
+/* ==========================
+   RANDOM PREVIEW ELEMENTS
+========================== */
+
+const randomBox = document.getElementById('randomQuestions');
+const randomPreviewButton = document.getElementById('previewRandomButton');
+const randomPreviewStatus = document.getElementById('randomPreviewStatus');
+const randomPreviewContent = document.getElementById('randomPreviewContent');
+const randomQuestionList = document.getElementById('randomQuestionList');
+const randomQuestionInputs = document.getElementById('randomQuestionInputs');
+
+const randomQuestionPagination =
+    document.getElementById('randomQuestionPagination');
+const randomQuestionPaginationInfo =
+    document.getElementById('randomQuestionPaginationInfo');
+const randomQuestionPaginationButtons =
+    document.getElementById('randomQuestionPaginationButtons');
+
+const randomQuestionsPerPage = 10;
+
+let randomQuestionIds = [];
+let randomQuestionRows = [];
+let currentRandomQuestionPage = 1;
+
+
+/* ==========================
+   COMMON HELPERS
+========================== */
+
+function normalizeDepartment(value) {
+    return (value || '').trim().toLowerCase();
+}
+
+function getSelectionMethod() {
+    return document.querySelector(
+        'input[name="selection_method"]:checked'
+    )?.value || 'random';
+}
+
+function clearRandomPreview(message = '') {
+    randomQuestionIds = [];
+    randomQuestionRows = [];
+    currentRandomQuestionPage = 1;
+
+    if (randomQuestionList) randomQuestionList.innerHTML = '';
+    if (randomQuestionInputs) randomQuestionInputs.innerHTML = '';
+    if (randomPreviewContent) randomPreviewContent.style.display = 'none';
+
+    if (randomQuestionPagination) {
+        randomQuestionPagination.style.display = 'none';
+    }
+
+    if (randomQuestionPaginationButtons) {
+        randomQuestionPaginationButtons.innerHTML = '';
+    }
+
+    if (randomPreviewStatus) {
+        randomPreviewStatus.textContent = message ||
+            'Select a candidate and question bank, then preview your random questions.';
+        randomPreviewStatus.classList.remove('success');
+    }
+}
+
+
+/* ==========================
+   FILTER QUESTION BANKS
+========================== */
+
+function filterQuestionBanks(departmentName) {
+    if (!examSet) return;
+
+    selectedDepartmentName = departmentName || '';
+
+    examSet.value = '';
+    examSet.disabled = !selectedDepartmentName;
+
+    const options = Array.from(examSet.options);
+    let availableBanks = 0;
+
+    options.forEach((option, index) => {
+        if (index === 0) {
+            option.hidden = false;
+            option.disabled = false;
+            option.textContent = selectedDepartmentName
+                ? 'Select question bank'
+                : 'Select a candidate first';
+            return;
+        }
+
+        const bankDepartment = option.dataset.department || '';
+
+        const matches =
+            selectedDepartmentName &&
+            normalizeDepartment(bankDepartment) ===
+            normalizeDepartment(selectedDepartmentName);
+
+        option.hidden = !matches;
+        option.disabled = !matches;
+
+        if (matches) availableBanks++;
+    });
+
+    if (!selectedDepartmentName) {
+        examSet.value = '';
+        questionList.innerHTML = '';
+        allQuestionRows = [];
+        clearRandomPreview();
+        return;
+    }
+
+    if (availableBanks === 0) {
+        examSet.options[0].textContent =
+            'No question bank available for this department';
+        examSet.disabled = true;
+    }
+
+    questionList.innerHTML = '';
+    allQuestionRows = [];
+    currentQuestionPage = 1;
+
+    if (questionPagination) questionPagination.style.display = 'none';
+    if (questionPaginationButtons) questionPaginationButtons.innerHTML = '';
+
+    clearRandomPreview();
+
+    if (manualBox) manualBox.style.display = 'none';
+
+    updateManualCount();
+}
+
+
+/* ==========================
+   CANDIDATE SELECTION
+========================== */
+
+function handleCandidateSelection(radio) {
+    if (!radio) return;
+
+    const row = radio.closest('.candidate-row');
+    if (!row) return;
+
+    const departmentName = row.dataset.departmentName || '';
+
+    if (candidateDepartment) {
+        candidateDepartment.value = departmentName;
+    }
+
+    filterQuestionBanks(departmentName);
+}
+
+if (candidateList) {
+    candidateList.addEventListener('change', function (event) {
+        if (event.target.matches('input[name="interview_id"]')) {
+            allCandidateRows.forEach(row => row.classList.remove('selected'));
+
+            const selectedRow = event.target.closest('.candidate-row');
+            if (selectedRow) {
+                selectedRow.classList.add('selected');
+            }
+
+            handleCandidateSelection(event.target);
+        }
+    });
+}
+
+
+/* ==========================
+   SELECTION METHOD
+========================== */
+
+function updateManualQuestionInputs() {
+    const manualActive = getSelectionMethod() === 'manual';
+
+    document.querySelectorAll(
+        '#questionList input[name="question_ids"]'
+    ).forEach(input => {
+        input.disabled = !manualActive;
+    });
+}
+
+document.querySelectorAll('input[name="selection_method"]').forEach(radio => {
+    radio.addEventListener('change', function () {
+
+        if (this.value === 'manual' && this.checked) {
+
+            // Remove previously generated random question IDs.
+            clearRandomPreview(
+                'Select your questions manually from the question bank.'
+            );
+
+            if (manualBox) {
+                manualBox.style.display = 'block';
+            }
+
+            if (randomBox) {
+                randomBox.style.display = 'none';
+            }
+
+            updateManualQuestionInputs();
+
+            if (examSet && examSet.value) {
+                loadQuestions();
+            }
+
+        } else if (this.value === 'random' && this.checked) {
+
+            // Clear previous random preview.
+            clearRandomPreview();
+
+            if (manualBox) {
+                manualBox.style.display = 'none';
+            }
+
+            if (randomBox) {
+                randomBox.style.display = 'block';
+            }
+
+            // Prevent manual checkbox IDs from being submitted.
+            updateManualQuestionInputs();
+        }
+    });
+});
+
+
+/* ==========================
+   MANUAL QUESTION PAGINATION
+   10 QUESTIONS PER PAGE
+========================== */
+
+function renderQuestionPagination() {
+    if (!questionList) return;
+
+    const totalQuestions = allQuestionRows.length;
+    const totalPages = Math.ceil(totalQuestions / questionsPerPage);
+
+    if (currentQuestionPage > totalPages) {
+        currentQuestionPage = Math.max(1, totalPages);
+    }
+    if (currentQuestionPage < 1) currentQuestionPage = 1;
+
+    allQuestionRows.forEach(row => row.style.display = 'none');
+
+    if (totalQuestions === 0) {
+        if (questionPagination) questionPagination.style.display = 'none';
+        return;
+    }
+
+    const startIndex = (currentQuestionPage - 1) * questionsPerPage;
+    const endIndex = Math.min(startIndex + questionsPerPage, totalQuestions);
+
+    allQuestionRows.slice(startIndex, endIndex).forEach(row => {
+        row.style.display = 'flex';
+    });
+
+    if (questionPagination) {
+        questionPagination.style.display =
+            totalQuestions > questionsPerPage ? 'flex' : 'none';
+    }
+
+    if (questionPaginationInfo) {
+        questionPaginationInfo.textContent =
+            `Showing ${startIndex + 1}–${endIndex} of ${totalQuestions} questions`;
+    }
+
+    renderQuestionPaginationButtons(totalPages);
+}
+
+function renderQuestionPaginationButtons(totalPages) {
+    if (!questionPaginationButtons) return;
+
+    questionPaginationButtons.innerHTML = '';
+    if (totalPages <= 1) return;
+
+    const previousButton = document.createElement('button');
+    previousButton.type = 'button';
+    previousButton.className = 'page-btn';
+    previousButton.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+    previousButton.disabled = currentQuestionPage === 1;
+
+    previousButton.addEventListener('click', function () {
+        if (currentQuestionPage > 1) {
+            currentQuestionPage--;
+            renderQuestionPagination();
+        }
+    });
+    questionPaginationButtons.appendChild(previousButton);
+
+    for (let page = 1; page <= totalPages; page++) {
+        const pageButton = document.createElement('button');
+        pageButton.type = 'button';
+        pageButton.className =
+            `page-btn ${page === currentQuestionPage ? 'active' : ''}`;
+        pageButton.textContent = page;
+
+        pageButton.addEventListener('click', function () {
+            currentQuestionPage = page;
+            renderQuestionPagination();
+        });
+        questionPaginationButtons.appendChild(pageButton);
+    }
+
+    const nextButton = document.createElement('button');
+    nextButton.type = 'button';
+    nextButton.className = 'page-btn';
+    nextButton.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+    nextButton.disabled = currentQuestionPage === totalPages;
+
+    nextButton.addEventListener('click', function () {
+        if (currentQuestionPage < totalPages) {
+            currentQuestionPage++;
+            renderQuestionPagination();
+        }
+    });
+    questionPaginationButtons.appendChild(nextButton);
+}
+
+
+/* ==========================
+   LOAD QUESTIONS FOR MANUAL
+========================== */
+
+async function loadQuestions() {
+    if (!questionList || !examSet) return;
+
+    questionList.innerHTML = '<div class="empty">Loading questions...</div>';
+    allQuestionRows = [];
+    currentQuestionPage = 1;
+
+    if (questionPagination) questionPagination.style.display = 'none';
+    if (questionPaginationButtons) questionPaginationButtons.innerHTML = '';
+
+    if (!examSet.value) {
+        questionList.innerHTML = '';
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `{{ url_for('exam.exam_questions_api') }}?exam_set_id=${encodeURIComponent(examSet.value)}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Unable to load questions');
+        }
+
+        questionList.innerHTML = '';
+        allQuestionRows = [];
+
+        data.questions.forEach((q, index) => {
+            const label = document.createElement('label');
+            label.className = 'question-item';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'question_ids';
+            checkbox.value = q.id;
+            checkbox.addEventListener('change', updateManualCount);
+
+            // Only submit manual question IDs in manual mode.
+            checkbox.disabled = getSelectionMethod() !== 'manual';
+
+            const text = document.createElement('span');
+            text.textContent = `${index + 1}. ${q.question_text}`;
+
+            label.append(checkbox, text);
+            questionList.appendChild(label);
+            allQuestionRows.push(label);
+        });
+
+        if (!data.questions.length) {
+            questionList.innerHTML =
+                '<div class="empty">No questions in this bank.</div>';
+
+            if (questionPagination) questionPagination.style.display = 'none';
+        } else {
+            currentQuestionPage = 1;
+            renderQuestionPagination();
+        }
+
+        updateManualCount();
+
+    } catch (error) {
+        questionList.innerHTML = '';
+        allQuestionRows = [];
+
+        if (questionPagination) questionPagination.style.display = 'none';
+
+        const message = document.createElement('div');
+        message.className = 'empty';
+        message.textContent = error.message;
+        questionList.appendChild(message);
+    }
+}
+
+
+/* ==========================
+   RANDOM QUESTION PREVIEW
+========================== */
+
+function shuffleQuestions(questions) {
+    const shuffled = [...questions];
+
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    return shuffled;
+}
+
+async function previewRandomQuestions() {
+    if (!examSet || !examSet.value) {
+        alert('Please select a candidate and question bank first.');
+        return;
+    }
+
+    const count = parseInt(questionCount?.value || '0', 10);
+    const selectedOption = examSet.options[examSet.selectedIndex];
+    const available = parseInt(selectedOption?.dataset.count || '0', 10);
+
+    if (!count || count < 1 || count > available) {
+        alert(`Please enter a valid question count. Available questions: ${available}`);
+        return;
+    }
+
+    if (randomPreviewButton) {
+        randomPreviewButton.disabled = true;
+        randomPreviewButton.innerHTML =
+            '<i class="fa-solid fa-spinner fa-spin"></i> Generating Preview...';
+    }
+
+    clearRandomPreview('Loading random questions from the selected question bank...');
+
+    try {
+        const response = await fetch(
+            `{{ url_for('exam.exam_questions_api') }}?exam_set_id=${encodeURIComponent(examSet.value)}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Unable to load questions');
+        }
+
+        const availableQuestions = Array.isArray(data.questions)
+            ? data.questions
+            : [];
+
+        if (availableQuestions.length < count) {
+            throw new Error(
+                `Only ${availableQuestions.length} questions are available.`
+            );
+        }
+
+        // Randomly select the requested number of questions.
+        const selectedQuestions = shuffleQuestions(availableQuestions).slice(0, count);
+
+        // Store the exact selected IDs for form submission.
+        randomQuestionIds = selectedQuestions.map(question => question.id);
+
+        // Create hidden inputs so the selected IDs are submitted.
+        randomQuestionInputs.innerHTML = '';
+
+        randomQuestionIds.forEach(id => {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'question_ids';
+            hiddenInput.value = id;
+            randomQuestionInputs.appendChild(hiddenInput);
+        });
+
+        // Render the preview rows.
+        randomQuestionList.innerHTML = '';
+        randomQuestionRows = [];
+
+        selectedQuestions.forEach((question, index) => {
+            const row = document.createElement('div');
+            row.className = 'question-item';
+
+            const number = document.createElement('strong');
+            number.textContent = `${index + 1}.`;
+            number.style.color = '#635bdb';
+            number.style.minWidth = '22px';
+
+            const text = document.createElement('span');
+            text.textContent = question.question_text || '';
+
+            row.append(number, text);
+            randomQuestionList.appendChild(row);
+            randomQuestionRows.push(row);
+        });
+
+        currentRandomQuestionPage = 1;
+        randomPreviewContent.style.display = 'block';
+
+        renderRandomQuestionPagination();
+
+        randomPreviewStatus.textContent =
+            `${randomQuestionIds.length} random questions selected. These are the questions prepared for this assignment.`;
+
+        randomPreviewStatus.classList.add('success');
+
+        // Change the button label after the first preview.
+        randomPreviewButton.innerHTML =
+            '<i class="fa-solid fa-rotate"></i> Generate Again';
+
+    } catch (error) {
+        clearRandomPreview(error.message);
+        alert(error.message);
+
+    } finally {
+        if (randomPreviewButton) {
+            randomPreviewButton.disabled = false;
+
+            if (randomQuestionIds.length > 0) {
+                randomPreviewButton.innerHTML =
+                    '<i class="fa-solid fa-rotate"></i> Generate Again';
+            } else {
+                randomPreviewButton.innerHTML =
+                    '<i class="fa-solid fa-wand-magic-sparkles"></i> Preview Random Questions';
+            }
+        }
+    }
+}
+
+
+/* ==========================
+   RANDOM PREVIEW PAGINATION
+   10 QUESTIONS PER PAGE
+========================== */
+
+function renderRandomQuestionPagination() {
+    const totalQuestions = randomQuestionRows.length;
+    const totalPages = Math.ceil(totalQuestions / randomQuestionsPerPage);
+
+    if (currentRandomQuestionPage > totalPages) {
+        currentRandomQuestionPage = Math.max(1, totalPages);
+    }
+
+    if (currentRandomQuestionPage < 1) {
+        currentRandomQuestionPage = 1;
+    }
+
+    randomQuestionRows.forEach(row => {
+        row.style.display = 'none';
+    });
+
+    if (!totalQuestions) {
+        randomQuestionPagination.style.display = 'none';
+        return;
+    }
+
+    const startIndex =
+        (currentRandomQuestionPage - 1) * randomQuestionsPerPage;
+
+    const endIndex = Math.min(
+        startIndex + randomQuestionsPerPage,
+        totalQuestions
+    );
+
+    randomQuestionRows.slice(startIndex, endIndex).forEach(row => {
+        row.style.display = 'flex';
+    });
+
+    randomQuestionPagination.style.display =
+        totalQuestions > randomQuestionsPerPage ? 'flex' : 'none';
+
+    randomQuestionPaginationInfo.textContent =
+        `Showing ${startIndex + 1}–${endIndex} of ${totalQuestions} questions`;
+
+    renderRandomQuestionPaginationButtons(totalPages);
+}
+
+function renderRandomQuestionPaginationButtons(totalPages) {
+    randomQuestionPaginationButtons.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    const previousButton = document.createElement('button');
+    previousButton.type = 'button';
+    previousButton.className = 'page-btn';
+    previousButton.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+    previousButton.disabled = currentRandomQuestionPage === 1;
+
+    previousButton.addEventListener('click', function () {
+        if (currentRandomQuestionPage > 1) {
+            currentRandomQuestionPage--;
+            renderRandomQuestionPagination();
+        }
+    });
+
+    randomQuestionPaginationButtons.appendChild(previousButton);
+
+    for (let page = 1; page <= totalPages; page++) {
+        const pageButton = document.createElement('button');
+        pageButton.type = 'button';
+        pageButton.className =
+            `page-btn ${page === currentRandomQuestionPage ? 'active' : ''}`;
+        pageButton.textContent = page;
+
+        pageButton.addEventListener('click', function () {
+            currentRandomQuestionPage = page;
+            renderRandomQuestionPagination();
+        });
+
+        randomQuestionPaginationButtons.appendChild(pageButton);
+    }
+
+    const nextButton = document.createElement('button');
+    nextButton.type = 'button';
+    nextButton.className = 'page-btn';
+    nextButton.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+    nextButton.disabled = currentRandomQuestionPage === totalPages;
+
+    nextButton.addEventListener('click', function () {
+        if (currentRandomQuestionPage < totalPages) {
+            currentRandomQuestionPage++;
+            renderRandomQuestionPagination();
+        }
+    });
+
+    randomQuestionPaginationButtons.appendChild(nextButton);
+}
+
+
+/* ==========================
+   MANUAL QUESTION COUNT
+========================== */
+
+function updateManualCount() {
+    if (!manualCount) return;
+
+    const selected =
+        document.querySelectorAll('#questionList input:checked').length;
+
+    manualCount.textContent =
+        `Selected ${selected} / ${questionCount ? questionCount.value : 0} questions`;
+}
+
+
+/* ==========================
+   QUESTION BANK CHANGE
+========================== */
+
+if (examSet) {
+    examSet.addEventListener('change', function () {
+        questionList.innerHTML = '';
+        allQuestionRows = [];
+        currentQuestionPage = 1;
+
+        if (questionPagination) questionPagination.style.display = 'none';
+        if (questionPaginationButtons) questionPaginationButtons.innerHTML = '';
+
+        clearRandomPreview();
+        updateManualCount();
+
+        if (!this.value) return;
+
+        const manualSelected =
+            document.querySelector('input[name="selection_method"]:checked')?.value;
+
+        if (manualSelected === 'manual') {
+            loadQuestions();
+        }
+    });
+}
+
+
+/* ==========================
+   QUESTION COUNT CHANGE
+========================== */
+
+if (questionCount) {
+    questionCount.addEventListener('input', function () {
+        updateManualCount();
+
+        // A previous random preview is no longer valid after changing the count.
+        if (getSelectionMethod() === 'random') {
+            clearRandomPreview(
+                'Question count changed. Please generate a new random preview.'
+            );
+        }
+    });
+}
+
+
+/* ==========================
+   FORM VALIDATION
+========================== */
+
+const assignForm = document.getElementById('assignForm');
+
+if (assignForm) {
+    assignForm.addEventListener('submit', function (e) {
+        const option = examSet.options[examSet.selectedIndex];
+
+        const available =
+            parseInt(option?.dataset.count || '0', 10);
+
+        const count =
+            parseInt(questionCount.value || '0', 10);
+
+        if (!examSet.value || count < 1 || count > available) {
+            e.preventDefault();
+
+            alert(
+                `Please select a valid question count. Available questions: ${available}`
+            );
+            return;
+        }
+
+        const selectedCandidate =
+            document.querySelector('input[name="interview_id"]:checked');
+
+        if (!selectedCandidate) {
+            e.preventDefault();
+            alert('Please select a candidate.');
+            return;
+        }
+
+        const selectedRow = selectedCandidate.closest('.candidate-row');
+        const candidateDept = selectedRow?.dataset.departmentName || '';
+
+        const selectedBank = examSet.options[examSet.selectedIndex];
+        const bankDept = selectedBank?.dataset.department || '';
+
+        if (
+            !candidateDept ||
+            normalizeDepartment(candidateDept) !== normalizeDepartment(bankDept)
+        ) {
+            e.preventDefault();
+            alert('Please select a question bank belonging to the candidate department.');
+            return;
+        }
+
+        const selection = getSelectionMethod();
+
+        if (selection === 'manual') {
+            const selected =
+                document.querySelectorAll('#questionList input:checked').length;
+
+            if (selected !== count) {
+                e.preventDefault();
+                alert(`Please select exactly ${count} questions.`);
+                return;
+            }
+        }
+
+        if (selection === 'random') {
+            if (randomQuestionIds.length !== count) {
+                e.preventDefault();
+
+                alert(
+                    'Please preview the random questions first. If you change the question count, generate the preview again.'
+                );
+                return;
+            }
+        }
+    });
+}
+
+
+/* ==========================
+   INITIAL SELECTION METHOD
+========================== */
+
+const initialSelectionMethod = getSelectionMethod();
+
+if (randomBox) {
+    randomBox.style.display =
+        initialSelectionMethod === 'random' ? 'block' : 'none';
+}
+
+if (manualBox) {
+    manualBox.style.display =
+        initialSelectionMethod === 'manual' ? 'block' : 'none';
+}
+
+updateManualQuestionInputs();
+
+/* ==========================
+   INITIAL TAB
+   No Jinja inside JavaScript
+========================== */
+
+const assignPage = document.querySelector('.assign-wrap');
+
+const initialPageMode = assignPage
+    ? assignPage.dataset.pageMode
+    : 'assign';
+
+if (initialPageMode === 'qr') {
+    switchExamTab('qr');
+} else {
+    switchExamTab('assign');
+}
+
+</script>
+{% endblock %}

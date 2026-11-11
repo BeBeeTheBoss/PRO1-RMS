@@ -1,0 +1,3113 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate Pipeline | Recruitment System{% endblock %}
+{% block page_heading %}Candidate Pipeline{% endblock %}
+
+{% block page_subtitle %}
+Manage applications and move candidates through each recruitment stage.
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --bg: #f8fafc;
+        --surface: #ffffff;
+        --text: #1e293b;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --red: #dc2626;
+        --radius: 16px;
+        --shadow: 0 5px 22px rgba(15, 23, 42, .045);
+    }
+
+    .candidates-page {
+        width: 100%;
+        min-width: 0;
+        color: var(--text);
+        font: 14px Inter, 'Poppins', "Segoe UI", Arial, sans-serif;
+    }
+
+    .candidates-page *,
+    .candidates-page *::before,
+    .candidates-page *::after {
+        box-sizing: border-box;
+    }
+
+    .candidates-page button,
+    .candidates-page input,
+    .candidates-page select,
+    .candidates-page textarea {
+        font: inherit;
+    }
+
+    .candidates-page main {
+        width: 100%;
+        max-width: 1600px;
+        min-width: 0;
+        margin: 0 auto;
+        padding: 0 0 32px;
+    }
+
+    .candidates-page .topline-heading {
+        display: none;
+    }
+
+    .candidates-page h2 {
+        font-size: 17px;
+        margin: 0 0 5px;
+        letter-spacing: -.3px;
+        color: #1e293b;
+    }
+
+    .candidates-page .small-note {
+        font-size: 12px;
+        color: #64748b;
+        line-height: 1.6;
+    }
+
+    /* BUTTONS */
+
+    .candidates-page .btn {
+        border: 1px solid transparent;
+        border-radius: 9px;
+        padding: 10px 14px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        transition: background .18s ease, color .18s ease,
+            border-color .18s ease, box-shadow .18s ease,
+            transform .18s ease;
+    }
+
+    .candidates-page .btn-primary {
+        color: #fff;
+        background: #4f46e5;
+        border-color: #4f46e5;
+    }
+
+    .candidates-page .btn-primary:hover {
+        color: #fff;
+        background: #4338ca;
+        border-color: #4338ca;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, .16);
+    }
+
+    .candidates-page .btn-light {
+        color: #475569;
+        background: #f1f5f9;
+        border-color: #e2e8f0;
+    }
+
+    .candidates-page .btn-light:hover {
+        color: #334155;
+        background: #e8edf5;
+        border-color: #cbd5e1;
+    }
+
+    .candidates-page .btn-danger {
+        color: #b91c1c;
+        background: #fef2f2;
+        border-color: #fecaca;
+    }
+
+    .candidates-page .btn-danger:hover {
+        color: #991b1b;
+        background: #fee2e2;
+        border-color: #fca5a5;
+    }
+
+    .candidates-page .btn-skip {
+        color: #92400e;
+        background: #fffbeb;
+        border-color: #fde68a;
+    }
+
+    .candidates-page .btn-skip:hover {
+        color: #78350f;
+        background: #fef3c7;
+        border-color: #fcd34d;
+        transform: translateY(-1px);
+    }
+
+    .candidates-page .btn-small {
+        font-size: 12px;
+        padding: 9px 10px;
+    }
+
+    .candidates-page button:disabled {
+        opacity: .5;
+        cursor: not-allowed;
+    }
+
+    /* STATISTICS */
+
+    .candidates-page .stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+
+    .candidates-page .stat {
+        position: relative;
+        overflow: hidden;
+        min-width: 0;
+        border: 1px solid rgba(255, 255, 255, .25);
+        border-radius: 17px;
+        padding: 21px 22px;
+        box-shadow: 0 6px 18px rgba(30, 41, 59, .10);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        color: #fff;
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .candidates-page .stat::after {
+        position: absolute;
+        content: "";
+        width: 150px;
+        height: 150px;
+        right: -45px;
+        top: -75px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, .12);
+        pointer-events: none;
+    }
+
+    .candidates-page .stat:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 26px rgba(30, 41, 59, .14);
+    }
+
+    .candidates-page .stat:focus-visible {
+        outline: 3px solid #818cf8;
+        outline-offset: 3px;
+    }
+
+    .candidates-page .stat-1 {
+        background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    }
+
+    .candidates-page .stat-2 {
+        background: linear-gradient(135deg, #0284c7 0%, #38a3d5 100%);
+    }
+
+    .candidates-page .stat-3 {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    }
+
+    .candidates-page .stat-icon {
+        position: relative;
+        z-index: 1;
+        width: 49px;
+        height: 49px;
+        flex: 0 0 49px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        font-size: 22px;
+        background: rgba(255, 255, 255, .18);
+        border: 1px solid rgba(255, 255, 255, .22);
+        backdrop-filter: blur(4px);
+    }
+
+    .candidates-page .stat-content {
+        position: relative;
+        z-index: 1;
+        min-width: 0;
+    }
+
+    .candidates-page .stat-label {
+        font-size: 12px;
+        color: rgba(255, 255, 255, .92);
+        font-weight: 650;
+    }
+
+    .candidates-page .stat-number {
+        font-size: 27px;
+        font-weight: 850;
+        line-height: 1.35;
+        margin-top: 2px;
+        color: #fff;
+    }
+
+    .candidates-page .stat-hint {
+        margin-top: 4px;
+        font-size: 10px;
+        color: rgba(255, 255, 255, .82);
+    }
+
+    /* MAIN PANEL */
+
+    .candidates-page .panel {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        margin-bottom: 22px;
+    }
+
+    /* PIPELINE TABS */
+
+    .candidates-page .pipeline {
+        display: flex;
+        gap: 7px;
+        padding: 10px;
+        border-bottom: 1px solid #e2e8f0;
+        overflow-x: auto;
+        background: #f8fafc;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+
+    .candidates-page .tab {
+        flex: 1;
+        min-width: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 13px 14px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #64748b;
+        font-weight: 650;
+        white-space: nowrap;
+        border: 1px solid transparent;
+        transition: background .18s ease, color .18s ease,
+            border-color .18s ease;
+    }
+
+    .candidates-page .tab:hover {
+        background: #eef2ff;
+        color: #4338ca;
+    }
+
+    .candidates-page .tab.active {
+        background: #eef2ff;
+        color: #4338ca;
+        border-color: #c7d2fe;
+    }
+
+    /* PANEL HEADER AND SEARCH */
+
+    .candidates-page .panel-head {
+        padding: 18px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        background: #fff;
+        color: #1e293b;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .candidates-page .panel-head-info {
+        flex: 1 1 190px;
+        min-width: 180px;
+    }
+
+    .candidates-page .panel-head h2 {
+        color: #1e293b;
+        margin-bottom: 5px;
+    }
+
+    .candidates-page .panel-head .count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #4338ca;
+        font-size: 12px;
+        font-weight: 700;
+        background: #eef2ff;
+        border: 1px solid #c7d2fe;
+        padding: 6px 12px;
+        border-radius: 20px;
+        white-space: nowrap;
+    }
+
+    .candidates-page .panel-head .filters {
+        flex: 1 1 420px;
+        min-width: 260px;
+        max-width: 650px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+    }
+
+    .candidates-page .panel-head .filters .field {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .candidates-page .panel-head .filters label {
+        display: none;
+    }
+
+    .candidates-page .panel-head .filters input[type="search"] {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        height: 42px;
+        padding: 10px 13px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        background: #f8fafc;
+        color: #1e293b;
+        outline: none;
+        transition: border-color .2s ease, box-shadow .2s ease,
+            background .2s ease;
+    }
+
+    .candidates-page .panel-head .filters input[type="search"]::placeholder {
+        color: #94a3b8;
+    }
+
+    .candidates-page .panel-head .filters input[type="search"]:focus {
+        background: #fff;
+        border-color: #818cf8;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, .12);
+    }
+
+    .candidates-page .panel-head .filter-actions {
+        display: flex;
+        flex: 0 0 auto;
+        gap: 8px;
+    }
+
+    .candidates-page .panel-head .filter-actions .btn {
+        height: 42px;
+        min-width: 100px;
+        white-space: nowrap;
+        color: #fff;
+        background: #4f46e5;
+        border-color: #4f46e5;
+    }
+
+    .candidates-page .panel-head .filter-actions .btn:hover {
+        color: #fff;
+        background: #4338ca;
+        border-color: #4338ca;
+    }
+
+    #candidate-results {
+        scroll-margin-top: 20px;
+    }
+
+    /* TABLE */
+
+    .candidates-page .table-wrap {
+        overflow-x: auto;
+        background: #fff;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f8fafc;
+    }
+
+    .candidates-page table {
+        width: 100%;
+        border-collapse: collapse;
+        white-space: nowrap;
+        background: #fff;
+    }
+
+    .candidates-page thead {
+        background: #f1f5f9;
+    }
+
+    .candidates-page thead tr {
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .candidates-page th {
+        font-size: 10px;
+        letter-spacing: .7px;
+        text-transform: uppercase;
+        color: #475569;
+        background: #f1f5f9;
+        font-weight: 800;
+        text-align: left;
+    }
+
+    .candidates-page th,
+    .candidates-page td {
+        padding: 15px 18px;
+        border-bottom: 1px solid #edf0f5;
+    }
+
+    .candidates-page td {
+        color: #334155;
+        font-size: 13px;
+    }
+
+    .candidates-page tbody tr {
+        background: #fff;
+        transition: background .18s ease;
+    }
+
+    .candidates-page tbody tr:hover {
+        background: #f8faff;
+    }
+
+    .candidates-page tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .candidates-page .person {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .candidates-page .avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: #eef2ff;
+        border: 1px solid #e0e7ff;
+        color: #4338ca;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        flex: 0 0 auto;
+    }
+
+    .candidates-page .person-name {
+        font-weight: 650;
+        color: #1e293b;
+    }
+
+    .candidates-page .secondary {
+        display: block;
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 4px;
+    }
+
+    /* STATUS BADGES */
+
+    .candidates-page .status {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 9px;
+        border-radius: 30px;
+        font-size: 10px;
+        font-weight: 800;
+        background: #eef2ff;
+        color: #4338ca;
+        border: 1px solid #e0e7ff;
+    }
+
+    .candidates-page .status-joined {
+        background: #ecfdf5;
+        color: #047857;
+        border-color: #a7f3d0;
+    }
+
+    .candidates-page .status-resign {
+        background: #f5f3ff;
+        color: #6d28d9;
+        border-color: #ddd6fe;
+    }
+
+    .candidates-page .status-rejected,
+    .candidates-page .status-withdrawn {
+        background: #fef2f2;
+        color: #b91c1c;
+        border-color: #fecaca;
+    }
+
+    .candidates-page .status-offer,
+    .candidates-page .status-offer_letter_sent {
+        background: #fffbeb;
+        color: #92400e;
+        border-color: #fde68a;
+    }
+
+    .candidates-page .status-first_interview,
+    .candidates-page .status-second_interview,
+    .candidates-page .status-interview_requested {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+    }
+
+    /* ACTION BUTTONS */
+
+    .candidates-page .actions-cell {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(78px, 1fr));
+        gap: 7px;
+        min-width: 180px;
+        max-width: 220px;
+    }
+
+    .candidates-page .actions-cell>a,
+    .candidates-page .actions-cell>button,
+    .candidates-page .actions-cell>form {
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+    }
+
+    .candidates-page .actions-cell form .btn {
+        width: 100%;
+    }
+
+    .candidates-page .actions-cell .btn {
+        white-space: nowrap;
+    }
+
+    .candidates-page .inline-form {
+        display: block;
+    }
+
+    .candidates-page .action-column {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        min-width: 150px;
+    }
+
+    .candidates-page .action-column form {
+        margin: 0;
+        width: 100%;
+    }
+
+    .candidates-page .action-column .btn {
+        width: 100%;
+        min-height: 38px;
+        padding: 8px 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        white-space: nowrap;
+        font-size: 11px;
+        font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* EMPTY STATE */
+
+    .candidates-page .empty {
+        text-align: center;
+        padding: 48px 20px;
+        color: #64748b;
+        white-space: normal;
+        background: #fff;
+    }
+
+    .candidates-page .empty-icon {
+        font-size: 32px;
+        margin-bottom: 10px;
+        color: #94a3b8;
+    }
+
+    .candidates-page .empty strong {
+        display: block;
+        color: #334155;
+        font-size: 15px;
+        margin-bottom: 5px;
+    }
+
+    /* PAGINATION */
+
+    .candidates-page .pagination-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 16px 22px;
+        border-top: 1px solid #e2e8f0;
+        background: #fff;
+    }
+
+    .candidates-page .pagination-info {
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .candidates-page .pagination-controls {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .candidates-page .page-btn {
+        min-width: 35px;
+        height: 35px;
+        padding: 0 10px;
+        border: 1px solid #dbe3ed;
+        border-radius: 9px;
+        background: #fff;
+        color: #475569;
+        font-size: 12px;
+        font-weight: 650;
+        cursor: pointer;
+        transition: background .18s ease, color .18s ease,
+            border-color .18s ease;
+    }
+
+    .candidates-page .page-btn:hover:not(:disabled) {
+        background: #eef2ff;
+        color: #4338ca;
+        border-color: #c7d2fe;
+    }
+
+    .candidates-page .page-btn.active {
+        color: #fff;
+        background: #4f46e5;
+        border-color: #4f46e5;
+    }
+
+    .candidates-page .page-btn:disabled {
+        opacity: .4;
+        cursor: not-allowed;
+    }
+
+    /* MODALS */
+
+    .candidates-page .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, .48);
+        backdrop-filter: blur(5px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        z-index: 9999;
+    }
+
+    .candidates-page .modal-backdrop.open {
+        display: flex;
+    }
+
+    .candidates-page .confirm-modal {
+        width: min(440px, 100%);
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 22px;
+        padding: 28px;
+        box-shadow: 0 28px 80px rgba(15, 23, 42, .20);
+        animation: modalIn .18s ease-out;
+    }
+
+    .candidates-page .modal-icon {
+        width: 54px;
+        height: 54px;
+        display: grid;
+        place-items: center;
+        border-radius: 17px;
+        background: #fef2f2;
+        color: #dc2626;
+        font-size: 25px;
+        font-weight: 800;
+        margin-bottom: 17px;
+    }
+
+    .candidates-page .confirm-modal h3 {
+        font-size: 20px;
+        color: #1e293b;
+        margin: 0 0 9px;
+        letter-spacing: -.4px;
+    }
+
+    .candidates-page .confirm-modal p {
+        margin: 0;
+        color: #64748b;
+        line-height: 1.7;
+        overflow-wrap: anywhere;
+    }
+
+    .candidates-page .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    .candidates-page .modal-actions button {
+        min-width: 110px;
+    }
+
+    .candidates-page .btn-delete-confirm {
+        background: #dc2626;
+        color: #fff;
+        border: 1px solid #dc2626;
+    }
+
+    .candidates-page .btn-delete-confirm:hover {
+        background: #b91c1c;
+        border-color: #b91c1c;
+    }
+
+    @keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: translateY(8px) scale(.98);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* DECISION MODAL */
+
+    .candidates-page .decision-modal {
+        position: relative;
+        max-width: 460px;
+        padding: 30px;
+        border-radius: 24px;
+    }
+
+    .candidates-page .decision-eyebrow {
+        margin-bottom: 9px;
+        color: #64748b;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+    }
+
+    .candidates-page .decision-modal h3 {
+        font-size: 23px;
+        line-height: 1.35;
+        margin-bottom: 10px;
+    }
+
+    .candidates-page .decision-modal p {
+        font-size: 14px;
+        line-height: 1.8;
+    }
+
+    .candidates-page #decisionModalIcon {
+        width: 58px;
+        height: 58px;
+        border-radius: 18px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 20px;
+        font-size: 26px;
+        font-weight: 800;
+    }
+
+    .candidates-page #decisionModal.decision-accept #decisionModalIcon {
+        color: #047857;
+        background: #ecfdf5;
+    }
+
+    .candidates-page #decisionModal.decision-reject #decisionModalIcon {
+        color: #b91c1c;
+        background: #fef2f2;
+    }
+
+    .candidates-page #decisionModal.decision-cancel #decisionModalIcon {
+        color: #475569;
+        background: #f1f5f9;
+    }
+
+    .candidates-page #decisionModal.decision-skip #decisionModalIcon {
+        color: #92400e;
+        background: #fffbeb;
+    }
+
+    .candidates-page #decisionModal.decision-resign #decisionModalIcon {
+        color: #6d28d9;
+        background: #f5f3ff;
+    }
+
+    .candidates-page .btn-decision-confirm {
+        color: #fff;
+        border: 0;
+        border-radius: 10px;
+        padding: 11px 16px;
+        min-width: 135px;
+        font-weight: 650;
+        cursor: pointer;
+        transition: background .2s, transform .2s;
+    }
+
+    .candidates-page #decisionModal.decision-accept .btn-decision-confirm {
+        background: #059669;
+    }
+
+    .candidates-page #decisionModal.decision-accept .btn-decision-confirm:hover {
+        background: #047857;
+        transform: translateY(-1px);
+    }
+
+    .candidates-page #decisionModal.decision-reject .btn-decision-confirm {
+        background: #dc2626;
+    }
+
+    .candidates-page #decisionModal.decision-reject .btn-decision-confirm:hover {
+        background: #b91c1c;
+        transform: translateY(-1px);
+    }
+
+    .candidates-page #decisionModal.decision-cancel .btn-decision-confirm {
+        background: #64748b;
+    }
+
+    .candidates-page #decisionModal.decision-cancel .btn-decision-confirm:hover {
+        background: #475569;
+        transform: translateY(-1px);
+    }
+
+    .candidates-page #decisionModal.decision-skip .btn-decision-confirm {
+        background: #d97706;
+    }
+
+    .candidates-page #decisionModal.decision-skip .btn-decision-confirm:hover {
+        background: #b45309;
+        transform: translateY(-1px);
+    }
+
+    .candidates-page #decisionModal.decision-resign .btn-decision-confirm {
+        background: #7c3aed;
+    }
+
+    .candidates-page #decisionModal.decision-resign .btn-decision-confirm:hover {
+        background: #6d28d9;
+        transform: translateY(-1px);
+    }
+
+    .candidates-page #decisionModal .modal-actions {
+        margin-top: 20px;
+    }
+
+    .candidates-page #decisionModal .btn-light {
+        min-height: 42px;
+    }
+
+    /* EMAIL PREVIEW */
+
+    .candidates-page .email-preview-fields {
+        display: none;
+        margin-top: 20px;
+        text-align: left;
+    }
+    /* INTERVIEW SCHEDULE FIELDS */
+
+.candidates-page .interview-schedule-fields {
+    display: none;
+    margin-bottom: 18px;
+    padding: 16px;
+    background: #f8faff;
+    border: 1px solid #dbeafe;
+    border-radius: 12px;
+}
+
+.candidates-page .interview-schedule-fields.visible {
+    display: block;
+}
+
+.candidates-page .interview-schedule-title {
+    margin-bottom: 12px;
+    color: #1e40af;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.candidates-page .interview-schedule-fields .schedule-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.candidates-page .interview-schedule-fields .schedule-row .email-field {
+    margin-bottom: 12px;
+}
+
+.candidates-page .interview-schedule-fields .schedule-row .email-field:last-child {
+    margin-bottom: 0;
+}
+
+.candidates-page .interview-schedule-fields input,
+.candidates-page .interview-schedule-fields select {
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: #fff;
+    color: #1e293b;
+}
+
+.candidates-page .interview-schedule-fields input:focus,
+.candidates-page .interview-schedule-fields select:focus {
+    border-color: #818cf8;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, .12);
+}
+
+.candidates-page .interview-schedule-fields .required {
+    color: red;
+}
+
+@media (max-width: 480px) {
+    .candidates-page .interview-schedule-fields .schedule-row {
+        grid-template-columns: 1fr;
+    }
+}
+    /* DECISION REASON FIELD */
+
+    .candidates-page #decisionReasonField {
+        display: none;
+    }
+
+    .candidates-page #decisionReasonField.visible {
+        display: block;
+    }
+
+    .candidates-page .email-preview-fields.visible {
+        display: block;
+    }
+
+    .candidates-page .email-preview-fields .email-field {
+        margin-bottom: 14px;
+    }
+
+    .candidates-page .email-preview-fields label {
+        display: block;
+        margin-bottom: 6px;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .candidates-page .email-preview-fields input,
+    .candidates-page .email-preview-fields textarea {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        padding: 11px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        background: #fff;
+        color: #1e293b;
+        outline: none;
+    }
+
+    .candidates-page .email-preview-fields textarea {
+        min-height: 150px;
+        resize: vertical;
+        line-height: 1.65;
+    }
+
+    .candidates-page .email-preview-fields input:focus,
+    .candidates-page .email-preview-fields textarea:focus {
+        border-color: #818cf8;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, .12);
+    }
+
+    /* Toast notifications */
+
+    .candidates-page .candidate-toast {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        z-index: 10000;
+        width: min(400px, calc(100vw - 32px));
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 18px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        box-shadow: 0 18px 55px rgba(15, 23, 42, .14);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-14px) scale(.98);
+        transition: opacity .25s ease, transform .25s ease,
+            visibility .25s ease;
+    }
+
+    .candidates-page .candidate-toast.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0) scale(1);
+    }
+
+    .candidates-page .candidate-toast-icon {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        border-radius: 13px;
+        font-size: 20px;
+    }
+
+    .candidates-page .candidate-toast.success .candidate-toast-icon {
+        color: #047857;
+        background: #ecfdf5;
+    }
+
+    .candidates-page .candidate-toast.error .candidate-toast-icon {
+        color: #b91c1c;
+        background: #fef2f2;
+    }
+
+    .candidates-page .candidate-toast-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .candidates-page .candidate-toast-title {
+        margin: 2px 0 5px;
+        color: #1e293b;
+        font-size: 14px;
+        font-weight: 650;
+    }
+
+    .candidates-page .candidate-toast-message {
+        color: #64748b;
+        font-size: 13px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    .candidates-page .candidate-toast-close {
+        border: 0;
+        background: transparent;
+        color: #94a3b8;
+        font-size: 21px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0 2px;
+    }
+
+    .candidates-page .candidate-toast-close:hover {
+        color: #334155;
+    }
+
+    /* Focus states */
+
+    .candidates-page button:focus-visible,
+    .candidates-page a:focus-visible,
+    .candidates-page input:focus-visible,
+    .candidates-page textarea:focus-visible {
+        outline: 3px solid rgba(99, 102, 241, .3);
+        outline-offset: 2px;
+    }
+
+    /* Disabled state for accept/reject buttons */
+
+    .candidates-page .btn-disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    /* Responsive */
+
+    @media (max-width: 1000px) {
+        .candidates-page main {
+            padding: 0 0 24px;
+        }
+
+        .candidates-page .panel-head {
+            align-items: stretch;
+            gap: 14px;
+        }
+
+        .candidates-page .panel-head-info {
+            flex-basis: 100%;
+        }
+
+        .candidates-page .panel-head .filters {
+            flex-basis: 100%;
+            max-width: none;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .candidates-page .stats {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .candidates-page .stat {
+            padding: 15px;
+        }
+
+        .candidates-page .panel-head {
+            padding: 17px;
+        }
+
+        .candidates-page .panel-head .filters {
+            min-width: 0;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .candidates-page .panel-head .filters .field {
+            width: 100%;
+        }
+
+        .candidates-page .panel-head .filter-actions {
+            width: 100%;
+        }
+
+        .candidates-page .panel-head .filter-actions .btn {
+            width: 100%;
+        }
+
+        .candidates-page .pipeline {
+            padding: 8px;
+        }
+
+        .candidates-page .tab {
+            min-width: 145px;
+        }
+
+        .candidates-page .modal-actions {
+            flex-direction: column-reverse;
+        }
+
+        .candidates-page .modal-actions button {
+            width: 100%;
+        }
+
+        .candidates-page .pagination-wrap {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .candidates-page .pagination-controls {
+            justify-content: flex-start;
+        }
+
+        .candidates-page .candidate-toast {
+            top: 16px;
+            right: 16px;
+        }
+    }
+
+    /* Lock background scrolling while a decision modal is open. */
+    body.email-preview-open {
+        overflow: hidden !important;
+    }
+
+    /*
+       The overlay does not scroll.
+       The email preview area scrolls inside the modal.
+       Confirm and Cancel buttons remain visible.
+    */
+    .candidates-page #decisionModal {
+        overflow: hidden;
+        padding: 16px;
+        overscroll-behavior: contain;
+    }
+
+    .candidates-page #decisionModal .confirm-modal.decision-modal.email-preview-active {
+        display: flex;
+        flex-direction: column;
+        width: min(620px, 100%);
+        max-width: 620px;
+        height: auto;
+        max-height: calc(100vh - 32px);
+        max-height: calc(100dvh - 32px);
+        min-height: 0;
+        overflow: hidden;
+        margin: auto 0;
+    }
+
+    .candidates-page #decisionModal .decision-modal.email-preview-active>#decisionModalIcon,
+    .candidates-page #decisionModal .decision-modal.email-preview-active>.decision-eyebrow,
+    .candidates-page #decisionModal .decision-modal.email-preview-active>h3,
+    .candidates-page #decisionModal .decision-modal.email-preview-active>#decisionModalDescription {
+        flex: 0 0 auto;
+    }
+
+    .candidates-page #decisionModalForm {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .candidates-page #emailPreviewFields.visible {
+        display: block;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+        padding: 0 5px 8px 0;
+    }
+
+    .candidates-page #emailPreviewFields.visible::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .candidates-page #emailPreviewFields.visible::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .candidates-page #emailPreviewFields.visible::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .candidates-page #decisionModal .modal-actions {
+        flex: 0 0 auto;
+        position: relative;
+        margin-top: 12px;
+        padding-top: 12px;
+        background: #fff;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    @media (max-width: 600px) {
+        .candidates-page #decisionModal {
+            padding: 10px;
+        }
+
+        .candidates-page #decisionModal .confirm-modal.decision-modal.email-preview-active {
+            padding: 20px;
+            border-radius: 18px;
+            max-height: calc(100vh - 20px);
+            max-height: calc(100dvh - 20px);
+        }
+    }
+
+    @media (max-height: 700px) {
+        .candidates-page #decisionModal .confirm-modal.decision-modal.email-preview-active {
+            padding-top: 18px;
+            padding-bottom: 18px;
+        }
+
+        .candidates-page #decisionModal #decisionModalIcon {
+            margin-bottom: 10px;
+        }
+
+        .candidates-page #decisionModal .decision-eyebrow {
+            margin-bottom: 6px;
+        }
+    }
+    
+    .required {
+        color: red;
+    }
+
+    /* ==========================================
+       PROCESSING SPINNER (Confirm / Processing)
+    ========================================== */
+
+    .candidates-page .btn-decision-confirm.is-loading {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: wait;
+        opacity: 0.9;
+    }
+
+    .candidates-page .btn-decision-confirm .btn-spinner {
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+        border: 2px solid rgba(255, 255, 255, 0.45);
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: decisionSpin 0.7s linear infinite;
+    }
+
+    @keyframes decisionSpin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .candidates-page .decision-processing-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10001;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 14px;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(4px);
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+    }
+
+    .candidates-page .decision-processing-overlay.show {
+        display: flex;
+    }
+
+    .candidates-page .decision-processing-overlay .processing-spinner {
+        width: 46px;
+        height: 46px;
+        border: 4px solid rgba(255, 255, 255, 0.28);
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: decisionSpin 0.8s linear infinite;
+    }
+
+    .candidates-page .decision-processing-overlay .processing-text {
+        text-align: center;
+        line-height: 1.6;
+        max-width: 280px;
+    }
+    /* RESIGN REASON FIELD */
+
+.candidates-page #decisionReasonField {
+    display: none;
+    width: 100%;
+    margin-top: 18px;
+    text-align: left;
+}
+
+.candidates-page #decisionReasonField.visible {
+    display: block !important;
+    animation: reasonFadeIn 0.25s ease;
+}
+
+.candidates-page #decisionReasonField label {
+    display: block;
+    margin-bottom: 9px;
+    color: #273449;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.candidates-page #decisionReasonField .required-star {
+    color: #dc2626;
+    margin-left: 3px;
+}
+
+.candidates-page #decisionReason {
+    display: block;
+    width: 100%;
+    min-height: 110px;
+    padding: 13px 15px;
+    border: 1px solid #d8deea;
+    border-radius: 10px;
+    background: #fff;
+    color: #273449;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.candidates-page #decisionReason:focus {
+    border-color: #6254e8;
+    box-shadow: 0 0 0 3px rgba(98, 84, 232, 0.10);
+}
+
+.candidates-page #decisionReasonField .small-note {
+    margin-top: 7px;
+    color: #8a94a6;
+    font-size: 11px;
+}
+
+@keyframes reasonFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="candidates-page">
+
+    <div id="candidateToast" class="candidate-toast" role="status" aria-live="polite" aria-atomic="true">
+        <div class="candidate-toast-icon" id="candidateToastIcon">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div class="candidate-toast-body">
+            <div class="candidate-toast-title" id="candidateToastTitle">Success</div>
+            <div class="candidate-toast-message" id="candidateToastMessage">
+                Candidate saved successfully.
+            </div>
+        </div>
+        <button type="button" class="candidate-toast-close" id="candidateToastClose"
+            aria-label="Close notification">&times;</button>
+    </div>
+
+    <main>
+        <div class="stats">
+            <a class="stat stat-1" href="{{ url_for('candidate.view_candidates') }}" title="View all candidate records">
+                <div class="stat-icon">👥</div>
+                <div class="stat-content">
+                    <div class="stat-label">All Candidates</div>
+                    <div class="stat-number">{{ total_count }}</div>
+                    <div class="stat-hint">View all candidate records →</div>
+                </div>
+            </a>
+
+            <a class="stat stat-2" href="{{ url_for('candidate.candidates', tab='candidates', status='new') }}"
+                title="View new candidates">
+                <div class="stat-icon">🗂️</div>
+                <div class="stat-content">
+                    <div class="stat-label">New Candidate</div>
+                    <div class="stat-number">{{ new_count }}</div>
+                    <div class="stat-hint">View new candidates →</div>
+                </div>
+            </a>
+
+            <a class="stat stat-3" href="{{ url_for('candidate.candidates', tab='joined') }}"
+                title="View joined candidates">
+                <div class="stat-icon">✓</div>
+                <div class="stat-content">
+                    <div class="stat-label">Successfully Joined</div>
+                    <div class="stat-number">{{ joined_count }}</div>
+                    <div class="stat-hint">View joined records →</div>
+                </div>
+            </a>
+        </div>
+
+        <section class="panel">
+            <nav class="pipeline" aria-label="Recruitment stages">
+                {% set tab_labels = {
+                'candidates': 'Candidates',
+                'interview_request': 'Interview Request',
+                'first_interview': 'First Interview',
+                'second_interview': 'Second Interview',
+                'offer': 'Offer',
+                'joined': 'Joined',
+                'resign': 'Resign'
+                } %}
+
+                {% for tab_key, tab_item in pipeline_tabs.items() %}
+                <a class="tab {% if active_tab == tab_key %}active{% endif %}"
+                    href="{{ url_for('candidate.candidates', tab=tab_key) }}">
+                    <span>{{ tab_labels[tab_key] }}</span>
+                </a>
+                {% endfor %}
+            </nav>
+
+            <div class="panel-head" id="candidate-results">
+                <div class="panel-head-info">
+                    <h2>
+                        {{ tab_config.title }}
+                        <span class="count">{{ candidates|length }} results</span>
+                    </h2>
+                    <div class="small-note">{{ tab_config.subtitle }}</div>
+                </div>
+
+                <form class="filters" action="{{ url_for('candidate.candidates') }}" method="GET">
+                    <input type="hidden" name="tab" value="{{ active_tab }}">
+
+                    {% if selected_status %}
+                    <input type="hidden" name="status" value="{{ selected_status }}">
+                    {% endif %}
+
+                    <div class="field">
+                        <label for="stage_search">Search this stage</label>
+                        <input id="stage_search" type="search" name="stage_search" value="{{ stage_search }}"
+                            placeholder="Search name, phone, email or ID">
+                    </div>
+
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Candidate</th>
+                            <th>Contact</th>
+                            <th>Branch</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Added Date</th>
+                            {% if active_tab != 'resign' %}
+                            <th>Actions</th>
+                            {% endif %}
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="candidateTableBody">
+                        {% for candidate in candidates %}
+                        <tr class="candidate-data-row">
+                            <td>
+                                <div class="person">
+                                    <div class="avatar">{{ candidate.name[:1]|upper }}</div>
+                                    <div>
+                                        <div class="person-name">{{ candidate.name }}</div>
+                                        <span class="secondary">Candidate #{{ candidate.id }}</span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                {{ candidate.email }}
+                                <span class="secondary">{{ candidate.phone }}</span>
+                            </td>
+
+                            <td>{{ candidate.branch_name or '—' }}</td>
+                            <td>{{ candidate.department_name or '—' }}</td>
+
+                            <td>
+                                <span class="status status-{{ candidate.status }}">
+                                    {{ candidate.status|replace('_', ' ')|title }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {% if candidate.created_at %}
+                                {{ candidate.created_at.strftime('%d %b %Y') }}
+                                {% else %}
+                                —
+                                {% endif %}
+                            </td>
+
+                            {% if active_tab != 'resign' %}
+                            <td>
+                                <div class="actions-cell action-column">
+
+                                    {% if active_tab == 'joined' %}
+                                    {# ---- Resign button (only on Joined tab) ---- #}
+                                    <form class="inline-form js-stage-decision" method="POST"
+                                        action="{{ url_for('candidate.resign_candidate', candidate_id=candidate.id) }}"
+                                        data-decision="resign" data-candidate-name="{{ candidate.name }}">
+                                        <input type="hidden" name="tab" value="joined">
+                                        <button type="submit" class="btn btn-skip btn-small">Resign</button>
+                                    </form>
+                                    {% else %}
+
+                                    {% if tab_config.next_status and candidate.status in tab_config.statuses %}
+
+                                        {# ==================================================
+                                           ACCEPT BUTTON
+                                           Check interview time for first & second interviews
+                                           ================================================== #}
+
+                                        {% set show_accept = true %}
+                                        {% set accept_disabled = false %}
+                                        {% set accept_title = "" %}
+
+                                        {# First Interview tab: check first_interview schedule #}
+                                        {% if active_tab == 'first_interview' %}
+                                            {% if candidate.first_interview_date and candidate.first_interview_time %}
+                                                {% if not candidate.first_interview_passed %}
+                                                    {% set show_accept = false %}
+                                                    {% set accept_disabled = true %}
+                                                    {% set accept_title = "Interview time not yet passed. Available after " ~ candidate.first_interview_date.strftime('%d %b %Y') ~ " " ~ candidate.first_interview_time.strftime('%I:%M %p') %}
+                                                {% endif %}
+                                            {% else %}
+                                                {% set show_accept = false %}
+                                                {% set accept_disabled = true %}
+                                                {% set accept_title = "No interview schedule found" %}
+                                            {% endif %}
+                                        {% endif %}
+
+                                        {# Second Interview tab: check second_interview schedule #}
+                                        {% if active_tab == 'second_interview' %}
+                                            {% if candidate.second_interview_date and candidate.second_interview_time %}
+                                                {% if not candidate.second_interview_passed %}
+                                                    {% set show_accept = false %}
+                                                    {% set accept_disabled = true %}
+                                                    {% set accept_title = "Interview time not yet passed. Available after " ~ candidate.second_interview_date.strftime('%d %b %Y') ~ " " ~ candidate.second_interview_time.strftime('%I:%M %p') %}
+                                                {% endif %}
+                                            {% else %}
+                                                {% set show_accept = false %}
+                                                {% set accept_disabled = true %}
+                                                {% set accept_title = "No interview schedule found" %}
+                                            {% endif %}
+                                        {% endif %}
+
+                                        {% if show_accept %}
+                                        <form class="inline-form js-stage-decision" method="POST"
+                                            action="{{ url_for('candidate.accept_candidate', candidate_id=candidate.id) }}"
+                                            data-decision="accept" data-candidate-name="{{ candidate.name }}"
+                                            data-email="{{ candidate.email or '' }}"
+                                            data-position="{{ candidate.position or '' }}"
+                                            data-current-stage="{{ tab_labels[active_tab] }}"
+                                            data-next-status="{{ tab_config.next_status }}">
+                                            <input type="hidden" name="tab" value="{{ active_tab }}">
+                                            <button type="submit" class="btn btn-primary btn-small">Accept</button>
+                                        </form>
+                                        {% else %}
+                                        <button type="button" class="btn btn-primary btn-small btn-disabled"
+                                            title="{{ accept_title }}" disabled>
+                                            Accept
+                                        </button>
+                                        {% endif %}
+                                    {% endif %}
+
+                                    {% if tab_config.skip_status and candidate.status in tab_config.statuses %}
+                                        {% set skip_allowed = true %}
+                                        {% set skip_title = "" %}
+                                        
+                                        {# Second Interview Stage မှာဆိုရင် Interview အချိန်ကျော်မှ Skip လုပ်ခွင့်ပြုမယ် #}
+                                        {% if active_tab == 'second_interview' %}
+                                            {% if candidate.second_interview_date and candidate.second_interview_time %}
+                                                {% if not candidate.second_interview_passed %}
+                                                    {% set skip_allowed = false %}
+                                                    {% set skip_title = "Interview time not yet passed. Available after " ~ candidate.second_interview_date.strftime('%d %b %Y') ~ " " ~ candidate.second_interview_time.strftime('%I:%M %p') %}
+                                                {% endif %}
+                                            {% else %}
+                                                {% set skip_allowed = false %}
+                                                {% set skip_title = "No interview schedule found" %}
+                                            {% endif %}
+                                        {% endif %}
+
+                                        {% if skip_allowed %}
+                                            <form class="inline-form js-stage-decision" method="POST"
+                                                action="{{ url_for('candidate.skip_candidate', candidate_id=candidate.id) }}"
+                                                data-decision="skip" data-candidate-name="{{ candidate.name }}"
+                                                data-email="{{ candidate.email or '' }}"
+                                                data-position="{{ candidate.position or '' }}"
+                                                data-current-stage="{{ tab_labels[active_tab] }}"
+                                                data-next-status="{{ tab_config.skip_status }}">
+                                                <input type="hidden" name="tab" value="{{ active_tab }}">
+                                                <button type="submit" class="btn btn-skip btn-small">Skip</button>
+                                            </form>
+                                        {% else %}
+                                            <button type="button" class="btn btn-skip btn-small btn-disabled" title="{{ skip_title }}" disabled>
+                                                Skip
+                                            </button>
+                                        {% endif %}
+                                    {% endif %}
+
+                                    {% if candidate.status in tab_config.statuses %}
+
+                                        {# ==================================================
+                                           REJECT BUTTON
+                                           Check interview time for first & second interviews
+                                           ================================================== #}
+
+                                        {% set show_reject = true %}
+                                        {% set reject_disabled = false %}
+                                        {% set reject_title = "" %}
+
+                                        {# First Interview tab: check first_interview schedule #}
+                                        {% if active_tab == 'first_interview' %}
+                                            {% if candidate.first_interview_date and candidate.first_interview_time %}
+                                                {% if not candidate.first_interview_passed %}
+                                                    {% set show_reject = false %}
+                                                    {% set reject_disabled = true %}
+                                                    {% set reject_title = "Interview time not yet passed. Available after " ~ candidate.first_interview_date.strftime('%d %b %Y') ~ " " ~ candidate.first_interview_time.strftime('%I:%M %p') %}
+                                                {% endif %}
+                                            {% else %}
+                                                {% set show_reject = false %}
+                                                {% set reject_disabled = true %}
+                                                {% set reject_title = "No interview schedule found" %}
+                                            {% endif %}
+                                        {% endif %}
+
+                                        {# Second Interview tab: check second_interview schedule #}
+                                        {% if active_tab == 'second_interview' %}
+                                            {% if candidate.second_interview_date and candidate.second_interview_time %}
+                                                {% if not candidate.second_interview_passed %}
+                                                    {% set show_reject = false %}
+                                                    {% set reject_disabled = true %}
+                                                    {% set reject_title = "Interview time not yet passed. Available after " ~ candidate.second_interview_date.strftime('%d %b %Y') ~ " " ~ candidate.second_interview_time.strftime('%I:%M %p') %}
+                                                {% endif %}
+                                            {% else %}
+                                                {% set show_reject = false %}
+                                                {% set reject_disabled = true %}
+                                                {% set reject_title = "No interview schedule found" %}
+                                            {% endif %}
+                                        {% endif %}
+
+                                        {% if show_reject %}
+                                        <form class="inline-form js-stage-decision" method="POST"
+                                            action="{{ url_for('candidate.reject_candidate', candidate_id=candidate.id) }}"
+                                            data-decision="reject" data-candidate-name="{{ candidate.name }}"
+                                            data-email="{{ candidate.email or '' }}"
+                                            data-position="{{ candidate.position or '' }}"
+                                            data-current-stage="{{ tab_labels[active_tab] }}">
+                                            <input type="hidden" name="tab" value="{{ active_tab }}">
+                                            <button type="submit" class="btn btn-danger btn-small">Reject</button>
+                                        </form>
+                                        {% else %}
+                                        <button type="button" class="btn btn-danger btn-small btn-disabled"
+                                            title="{{ reject_title }}" disabled>
+                                            Reject
+                                        </button>
+                                        {% endif %}
+                                    {% endif %}
+
+                                    {% if active_tab in [
+                                    'interview_request',
+                                    'first_interview',
+                                    'second_interview',
+                                    'offer'
+                                    ] and candidate.status in tab_config.statuses %}
+                                    <form class="inline-form js-stage-decision" method="POST"
+                                        action="{{ url_for('candidate.cancel_candidate', candidate_id=candidate.id) }}"
+                                        data-decision="cancel" data-candidate-name="{{ candidate.name }}">
+                                        <input type="hidden" name="tab" value="{{ active_tab }}">
+                                        <button type="submit" class="btn btn-light btn-small">Cancel</button>
+                                    </form>
+                                    {% endif %}
+
+                                    {% endif %}
+                                </div>
+                            </td>
+                            {% endif %}
+
+                            <td>
+                                <div class="actions-cell action-column">
+                                    <a class="btn btn-light btn-small" href="{{ url_for(
+                                            'candidate.view_candidate',
+                                            candidate_id=candidate.id,
+                                            return_to='workflow',
+                                            tab=active_tab,
+                                            global_search=global_search,
+                                            stage_search=stage_search,
+                                            status=selected_status
+                                        ) }}">
+                                        View
+                                    </a>
+
+                                    <a class="btn btn-light btn-small" href="{{ url_for(
+                                            'candidate.candidate_history',
+                                            candidate_id=candidate.id,
+                                            tab=active_tab,
+                                            global_search=global_search,
+                                            stage_search=stage_search,
+                                            status=selected_status
+                                        ) }}">
+                                        History
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr class="empty-table-row">
+                            <td colspan="{% if active_tab == 'resign' %}7{% else %}8{% endif %}">
+                                <div class="empty">
+                                    <div class="empty-icon">⌕</div>
+                                    {% if search %}
+                                    <strong>No matching candidates found</strong>
+                                    <span>
+                                        No candidates matched "{{ search }}".
+                                        Try another name, phone number, email, NRC or candidate ID.
+                                    </span>
+                                    {% elif stage_search %}
+                                    <strong>No matching candidates found</strong>
+                                    <span>Try another search term.</span>
+                                    {% else %}
+                                    <strong>No candidates found</strong>
+                                    <span>
+                                        There are no candidates matching the selected filters.
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination-wrap" id="candidatePagination" style="display:none;">
+                <div class="pagination-info" id="paginationInfo">
+                    Showing 0–0 of 0 candidates
+                </div>
+                <div class="pagination-controls" id="paginationControls"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Delete confirmation modal -->
+    <div class="modal-backdrop" id="deleteModal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle"
+        aria-describedby="deleteModalDescription">
+        <div class="confirm-modal">
+            <div class="modal-icon" aria-hidden="true">!</div>
+            <h3 id="deleteModalTitle">Delete candidate?</h3>
+            <p id="deleteModalDescription">
+                This candidate will be permanently deleted. This action cannot be undone.
+            </p>
+            <form id="deleteModalForm" method="POST">
+                <input type="hidden" name="tab" value="{{ active_tab }}">
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-light" id="cancelDelete">Cancel</button>
+                    <button type="submit" class="btn btn-delete-confirm">Delete candidate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Accept / Skip / Reject / Cancel / Resign modal -->
+    <div class="modal-backdrop" id="decisionModal" role="dialog" aria-modal="true" aria-labelledby="decisionModalTitle"
+        aria-describedby="decisionModalDescription">
+
+        <div class="confirm-modal decision-modal">
+            <div class="modal-icon" id="decisionModalIcon" aria-hidden="true">✓</div>
+            <div class="decision-eyebrow" id="decisionModalEyebrow">CANDIDATE STATUS</div>
+            <h3 id="decisionModalTitle">Confirm decision</h3>
+            <p id="decisionModalDescription">Are you sure you want to continue?</p>
+
+            <form id="decisionModalForm" method="POST">
+                <input type="hidden" name="tab" value="{{ active_tab }}">
+
+                <div class="email-preview-fields" id="emailPreviewFields">
+
+                    <div class="email-field">
+                        <label for="previewEmailTo">To (Recipient Email)<span class="required">*</span></label>
+                        <input type="email" id="previewEmailTo" autocomplete="email" required>
+                    </div>
+
+                    <!-- INTERVIEW DATE, TIME AND INTERVIEWER -->
+                    <div class="interview-schedule-fields" id="interviewScheduleFields">
+
+                        <div class="interview-schedule-title" id="interviewScheduleTitle">
+                            <i class="fa-regular fa-calendar-check"></i>
+                            Interview Schedule
+                        </div>
+
+                        <div class="schedule-row">
+
+                            <div class="email-field">
+                                <label for="interviewDate">
+                                    Interview Date <span class="required">*</span>
+                                </label>
+
+                                <input
+                                    type="date"
+                                    id="interviewDate"
+                                    required
+                                >
+                            </div>
+
+                            <div class="email-field">
+                                <label for="interviewTime">
+                                    Interview Time <span class="required">*</span>
+                                </label>
+
+                                <input
+                                    type="time"
+                                    id="interviewTime"
+                                    required
+                                >
+                            </div>
+
+                        </div>
+
+                        <div class="email-field">
+                            <label for="interviewer">
+                                Interviewer <span class="required">*</span>
+                            </label>
+
+                            <input
+                                type="text"
+                                id="interviewer"
+                                maxlength="150"
+                                placeholder="Enter interviewer name"
+                                required
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="email-field">
+                        <label for="previewEmailSubject">Subject<span class="required">*</span></label>
+                        <input type="text" id="previewEmailSubject" maxlength="250" required>
+                    </div>
+
+                    <div class="email-field">
+                        <label for="previewEmailBody">Email Message<span class="required">*</span></label>
+                        <textarea id="previewEmailBody" rows="7" required></textarea>
+                    </div>
+
+                    <!-- NEW: REASON FIELD -->
+                    
+
+                    <p class="small-note">
+                        Review the recipient and message before sending.
+                        Cancelling will not send the email or change the candidate status.
+                    </p>
+
+                </div>
+                <!-- RESIGN REASON - OUTSIDE EMAIL PREVIEW -->
+                <div class="email-field" id="decisionReasonField">
+                    <label for="decisionReason" id="decisionReasonLabel">
+                        Reason for Resignation
+                        <span class="required-star">*</span>
+                    </label>
+
+                    <textarea
+                        id="decisionReason"
+                        name="remarks"
+                        rows="4"
+                        maxlength="1000"
+                        placeholder="Enter reason for resignation..."
+                    ></textarea>
+
+                    <p class="small-note">
+                        A reason is required before confirming this decision.
+                    </p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-light" id="cancelDecision">Cancel</button>
+                    <button type="submit" class="btn btn-decision-confirm" id="confirmDecision">
+                        Confirm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Full-screen processing overlay -->
+    <div class="decision-processing-overlay" id="decisionProcessingOverlay" role="status" aria-live="polite"
+        aria-label="Processing your request">
+        <div class="processing-spinner" aria-hidden="true"></div>
+        <div class="processing-text" id="decisionProcessingText">
+            Sending email and updating candidate status...
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+    // Toast notifications.
+    (function () {
+        const toast = document.getElementById('candidateToast');
+        const toastIcon = document.getElementById('candidateToastIcon');
+        const toastTitle = document.getElementById('candidateToastTitle');
+        const toastMessage = document.getElementById('candidateToastMessage');
+        const closeButton = document.getElementById('candidateToastClose');
+
+        if (!toast || !toastIcon || !toastTitle || !toastMessage) return;
+
+        let toastTimer = null;
+
+        window.showCandidateToast = function (message, category = 'success') {
+            const isError = ['error', 'danger'].includes(category);
+
+            toast.classList.remove('success', 'error');
+            toast.classList.add(isError ? 'error' : 'success');
+            toastTitle.textContent = isError ? 'Something went wrong' : 'Success';
+            toastMessage.textContent = message;
+            toastIcon.textContent = isError ? '!' : '✓';
+            toast.classList.add('show');
+
+            if (toastTimer) clearTimeout(toastTimer);
+
+            toastTimer = setTimeout(function () {
+                toast.classList.remove('show');
+            }, 2500);
+        };
+
+        function closeToast() {
+            toast.classList.remove('show');
+
+            if (toastTimer) {
+                clearTimeout(toastTimer);
+                toastTimer = null;
+            }
+        }
+
+        if (closeButton) {
+            closeButton.addEventListener('click', closeToast);
+        }
+
+        const params = new URLSearchParams(window.location.search);
+
+        if (params.get('toast') === 'success') {
+            window.showCandidateToast('Candidate saved successfully.', 'success');
+            params.delete('toast');
+
+            const query = params.toString();
+            const cleanUrl = window.location.pathname +
+                (query ? '?' + query : '') + window.location.hash;
+
+            window.history.replaceState({}, '', cleanUrl);
+        }
+    })();
+
+
+    // Pagination: 10 candidates per page.
+    (function () {
+        const rowsPerPage = 10;
+        const tableBody = document.getElementById('candidateTableBody');
+        const pagination = document.getElementById('candidatePagination');
+        const paginationInfo = document.getElementById('paginationInfo');
+        const paginationControls = document.getElementById('paginationControls');
+
+        if (!tableBody || !pagination || !paginationInfo || !paginationControls) {
+            return;
+        }
+
+        const rows = Array.from(
+            tableBody.querySelectorAll('tr.candidate-data-row')
+        );
+
+        if (rows.length === 0) {
+            pagination.style.display = 'none';
+            return;
+        }
+
+        const totalPages = Math.ceil(rows.length / rowsPerPage);
+        let currentPage = 1;
+
+        pagination.style.display = 'flex';
+
+        function makePageButton(label, page, options = {}) {
+            const button = document.createElement('button');
+
+            button.type = 'button';
+            button.className = 'page-btn';
+            button.textContent = label;
+
+            if (options.active) {
+                button.classList.add('active');
+                button.setAttribute('aria-current', 'page');
+            }
+
+            if (options.disabled) {
+                button.disabled = true;
+            }
+
+            button.addEventListener('click', function () {
+                if (
+                    page < 1 ||
+                    page > totalPages ||
+                    page === currentPage
+                ) {
+                    return;
+                }
+
+                currentPage = page;
+                renderPage();
+            });
+
+            return button;
+        }
+
+        function renderPage() {
+            const startIndex = (currentPage - 1) * rowsPerPage;
+            const endIndex = Math.min(startIndex + rowsPerPage, rows.length);
+
+            rows.forEach(function (row, index) {
+                row.style.display =
+                    index >= startIndex && index < endIndex ? '' : 'none';
+            });
+
+            paginationInfo.textContent =
+                'Showing ' + (startIndex + 1) + '–' + endIndex +
+                ' of ' + rows.length + ' candidates';
+
+            paginationControls.replaceChildren();
+
+            paginationControls.appendChild(
+                makePageButton('‹', currentPage - 1, {
+                    disabled: currentPage === 1
+                })
+            );
+
+            for (let page = 1; page <= totalPages; page++) {
+                paginationControls.appendChild(
+                    makePageButton(String(page), page, {
+                        active: page === currentPage
+                    })
+                );
+            }
+
+            paginationControls.appendChild(
+                makePageButton('›', currentPage + 1, {
+                    disabled: currentPage === totalPages
+                })
+            );
+        }
+
+        renderPage();
+    })();
+
+
+    // Delete confirmation modal.
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteModalForm = document.getElementById('deleteModalForm');
+    const deleteModalDescription =
+        document.getElementById('deleteModalDescription');
+    const cancelDelete = document.getElementById('cancelDelete');
+
+    let lastDeleteTrigger = null;
+
+    document.querySelectorAll('.js-delete-candidate').forEach(function (button) {
+        button.addEventListener('click', function () {
+            if (!deleteModal || !deleteModalForm || !deleteModalDescription) {
+                return;
+            }
+
+            lastDeleteTrigger = this;
+            deleteModalForm.action = this.dataset.deleteUrl;
+
+            deleteModalDescription.textContent =
+                '“' + this.dataset.candidateName +
+                '” will be permanently deleted. This action cannot be undone.';
+
+            deleteModal.classList.add('open');
+
+            if (cancelDelete) cancelDelete.focus();
+        });
+    });
+
+    function closeDeleteModal() {
+        if (!deleteModal) return;
+
+        deleteModal.classList.remove('open');
+
+        if (lastDeleteTrigger) {
+            lastDeleteTrigger.focus();
+        }
+    }
+
+    if (cancelDelete) {
+        cancelDelete.addEventListener('click', closeDeleteModal);
+    }
+
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function (event) {
+            if (event.target === deleteModal) {
+                closeDeleteModal();
+            }
+        });
+    }
+
+
+    // Decision modal references.
+    const decisionModal = document.getElementById('decisionModal');
+
+    const decisionModalPanel = decisionModal
+        ? decisionModal.querySelector('.confirm-modal.decision-modal')
+        : null;
+
+    const decisionModalForm =
+        document.getElementById('decisionModalForm');
+
+    const decisionModalIcon =
+        document.getElementById('decisionModalIcon');
+
+    const decisionModalEyebrow =
+        document.getElementById('decisionModalEyebrow');
+
+    const decisionModalTitle =
+        document.getElementById('decisionModalTitle');
+
+    const decisionModalDescription =
+        document.getElementById('decisionModalDescription');
+
+    const confirmDecision =
+        document.getElementById('confirmDecision');
+
+    const decisionProcessingOverlay =
+        document.getElementById('decisionProcessingOverlay');
+
+    const decisionProcessingText =
+        document.getElementById('decisionProcessingText');
+
+    const cancelDecision =
+        document.getElementById('cancelDecision');
+
+    const emailPreviewFields =
+        document.getElementById('emailPreviewFields');
+
+    const previewEmailTo =
+        document.getElementById('previewEmailTo');
+
+    const previewEmailSubject =
+        document.getElementById('previewEmailSubject');
+
+    const previewEmailBody =
+        document.getElementById('previewEmailBody');
+
+    // Interview schedule fields.
+    const interviewScheduleFields =
+        document.getElementById('interviewScheduleFields');
+
+    const interviewScheduleTitle =
+        document.getElementById('interviewScheduleTitle');
+
+    const interviewDate =
+        document.getElementById('interviewDate');
+
+    const interviewTime =
+        document.getElementById('interviewTime');
+
+    const interviewer =
+        document.getElementById('interviewer');
+
+
+    // Decision reason references.
+    const decisionReasonField =
+        document.getElementById('decisionReasonField');
+
+    const decisionReason =
+        document.getElementById('decisionReason');
+
+
+    // Reset reason whenever the decision modal opens.
+    function resetDecisionReason() {
+        if (decisionReason) {
+            decisionReason.value = '';
+            decisionReason.setCustomValidity('');
+            decisionReason.required = false;
+            decisionReason.placeholder = 'Enter reason...';
+        }
+
+        if (decisionReasonField) {
+            decisionReasonField.classList.remove('visible');
+        }
+
+        const reasonLabel = document.getElementById('decisionReasonLabel');
+
+        if (reasonLabel) {
+            reasonLabel.innerHTML =
+                'Reason <span class="required-star">*</span>';
+        }
+    }
+
+    // Clear validation message when user starts typing.
+    if (decisionReason) {
+        decisionReason.addEventListener('input', function () {
+            decisionReason.setCustomValidity('');
+        });
+    }
+
+    if (interviewer) {
+        interviewer.addEventListener('input', function () {
+            interviewer.setCustomValidity('');
+        });
+    }
+
+
+    let pendingDecisionForm = null;
+
+
+    // Map pipeline tab to interview stage.
+    function getInterviewStage(tab) {
+        if (tab === 'interview_request') {
+            return 'First Interview';
+        }
+
+        if (tab === 'first_interview') {
+            return 'Second Interview';
+        }
+
+        return null;
+    }
+
+
+    // Return today's date in YYYY-MM-DD format (Asia/Yangon).
+    function getTodayDate() {
+        const now = new Date();
+
+        // Convert to Yangon time
+        const yangonTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Yangon' }));
+
+        const year = yangonTime.getFullYear();
+        const month = String(yangonTime.getMonth() + 1).padStart(2, '0');
+        const day = String(yangonTime.getDate()).padStart(2, '0');
+
+        return year + '-' + month + '-' + day;
+    }
+
+
+
+    // Update email body with selected interview schedule.
+    // Frontend only maintains ONE schedule section.
+    function updateInterviewSchedulePreview() {
+        if (!previewEmailBody) return;
+
+        let baseBody = previewEmailBody.value
+            .replace(/\r\n/g, '\n')
+            .replace(/\r/g, '\n');
+
+        // Remove all existing Interview Schedule sections.
+        // Supports both DD/MM/YYYY and DD Month YYYY.
+        baseBody = baseBody.replace(
+            /^[ \t]*Interview Schedule[ \t]*\n(?:(?:[ \t]*(?:Date|Time|Interviewer)[ \t]*:.*)\n?){1,3}/gim,
+            ''
+        );
+
+        // Clean excessive blank lines.
+        baseBody = baseBody
+            .replace(/\n[ \t]*\n(?:[ \t]*\n)+/g, '\n\n')
+            .trim();
+
+        // Wait until all schedule fields are completed.
+        if (
+            !interviewDate ||
+            !interviewTime ||
+            !interviewer ||
+            !interviewDate.value ||
+            !interviewTime.value ||
+            !interviewer.value.trim()
+        ) {
+            previewEmailBody.value = baseBody;
+            return;
+        }
+
+        const dateParts = interviewDate.value.split('-');
+
+        const formattedDate =
+            dateParts[2] + '/' +
+            dateParts[1] + '/' +
+            dateParts[0];
+
+        const timeParts = interviewTime.value.split(':');
+
+        const hour = Number(timeParts[0]);
+        const minutes = timeParts[1];
+
+        const period = hour >= 12 ? 'PM' : 'AM';
+
+        const formattedTime =
+            String(hour % 12 || 12).padStart(2, '0') +
+            ':' + minutes + ' ' + period;
+
+        const scheduleText =
+            'Interview Schedule\n' +
+            'Date: ' + formattedDate + '\n' +
+            'Time: ' + formattedTime + '\n' +
+            'Interviewer: ' + interviewer.value.trim();
+
+        previewEmailBody.value = baseBody
+            ? baseBody + '\n\n' + scheduleText
+            : scheduleText;
+    }
+
+
+    // Listen for schedule changes.
+    if (interviewDate) {
+        interviewDate.addEventListener(
+            'change',
+            updateInterviewSchedulePreview
+        );
+    }
+
+    if (interviewTime) {
+        interviewTime.addEventListener(
+            'change',
+            updateInterviewSchedulePreview
+        );
+    }
+
+    if (interviewer) {
+        interviewer.addEventListener(
+            'input',
+            updateInterviewSchedulePreview
+        );
+    }
+
+
+    function titleCase(value) {
+        return String(value || '')
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, function (character) {
+                return character.toUpperCase();
+            });
+    }
+
+
+    function resetDecisionModalClasses() {
+        if (decisionModal) {
+            decisionModal.classList.remove(
+                'decision-accept',
+                'decision-reject',
+                'decision-cancel',
+                'decision-skip',
+                'decision-resign'
+            );
+        }
+
+        if (decisionModalPanel) {
+            decisionModalPanel.classList.remove('email-preview-active');
+        }
+    }
+
+
+    function activateEmailPreview(decisionClass) {
+        if (decisionModal) {
+            decisionModal.classList.add(decisionClass);
+        }
+
+        if (decisionModalPanel) {
+            decisionModalPanel.classList.add('email-preview-active');
+        }
+    }
+
+
+    // Open preview/confirmation for the selected decision.
+    document.querySelectorAll('.js-stage-decision').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            if (
+                !decisionModal ||
+                !decisionModalForm ||
+                !decisionModalIcon ||
+                !decisionModalTitle ||
+                !decisionModalDescription ||
+                !confirmDecision ||
+                !emailPreviewFields ||
+                !previewEmailTo ||
+                !previewEmailSubject ||
+                !previewEmailBody
+            ) {
+                this.submit();
+                return;
+            }
+
+            pendingDecisionForm = this;
+
+            const decision = this.dataset.decision;
+
+            const candidateName =
+                this.dataset.candidateName || 'Candidate';
+
+            const candidateEmail =
+                this.dataset.email || '';
+
+            const currentStage =
+                this.dataset.currentStage || 'current stage';
+
+            const nextStatus = titleCase(
+                this.dataset.nextStatus || 'next stage'
+            );
+
+            const stageName = titleCase(currentStage);
+
+            const activeTabField = this.querySelector(
+                'input[name="tab"]'
+            );
+
+            const activeTab = activeTabField
+                ? activeTabField.value
+                : '';
+
+            const interviewStage = getInterviewStage(activeTab);
+
+            const requiresInterviewSchedule =
+                decision === 'accept' && interviewStage !== null;
+
+
+            resetDecisionModalClasses();
+            resetDecisionReason();
+
+            emailPreviewFields.classList.remove('visible');
+
+            previewEmailTo.value = candidateEmail;
+            previewEmailSubject.value = '';
+            previewEmailBody.value = '';
+
+            confirmDecision.disabled = false;
+
+            // Reset schedule fields.
+            if (interviewScheduleFields) {
+                interviewScheduleFields.classList.remove('visible');
+            }
+
+            if (interviewDate) {
+                interviewDate.value = '';
+                interviewDate.required = false;
+                interviewDate.min = getTodayDate();
+                interviewDate.setCustomValidity('');
+            }
+
+            if (interviewTime) {
+                interviewTime.value = '';
+                interviewTime.required = false;
+                interviewTime.setCustomValidity('');
+            }
+
+            if (interviewer) {
+                interviewer.value = '';
+                interviewer.required = false;
+                interviewer.setCustomValidity('');
+            }
+
+            if (cancelDecision) {
+                cancelDecision.textContent = 'Cancel';
+                cancelDecision.style.display = '';
+            }
+
+
+            if (decision === 'accept') {
+                activateEmailPreview('decision-accept');
+
+                decisionModalIcon.textContent = '✉';
+                decisionModalEyebrow.textContent = 'ACCEPT CANDIDATE';
+                decisionModalTitle.textContent = 'Review acceptance email';
+
+                decisionModalDescription.textContent =
+                    'Review and edit the email before moving ' +
+                    candidateName + ' to ' + nextStatus + '.';
+
+                previewEmailSubject.value =
+                    'Recruitment Update - ' + nextStatus;
+
+                previewEmailBody.value =
+                    'Dear ' + candidateName + ',\n\n' +
+                    'Thank you for your interest in joining our team.\n\n' +
+                    'We are pleased to inform you that you have been accepted ' +
+                    'to proceed to the next stage of our recruitment process: ' +
+                    nextStatus + '.\n\n' +
+                    'We will share further information about the next steps ' +
+                    'with you in due course.\n\n' +
+                    'Best regards,\nHR Team\nPro1 Global Home Center';
+
+                confirmDecision.textContent = 'Send & Accept';
+
+                emailPreviewFields.classList.add('visible');
+
+                // Require date, time and interviewer for interview acceptance.
+                if (requiresInterviewSchedule) {
+                    if (
+                        !interviewScheduleFields ||
+                        !interviewDate ||
+                        !interviewTime ||
+                        !interviewer
+                    ) {
+                        window.showCandidateToast(
+                            'Interview schedule fields are missing from the page.',
+                            'error'
+                        );
+                        pendingDecisionForm = null;
+                        return;
+                    }
+
+                    interviewScheduleFields.classList.add('visible');
+
+                    if (interviewScheduleTitle) {
+                        interviewScheduleTitle.textContent =
+                            interviewStage + ' Schedule';
+                    }
+
+                    interviewDate.required = true;
+                    interviewTime.required = true;
+                    interviewer.required = true;
+
+                    interviewDate.min = getTodayDate();
+
+                    // Update email preview when date/time/interviewer are selected.
+                    updateInterviewSchedulePreview();
+                }
+
+
+            } else if (decision === 'skip') {
+                activateEmailPreview('decision-skip');
+
+                decisionModalIcon.textContent = '⏭';
+                decisionModalEyebrow.textContent = 'SKIP STAGE';
+                decisionModalTitle.textContent = 'Review skip email';
+
+                decisionModalDescription.textContent =
+                    'Review the email explaining the skipped stage and the stage ' +
+                    'the candidate will proceed to.';
+
+                previewEmailSubject.value =
+                    'Recruitment Stage Update - ' + nextStatus;
+
+                previewEmailBody.value =
+                    'Dear ' + candidateName + ',\n\n' +
+                    'We are pleased to inform you that you have successfully ' +
+                    'progressed past the ' + stageName + ' stage of our ' +
+                    'recruitment process and have been accepted to proceed ' +
+                    'to the ' + nextStatus + ' stage.\n\n' +
+                    'Thank you for your continued interest in joining our company. ' +
+                    'We will keep you informed of the next steps.\n\n' +
+                    'Best regards,\nHR Recruitment Team\nPro1 Global Home Center';
+
+                confirmDecision.textContent = 'Send & Skip';
+
+                emailPreviewFields.classList.add('visible');
+
+                if (decisionReasonField) {
+                    decisionReasonField.classList.add('visible');
+                }
+
+
+            } else if (decision === 'reject') {
+                activateEmailPreview('decision-reject');
+
+                decisionModalIcon.textContent = '✉';
+                decisionModalEyebrow.textContent = 'REJECT CANDIDATE';
+                decisionModalTitle.textContent = 'Review rejection email';
+
+                decisionModalDescription.textContent =
+                    'Review the rejection email before confirming this decision.';
+
+                previewEmailSubject.value =
+                    'Reject The Recruitment Application';
+
+                previewEmailBody.value =
+                    'Dear ' + candidateName + ',\n\n' +
+                    'Thank you for your interest in joining our company.\n\n' +
+                    'After careful consideration, we regret to inform you that ' +
+                    'your application has been rejected at the ' + stageName +
+                    ' stage of our recruitment process.\n\n' +
+                    'We appreciate the time and effort you have invested in ' +
+                    'your application and wish you success in your future career.\n\n' +
+                    'Best regards,\nHR Recruitment Team\nPro1 Global Home Center';
+
+                confirmDecision.textContent = 'Send & Reject';
+
+                emailPreviewFields.classList.add('visible');
+
+                if (decisionReasonField) {
+                    decisionReasonField.classList.add('visible');
+                }
+
+
+            } else if (decision === 'cancel') {
+                decisionModal.classList.add('decision-cancel');
+
+                decisionModalIcon.textContent = '↩';
+                decisionModalEyebrow.textContent = 'CANCEL CANDIDATE';
+                decisionModalTitle.textContent = 'Cancel this candidate?';
+
+                decisionModalDescription.textContent =
+                    'You are cancelling ' + candidateName +
+                    ' from the current recruitment stage. Do you want to continue?';
+
+                confirmDecision.textContent = 'Yes, Cancel';
+
+
+            } else if (decision === 'resign') {
+
+                decisionModal.classList.add('decision-resign');
+
+                decisionModalIcon.textContent = '🚪';
+                decisionModalEyebrow.textContent = 'MARK AS RESIGNED';
+                decisionModalTitle.textContent = 'Mark candidate as resign?';
+
+                decisionModalDescription.textContent =
+                    candidateName +
+                    ' will be moved from Joined to Resign. Please provide a reason.';
+
+                // Hide email preview completely
+                if (emailPreviewFields) {
+                    emailPreviewFields.classList.remove('visible');
+                }
+
+                // Show reason only
+                if (decisionReasonField) {
+                    decisionReasonField.classList.add('visible');
+                }
+
+                if (decisionReason) {
+                    decisionReason.required = true;
+                    decisionReason.placeholder =
+                        'Enter reason for resignation...';
+                }
+
+                const reasonLabel =
+                    document.getElementById('decisionReasonLabel');
+
+                if (reasonLabel) {
+                    reasonLabel.innerHTML =
+                        'Reason for Resignation <span class="required-star">*</span>';
+                }
+
+                confirmDecision.textContent = 'Yes, Mark Resign';
+            }
+
+
+            document.body.classList.add('email-preview-open');
+            decisionModal.classList.add('open');
+
+            if (emailPreviewFields) {
+                emailPreviewFields.scrollTop = 0;
+            }
+
+            // Focus the first required interview field, otherwise the email field.
+            if (requiresInterviewSchedule && interviewDate) {
+                interviewDate.focus();
+            } else if (cancelDecision && cancelDecision.style.display !== 'none') {
+                cancelDecision.focus();
+            } else {
+                confirmDecision.focus();
+            }
+        });
+    });
+
+        /* ==========================================
+       PROCESSING STATE HELPERS
+    ========================================== */
+
+    function setDecisionProcessing(active, message) {
+        if (confirmDecision) {
+            if (active) {
+                confirmDecision.dataset.originalLabel =
+                    confirmDecision.dataset.originalLabel ||
+                    confirmDecision.textContent.trim();
+
+                confirmDecision.disabled = true;
+                confirmDecision.classList.add('is-loading');
+                confirmDecision.innerHTML =
+                    '<span class="btn-spinner" aria-hidden="true"></span>' +
+                    '<span>Processing...</span>';
+            } else {
+                confirmDecision.disabled = false;
+                confirmDecision.classList.remove('is-loading');
+                confirmDecision.textContent =
+                    confirmDecision.dataset.originalLabel || 'Confirm';
+            }
+        }
+
+        if (decisionProcessingOverlay) {
+            decisionProcessingOverlay.classList.toggle('show', !!active);
+        }
+
+        if (decisionProcessingText && message) {
+            decisionProcessingText.textContent = message;
+        }
+    }
+    
+    function closeDecisionModal() {
+        if (!decisionModal) return;
+
+        decisionModal.classList.remove('open');
+        document.body.classList.remove('email-preview-open');
+        
+        // ✅ Reset processing state
+        setDecisionProcessing(false);
+        
+        if (pendingDecisionForm) {
+            const button = pendingDecisionForm.querySelector(
+                'button[type="submit"]'
+            );
+
+            if (button) {
+                button.focus();
+            }
+        }
+
+        pendingDecisionForm = null;
+
+        // Reset interview schedule fields.
+        if (interviewDate) {
+            interviewDate.value = '';
+            interviewDate.setCustomValidity('');
+        }
+
+        if (interviewTime) {
+            interviewTime.value = '';
+            interviewTime.setCustomValidity('');
+        }
+
+        if (interviewer) {
+            interviewer.value = '';
+            interviewer.setCustomValidity('');
+        }
+
+        if (interviewScheduleFields) {
+            interviewScheduleFields.classList.remove('visible');
+        }
+
+        if (confirmDecision) {
+            confirmDecision.disabled = false;
+        }
+    }
+
+    if (cancelDecision) {
+        cancelDecision.addEventListener('click', closeDecisionModal);
+    }
+
+
+    if (decisionModal) {
+        decisionModal.addEventListener('click', function (event) {
+            if (event.target === decisionModal) {
+                closeDecisionModal();
+            }
+        });
+    }
+
+
+    // Close active modal with Escape.
+    document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape') return;
+
+        if (decisionModal && decisionModal.classList.contains('open')) {
+            closeDecisionModal();
+            return;
+        }
+
+        if (deleteModal && deleteModal.classList.contains('open')) {
+            closeDeleteModal();
+        }
+    });
+
+
+    /* ==========================================
+       CONFIRM DECISION - WITH VALIDATION
+    ========================================== */
+
+    if (confirmDecision) {
+        confirmDecision.addEventListener('click', function (event) {
+            event.preventDefault();
+
+            if (!pendingDecisionForm) {
+                if (window.showCandidateToast) {
+                    window.showCandidateToast(
+                        'No candidate decision selected. Please try again.',
+                        'error'
+                    );
+                }
+
+                return;
+            }
+
+            const originalForm = pendingDecisionForm;
+            const decision = originalForm.dataset.decision;
+
+            const activeTabField = originalForm.querySelector(
+                'input[name="tab"]'
+            );
+
+            const activeTab = activeTabField
+                ? activeTabField.value
+                : '';
+
+            const interviewStage = getInterviewStage(activeTab);
+
+            const requiresInterviewSchedule =
+                decision === 'accept' && interviewStage !== null;
+
+            const requiresEmail = [
+                'accept',
+                'skip',
+                'reject'
+            ].includes(decision);
+
+            const requiresReason = [
+                'skip',
+                'reject',
+                'resign'
+            ].includes(decision);
+
+
+            // Helper: Create or update hidden fields.
+            function setHiddenField(name, value) {
+                let field = originalForm.querySelector(
+                    'input[type="hidden"][name="' + name + '"]'
+                );
+
+                if (!field) {
+                    field = document.createElement('input');
+                    field.type = 'hidden';
+                    field.name = name;
+                    originalForm.appendChild(field);
+                }
+
+                field.value = value;
+            }
+
+
+            // Validate interview date, time and interviewer.
+            if (requiresInterviewSchedule) {
+                if (
+                    !interviewDate ||
+                    !interviewTime ||
+                    !interviewer ||
+                    !interviewDate.value ||
+                    !interviewTime.value ||
+                    !interviewer.value.trim()
+                ) {
+                    if (interviewDate && !interviewDate.value) {
+                        interviewDate.setCustomValidity(
+                            'Please select the ' + interviewStage + ' date.'
+                        );
+                        interviewDate.reportValidity();
+                        interviewDate.focus();
+                    } else if (interviewTime && !interviewTime.value) {
+                        interviewTime.setCustomValidity(
+                            'Please select the ' + interviewStage + ' time.'
+                        );
+                        interviewTime.reportValidity();
+                        interviewTime.focus();
+                    } else if (interviewer && !interviewer.value.trim()) {
+                        interviewer.setCustomValidity(
+                            'Please enter the interviewer name.'
+                        );
+                        interviewer.reportValidity();
+                        interviewer.focus();
+                    }
+
+                    return;
+                }
+
+                interviewDate.setCustomValidity('');
+                interviewTime.setCustomValidity('');
+                interviewer.setCustomValidity('');
+
+                // Prevent past interview dates.
+                if (interviewDate.value < getTodayDate()) {
+                    interviewDate.setCustomValidity(
+                        'Interview date cannot be in the past.'
+                    );
+                    interviewDate.reportValidity();
+                    interviewDate.focus();
+                    return;
+                }
+
+                setHiddenField('interview_date', interviewDate.value);
+                setHiddenField('interview_time', interviewTime.value);
+                setHiddenField('interviewer', interviewer.value.trim());
+            }
+
+
+            // Validate email for Accept, Skip and Reject.
+            if (requiresEmail) {
+                const recipient = previewEmailTo.value.trim();
+                const subject = previewEmailSubject.value.trim();
+                const body = previewEmailBody.value.trim();
+
+                if (
+                    !recipient ||
+                    !subject ||
+                    !body ||
+                    !previewEmailTo.checkValidity()
+                ) {
+                    if (!previewEmailTo.checkValidity()) {
+                        previewEmailTo.reportValidity();
+                    } else if (!subject) {
+                        previewEmailSubject.reportValidity();
+                    } else {
+                        previewEmailBody.reportValidity();
+                    }
+
+                    return;
+                }
+
+                setHiddenField('email_to', recipient);
+                setHiddenField('email_subject', subject);
+                setHiddenField('email_body', body);
+            }
+
+
+            // Validate reason for Reject, Skip and Resign.
+            if (requiresReason) {
+
+                if (!decisionReason) return;
+
+                const reason = decisionReason.value.trim();
+
+                if (!reason) {
+                    decisionReason.setCustomValidity(
+                        decision === 'resign'
+                            ? 'Please enter a reason before marking this candidate as resign.'
+                            : 'Please enter a reason before confirming.'
+                    );
+
+                    decisionReason.reportValidity();
+                    decisionReason.focus();
+                    return;
+                }
+
+                decisionReason.setCustomValidity('');
+
+                setHiddenField('remarks', reason);
+            }
+
+            // Check original form action.
+            const formAction = originalForm.action;
+
+            if (!formAction) {
+                console.error('Candidate form action is missing.');
+
+                if (window.showCandidateToast) {
+                    window.showCandidateToast(
+                        'Candidate form action is missing.',
+                        'error'
+                    );
+                }
+
+                return;
+            }
+
+
+            // Prevent double submission + show spinner.
+            const processingMessages = {
+                accept: 'Sending acceptance email and updating candidate status...',
+                reject: 'Sending rejection email and updating candidate status...',
+                skip: 'Sending skip email and updating candidate status...',
+                cancel: 'Cancelling candidate...',
+                resign: 'Marking candidate as resigned...'
+            };
+
+            setDecisionProcessing(
+                true,
+                processingMessages[decision] ||
+                'Processing your request...'
+            );
+
+            // Close modal (overlay stays on top).
+            if (decisionModal) {
+                decisionModal.classList.remove('open');
+            }
+
+            document.body.classList.remove('email-preview-open');
+
+            const submittedForm = originalForm;
+
+            pendingDecisionForm = null;
+
+            // Restore the page UI if the user comes back
+            // with the browser Back button.
+            window.addEventListener(
+                'pageshow',
+                function () {
+                    setDecisionProcessing(false);
+                },
+                { once: true }
+            );
+
+            // Give the browser one frame to paint the spinner
+            // before navigating away.
+            requestAnimationFrame(function () {
+                setTimeout(function () {
+                    HTMLFormElement.prototype.submit.call(submittedForm);
+                }, 50);
+            });
+        });
+    }
+</script>
+
+{% endblock %}

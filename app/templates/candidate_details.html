@@ -1,0 +1,1808 @@
+{% extends "base.html" %} {% block title %}{{ candidate.name }} | Candidate
+Profile{% endblock %} {% block page_heading %}Candidate Profile{% endblock %} {%
+block page_subtitle %} Candidate #{{ candidate.id }} · {{ candidate.name }} {%
+endblock %} {% block extra_css %}
+<style>
+  :root {
+    --primary: #4f46e5;
+    --bg: #f5f7fb;
+    --text: #172033;
+    --muted: #788399;
+    --border: #e6eaf2;
+    --white: #fff;
+  }
+
+  .profile-page {
+    color: var(--text);
+    font-family: Inter, "Poppins", "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+  }
+
+  .profile-page * {
+    box-sizing: border-box;
+  }
+
+  .profile-page main {
+    max-width: 1150px;
+    padding: 32px 24px 60px;
+    margin: auto;
+  }
+
+  .profile-page .breadcrumb {
+    margin-bottom: 22px;
+    color: var(--muted);
+  }
+
+  .profile-page a {
+    color: var(--primary);
+    text-decoration: none;
+  }
+
+  .profile-page a:hover {
+    text-decoration: underline;
+  }
+
+  .profile-page .hero {
+    background: linear-gradient(120deg, #3730a3, #6366f1);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+    margin-bottom: 24px;
+  }
+
+  .profile-page .hero-main {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-width: 0;
+  }
+
+  .profile-page .avatar {
+    width: 76px;
+    height: 76px;
+    border-radius: 22px;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    font-size: 29px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .profile-page h1 {
+    font-size: 28px;
+    margin: 0 0 8px;
+    color: inherit;
+  }
+
+  .profile-page h2 {
+    font-size: 17px;
+    margin: 0;
+  }
+
+  .profile-page .hero-meta {
+    color: #e0e7ff;
+    margin-top: 6px;
+    overflow-wrap: anywhere;
+  }
+
+  .profile-page .status {
+    display: inline-flex;
+    border-radius: 30px;
+    padding: 8px 12px;
+    background: #eef2ff;
+    color: #4338ca;
+    font-size: 12px;
+    font-weight: 750;
+    white-space: nowrap;
+  }
+
+  .profile-page .hero .status {
+    color: white;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+  }
+
+  .profile-page .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(270px, 1fr);
+    gap: 24px;
+  }
+
+  .profile-page .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+
+  .profile-page .card-head {
+    padding: 21px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .profile-page .card-head p {
+    margin: 8px 0 0;
+  }
+
+  .profile-page .card-body {
+    padding: 24px;
+  }
+
+  .profile-page .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 25px 20px;
+  }
+
+  .profile-page .label {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+
+  .profile-page .value {
+    font-size: 14px;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+    line-height: 1.6;
+  }
+
+  .profile-page .full {
+    grid-column: 1 / -1;
+  }
+
+  .profile-page .document {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 15px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .profile-page .file-icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 48px;
+    border-radius: 10px;
+    background: #eef2ff;
+    color: var(--primary);
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .profile-page .document-info {
+    min-width: 0;
+    flex: 1;
+    word-break: break-word;
+  }
+
+  .profile-page .document-name {
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  .profile-page .document-note {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 5px;
+  }
+
+  .profile-page .btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-weight: 650;
+    background: var(--primary);
+    color: white;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 0;
+  }
+
+  .profile-page .btn:hover {
+    color: white;
+    background: #4338ca;
+    text-decoration: none;
+  }
+
+  .profile-page .btn-light {
+    color: #344054;
+    background: #f1f3f9;
+  }
+
+  .profile-page .btn-light:hover {
+    color: #344054;
+    background: #e7eaf3;
+  }
+  
+  .profile-page .btn-danger {
+    background: #dc2626;
+    color: white;
+  }
+  
+  .profile-page .btn-danger:hover {
+    background: #b91c1c;
+  }
+  
+  .profile-page .btn-skip {
+    background: #d97706;
+    color: white;
+  }
+  
+  .profile-page .btn-skip:hover {
+    background: #b45309;
+  }
+
+  .profile-page .btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .profile-page .back-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 5px;
+  }
+
+  .profile-page .muted {
+    color: var(--muted);
+  }
+
+  /* =========================================================
+       WORKFLOW ACTIONS PANEL
+       ========================================================= */
+  .profile-page .workflow-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .profile-page .workflow-actions form {
+    margin: 0;
+  }
+
+  .profile-page .workflow-actions .btn {
+    min-width: 140px;
+  }
+
+  /* =========================================================
+       CV PREVIEW
+       ========================================================= */
+  .profile-page .cv-preview-card {
+    margin-top: 20px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .profile-page .cv-preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 18px;
+    background: #fafbff;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .profile-page .cv-preview-title {
+    font-size: 14px;
+    font-weight: 750;
+    margin-bottom: 5px;
+  }
+
+  .profile-page .cv-preview-subtitle {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .profile-page .cv-preview-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .profile-page .cv-preview-container {
+    position: relative;
+    width: 100%;
+    height: 650px;
+    background: #eef1f7;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .profile-page .pdf-preview-pages {
+    width: 100%;
+    min-height: 100%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .profile-page .pdf-page-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .profile-page .pdf-page-wrapper canvas {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(23, 32, 51, 0.12);
+    border-radius: 2px;
+  }
+
+  .profile-page .cv-preview-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 30px;
+    background: #eef1f7;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .profile-page .cv-preview-spinner {
+    width: 38px;
+    height: 38px;
+    border: 4px solid #dfe3ee;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: cvPreviewSpin 0.8s linear infinite;
+  }
+
+  @keyframes cvPreviewSpin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .profile-page .cv-preview-error {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 30px 20px;
+    background: #fff;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .profile-page .cv-preview-error-icon {
+    font-size: 36px;
+  }
+
+  .profile-page .cv-preview-error-title {
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 750;
+  }
+
+  .profile-page .cv-preview-error-text {
+    max-width: 420px;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .profile-page .cv-preview-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  .profile-page .cv-preview-empty-icon {
+    font-size: 34px;
+    margin-bottom: 12px;
+  }
+
+  /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+  @media (max-width: 760px) {
+    .profile-page .grid {
+      grid-template-columns: 1fr;
+    }
+
+    .profile-page main {
+      padding: 24px 16px;
+    }
+
+    .profile-page .hero {
+      align-items: flex-start;
+      flex-direction: column;
+      padding: 24px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .profile-page .cv-preview-container {
+      height: 75vh;
+      min-height: 500px;
+      max-height: 800px;
+    }
+
+    .profile-page .pdf-preview-pages {
+      padding: 12px 8px 20px;
+      gap: 12px;
+    }
+
+    .profile-page .pdf-page-wrapper {
+      width: 100%;
+    }
+
+    .profile-page .pdf-page-wrapper canvas {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .profile-page .cv-preview-header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .profile-page .document {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .profile-page .document-info {
+      width: 100%;
+    }
+
+    .profile-page .cv-preview-actions,
+    .profile-page .document .btn {
+      width: 100%;
+    }
+
+    .profile-page .cv-preview-actions .btn,
+    .profile-page .document .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 460px) {
+    .profile-page .hero-main {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .profile-page .info-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .profile-page .full {
+      grid-column: auto;
+    }
+
+    .profile-page .cv-preview-container {
+      height: 48vh;
+      min-height: 250px;
+    }
+
+    .profile-page .pdf-preview-pages {
+      padding: 8px 5px 16px;
+    }
+  }
+  
+  /* =========================================================
+   PERMISSION DENIED MODAL
+   ========================================================= */
+  .permission-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(5px);
+  }
+
+  .permission-modal-content {
+    width: 100%;
+    max-width: 420px;
+    padding: 32px 28px;
+    background: #fff;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    animation: permissionModalShow 0.25s ease;
+  }
+
+  .permission-modal-icon {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #fff1f2;
+    color: #e11d48;
+    font-size: 30px;
+  }
+
+  .permission-modal-content h2 {
+    margin: 0 0 10px;
+    color: #172033;
+    font-size: 21px;
+    font-weight: 750;
+  }
+
+  .permission-modal-content p {
+    margin: 0 0 24px;
+    color: #788399;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .permission-modal-content .permission-ok-btn {
+    width: 100%;
+    padding: 12px 20px;
+    border: 0;
+    border-radius: 10px;
+    background: #4f46e5;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .permission-modal-content .permission-ok-btn:hover {
+    background: #4338ca;
+  }
+
+  @keyframes permissionModalShow {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+</style>
+
+{% endblock %} {% block content %}
+{% if permission_denied %}
+<div class="permission-modal" id="permissionModal" onclick="closePermissionModal(event)">
+    <div class="permission-modal-content" onclick="event.stopPropagation()">
+        <div class="permission-modal-icon">
+            <i class="fas fa-lock"></i>
+        </div>
+        <h2>Access Denied</h2>
+        <p>
+            You don't have permission to view this candidate's profile.
+            Please contact your administrator if you need access.
+        </p>
+        <button type="button" class="permission-ok-btn" onclick="returnToPreviousPage()">
+            OK
+        </button>
+    </div>
+</div>
+{% else %}
+<div class="profile-page">
+  <main>
+    <div class="breadcrumb">
+      <a href="{{ url_for('candidate.candidates') }}">Candidates</a>
+      / Candidate #{{ candidate.id }}
+    </div>
+
+    <section class="hero">
+      <div class="hero-main">
+        <div class="avatar">{{ candidate.name[:1]|upper }}</div>
+
+        <div>
+          <h1>{{ candidate.name }}</h1>
+
+          <div class="hero-meta">
+            Candidate #{{ candidate.id }} · {{ candidate.department_name }} {%
+            if candidate.branch_name %} · {{ candidate.branch_name }} {% endif
+            %}
+          </div>
+
+          <div class="hero-meta">{{ candidate.email }}</div>
+        </div>
+      </div>
+
+      <span class="status">
+        {{ candidate.status|replace('_', ' ')|title }}
+      </span>
+    </section>
+
+    <div class="grid">
+      <div>
+        <!-- =====================================================
+                     PERSONAL INFORMATION
+                     ===================================================== -->
+
+        <section class="card">
+          <div class="card-head">
+            <h2>Personal Information</h2>
+            <p class="muted">Candidate contact and identification details.</p>
+          </div>
+
+          <div class="card-body">
+            <div class="info-grid">
+              <div>
+                <div class="label">Full Name</div>
+                <div class="value">{{ candidate.name }}</div>
+              </div>
+
+              <div>
+                <div class="label">Phone Number</div>
+                <div class="value">{{ candidate.phone }}</div>
+              </div>
+
+              <div>
+                <div class="label">Email Address</div>
+                <div class="value">{{ candidate.email }}</div>
+              </div>
+
+              <div>
+                <div class="label">NRC Number</div>
+                <div class="value">{{ candidate.nrc or 'Not provided' }}</div>
+              </div>
+
+              <div>
+                <div class="label">Branch</div>
+                <div class="value">
+                  {{ candidate.branch_name or 'Not assigned' }}
+                </div>
+              </div>
+
+              <div>
+                <div class="label">Department</div>
+                <div class="value">{{ candidate.department_name }}</div>
+              </div>
+
+              <div>
+                <div class="label">Application Status</div>
+                <div class="value">
+                  {{ candidate.status|replace('_', ' ')|title }}
+                </div>
+              </div>
+
+              <div class="full">
+                <div class="label">Address</div>
+
+                <div class="value">{{ candidate.address }}</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =====================================================
+                     CANDIDATE DOCUMENTS
+                     ===================================================== -->
+
+        <section class="card">
+          <div class="card-head">
+            <h2>Candidate Documents</h2>
+
+            <p class="muted">
+              Preview the candidate's CV and access supporting documents.
+            </p>
+          </div>
+
+          <div class="card-body">
+            <!-- =================================================
+                             CV DOCUMENT
+                             ================================================= -->
+
+            {% if candidate.cv_file_path %}
+
+            <div class="document">
+              <div class="file-icon">CV</div>
+
+              <div class="document-info">
+                <div class="document-name">Candidate CV / Resume</div>
+
+                <div class="document-note">
+                  Uploaded resume · Candidate #{{ candidate.id }}
+                </div>
+              </div>
+
+              <div class="cv-preview-actions">
+                <a
+                  class="btn"
+                  href="{{ url_for(
+                                        'candidate.candidate_file',
+                                        candidate_id=candidate.id,
+                                        file_type='cv'
+                                    ) }}"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Open Full Size ↗
+                </a>
+              </div>
+            </div>
+
+            <!-- =================================================
+                             CV PREVIEW
+                             ================================================= -->
+
+            <div class="cv-preview-card">
+              <div class="cv-preview-header">
+                <div>
+                  <div class="cv-preview-title">CV Preview</div>
+
+                  <div class="cv-preview-subtitle">
+                    View the uploaded resume without leaving this page.
+                  </div>
+                </div>
+
+                <a
+                  class="btn btn-light"
+                  href="{{ url_for(
+                                        'candidate.candidate_file',
+                                        candidate_id=candidate.id,
+                                        file_type='cv'
+                                    ) }}"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Open in New Tab ↗
+                </a>
+              </div>
+
+              <!-- =================================================
+                                 PDF.JS CONTAINER
+                                 ================================================= -->
+
+              <div class="cv-preview-container" id="cv-preview-container">
+                <!-- Loading -->
+                <div id="cv-preview-loading" class="cv-preview-loading">
+                  <div class="cv-preview-spinner"></div>
+
+                  <div>Loading CV preview...</div>
+                </div>
+
+                <!--
+                                    PDF pages will be rendered here
+                                    by PDF.js.
+                                -->
+                <div id="pdf-preview-pages" class="pdf-preview-pages"></div>
+
+                <!-- Error / Fallback -->
+                <div id="cv-preview-error" class="cv-preview-error">
+                  <div class="cv-preview-error-icon">📄</div>
+
+                  <div class="cv-preview-error-title">
+                    Preview not available
+                  </div>
+
+                  <p class="cv-preview-error-text">
+                    This CV could not be displayed inside the page. You can open
+                    the original CV in a new tab instead.
+                  </p>
+
+                  <a
+                    class="btn"
+                    href="{{ url_for(
+                                            'candidate.candidate_file',
+                                            candidate_id=candidate.id,
+                                            file_type='cv'
+                                        ) }}"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    Open CV in New Tab ↗
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {% else %}
+
+            <!-- =================================================
+                             NO CV
+                             ================================================= -->
+
+            <div class="cv-preview-card">
+              <div class="cv-preview-empty">
+                <div class="cv-preview-empty-icon">📄</div>
+
+                <div class="cv-preview-title">No CV Uploaded</div>
+
+                <p>No resume is available for preview.</p>
+              </div>
+            </div>
+
+            {% endif %}
+
+            <!-- =================================================
+                             OTHER ATTACHMENT
+                             ================================================= -->
+
+            <div class="document">
+              <div class="file-icon">DOC</div>
+
+              <div class="document-info">
+                <div class="document-name">Other Attachment</div>
+
+                <div class="document-note">Optional supporting document</div>
+              </div>
+
+              {% if candidate.other_attachment_path %}
+
+              <a
+                class="btn"
+                href="{{ url_for(
+                                    'candidate.candidate_file',
+                                    candidate_id=candidate.id,
+                                    file_type='attachment'
+                                ) }}"
+                target="_blank"
+                rel="noopener"
+              >
+                Open File ↗
+              </a>
+
+              {% else %}
+
+              <span class="muted"> Not uploaded </span>
+
+              {% endif %}
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- =============================================================
+                 APPLICATION DETAILS
+                 ============================================================= -->
+
+      <aside>
+        <section class="card">
+          <div class="card-head">
+            <h2>Application Details</h2>
+          </div>
+
+          <div class="card-body">
+            <div style="margin-bottom: 23px">
+              <div class="label">Candidate ID</div>
+
+              <div class="value">#{{ candidate.id }}</div>
+            </div>
+
+            <div style="margin-bottom: 23px">
+              <div class="label">Current Status</div>
+
+              <div class="value">
+                {{ candidate.status|replace('_', ' ')|title }}
+              </div>
+            </div>
+
+            <div style="margin-bottom: 23px">
+              <div class="label">Branch</div>
+
+              <div class="value">{{ candidate.branch_name or '—' }}</div>
+            </div>
+
+            <div style="margin-bottom: 23px">
+              <div class="label">Department</div>
+
+              <div class="value">{{ candidate.department_name or '—' }}</div>
+            </div>
+
+            <div style="margin-bottom: 23px">
+              <div class="label">Date Created</div>
+
+              <div class="value">
+                {{ candidate.created_at.strftime( '%d %B %Y, %I:%M %p' ) if
+                candidate.created_at else '—' }}
+              </div>
+            </div>
+
+            <div>
+              <div class="label">Last Updated</div>
+
+              <div class="value">
+                {{ candidate.updated_at.strftime( '%d %B %Y, %I:%M %p' ) if
+                candidate.updated_at else '—' }}
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <!-- =============================================================
+         WORKFLOW ACTION PANEL
+         ============================================================= -->
+    {% if return_to == 'workflow' %}
+    <section class="card" style="margin-top: 24px;">
+        <div class="card-head">
+            <h2>Workflow Actions</h2>
+            <p class="muted">
+                Perform actions for this candidate at the current stage.
+            </p>
+        </div>
+        <div class="card-body">
+            <div class="workflow-actions">
+
+                {% set stage_tab = return_tab %}
+                {% set is_locked = false %}
+                {% set lock_reason = "" %}
+
+                {# First Interview tab check #}
+                {% if stage_tab == 'first_interview' %}
+                    {% if not candidate.first_interview_date or not candidate.first_interview_time %}
+                        {% set is_locked = true %}
+                        {% set lock_reason = "No interview schedule found." %}
+                    {% elif not candidate.first_interview_passed %}
+                        {% set is_locked = true %}
+                        {% set lock_reason = "Interview time not yet passed. Available after " ~ candidate.first_interview_date.strftime('%d %b %Y') ~ " " ~ candidate.first_interview_time.strftime('%I:%M %p') %}
+                    {% endif %}
+                {% endif %}
+
+                {# Second Interview tab check #}
+                {% if stage_tab == 'second_interview' %}
+                    {% if not candidate.second_interview_date or not candidate.second_interview_time %}
+                        {% set is_locked = true %}
+                        {% set lock_reason = "No interview schedule found." %}
+                    {% elif not candidate.second_interview_passed %}
+                        {% set is_locked = true %}
+                        {% set lock_reason = "Interview time not yet passed. Available after " ~ candidate.second_interview_date.strftime('%d %b %Y') ~ " " ~ candidate.second_interview_time.strftime('%I:%M %p') %}
+                    {% endif %}
+                {% endif %}
+
+                {# Candidates Tab #}
+                {% if stage_tab == 'candidates' and candidate.status == 'applied' %}
+                    <form class="inline-form js-stage-decision" method="POST"
+                        action="{{ url_for('candidate.accept_candidate', candidate_id=candidate.id) }}"
+                        data-decision="accept" data-candidate-name="{{ candidate.name }}"
+                        data-email="{{ candidate.email or '' }}"
+                        data-position="{{ candidate.position or '' }}"
+                        data-current-stage="Candidates"
+                        data-next-status="interview_requested">
+                        <input type="hidden" name="tab" value="{{ stage_tab }}">
+                        <button type="submit" class="btn btn-primary">Accept (Request Interview)</button>
+                    </form>
+                    
+                    <form class="inline-form js-stage-decision" method="POST"
+                        action="{{ url_for('candidate.reject_candidate', candidate_id=candidate.id) }}"
+                        data-decision="reject" data-candidate-name="{{ candidate.name }}"
+                        data-email="{{ candidate.email or '' }}"
+                        data-position="{{ candidate.position or '' }}"
+                        data-current-stage="Candidates">
+                        <input type="hidden" name="tab" value="{{ stage_tab }}">
+                        <button type="submit" class="btn btn-danger">Reject</button>
+                    </form>
+                {% endif %}
+
+                {# Interview Request Tab #}
+                {% if stage_tab == 'interview_request' and candidate.status == 'interview_requested' %}
+                    <form class="inline-form js-stage-decision" method="POST"
+                        action="{{ url_for('candidate.accept_candidate', candidate_id=candidate.id) }}"
+                        data-decision="accept" data-candidate-name="{{ candidate.name }}"
+                        data-email="{{ candidate.email or '' }}"
+                        data-position="{{ candidate.position or '' }}"
+                        data-current-stage="Interview Request"
+                        data-next-status="first_interview">
+                        <input type="hidden" name="tab" value="{{ stage_tab }}">
+                        <button type="submit" class="btn btn-primary">Accept (Schedule 1st Interview)</button>
+                    </form>
+
+                    <form class="inline-form js-stage-decision" method="POST"
+                        action="{{ url_for('candidate.skip_candidate', candidate_id=candidate.id) }}"
+                        data-decision="skip" data-candidate-name="{{ candidate.name }}"
+                        data-email="{{ candidate.email or '' }}"
+                        data-position="{{ candidate.position or '' }}"
+                        data-current-stage="Interview Request"
+                        data-next-status="second_interview">
+                        <input type="hidden" name="tab" value="{{ stage_tab }}">
+                        <button type="submit" class="btn btn-skip">Skip to 2nd Interview</button>
+                    </form>
+
+                    <form class="inline-form js-stage-decision" method="POST"
+                        action="{{ url_for('candidate.reject_candidate', candidate_id=candidate.id) }}"
+                        data-decision="reject" data-candidate-name="{{ candidate.name }}"
+                        data-email="{{ candidate.email or '' }}"
+                        data-position="{{ candidate.position or '' }}"
+                        data-current-stage="Interview Request">
+                        <input type="hidden" name="tab" value="{{ stage_tab }}">
+                        <button type="submit" class="btn btn-danger">Reject</button>
+                    </form>
+
+                    <form class="inline-form js-stage-decision" method="POST"
+                        action="{{ url_for('candidate.cancel_candidate', candidate_id=candidate.id) }}"
+                        data-decision="cancel" data-candidate-name="{{ candidate.name }}">
+                        <input type="hidden" name="tab" value="{{ stage_tab }}">
+                        <button type="submit" class="btn btn-light">Cancel</button>
+                    </form>
+                {% endif %}
+
+                {# First Interview Tab #}
+                {% if stage_tab == 'first_interview' and candidate.status == 'first_interview' %}
+                    {% if is_locked %}
+                        <button type="button" class="btn btn-primary btn-disabled" title="{{ lock_reason }}" disabled>
+                            Accept (Schedule 2nd Interview)
+                        </button>
+                        <button type="button" class="btn btn-danger btn-disabled" title="{{ lock_reason }}" disabled>
+                            Reject
+                        </button>
+                    {% else %}
+                        <form class="inline-form js-stage-decision" method="POST"
+                            action="{{ url_for('candidate.accept_candidate', candidate_id=candidate.id) }}"
+                            data-decision="accept" data-candidate-name="{{ candidate.name }}"
+                            data-email="{{ candidate.email or '' }}"
+                            data-position="{{ candidate.position or '' }}"
+                            data-current-stage="First Interview"
+                            data-next-status="second_interview">
+                            <input type="hidden" name="tab" value="{{ stage_tab }}">
+                            <button type="submit" class="btn btn-primary">Accept (Schedule 2nd Interview)</button>
+                        </form>
+                        
+                        <form class="inline-form js-stage-decision" method="POST"
+                            action="{{ url_for('candidate.reject_candidate', candidate_id=candidate.id) }}"
+                            data-decision="reject" data-candidate-name="{{ candidate.name }}"
+                            data-email="{{ candidate.email or '' }}"
+                            data-position="{{ candidate.position or '' }}"
+                            data-current-stage="First Interview">
+                            <input type="hidden" name="tab" value="{{ stage_tab }}">
+                            <button type="submit" class="btn btn-danger">Reject</button>
+                        </form>
+                    {% endif %}
+
+                    <form class="inline-form js-stage-decision" method="POST"
+                        action="{{ url_for('candidate.cancel_candidate', candidate_id=candidate.id) }}"
+                        data-decision="cancel" data-candidate-name="{{ candidate.name }}">
+                        <input type="hidden" name="tab" value="{{ stage_tab }}">
+                        <button type="submit" class="btn btn-light">Cancel</button>
+                    </form>
+                {% endif %}
+
+                {# Second Interview Tab #}
+                {% if stage_tab == 'second_interview' and candidate.status == 'second_interview' %}
+                    {% if is_locked %}
+                        <button type="button" class="btn btn-primary btn-disabled" title="{{ lock_reason }}" disabled>
+                            Accept (Move to Offer)
+                        </button>
+                        <button type="button" class="btn btn-danger btn-disabled" title="{{ lock_reason }}" disabled>
+                            Reject
+                        </button>
+                        <button type="button" class="btn btn-skip btn-disabled" title="{{ lock_reason }}" disabled>
+                            Skip (Move to Joined)
+                        </button>
+                    {% else %}
+                        <form class="inline-form js-stage-decision" method="POST"
+                            action="{{ url_for('candidate.accept_candidate', candidate_id=candidate.id) }}"
+                            data-decision="accept" data-candidate-name="{{ candidate.name }}"
+                            data-email="{{ candidate.email or '' }}"
+                            data-position="{{ candidate.position or '' }}"
+                            data-current-stage="Second Interview"
+                            data-next-status="offer">
+                            <input type="hidden" name="tab" value="{{ stage_tab }}">
+                            <button type="submit" class="btn btn-primary">Accept (Move to Offer)</button>
+                        </form>
+
+                        <form class="inline-form js-stage-decision" method="POST"
+                            action="{{ url_for('candidate.reject_candidate', candidate_id=candidate.id) }}"
+                            data-decision="reject" data-candidate-name="{{ candidate.name }}"
+                            data-email="{{ candidate.email or '' }}"
+                            data-position="{{ candidate.position or '' }}"
+                            data-current-stage="Second Interview">
+                            <input type="hidden" name="tab" value="{{ stage_tab }}">
+                            <button type="submit" class="btn btn-danger">Reject</button>
+                        </form>
+
+                        <!-- Skip button added here for Second Interview -->
+                        <form class="inline-form js-stage-decision" method="POST"
+                            action="{{ url_for('candidate.skip_candidate', candidate_id=candidate.id) }}"
+                            data-decision="skip" data-candidate-name="{{ candidate.name }}"
+                            data-email="{{ candidate.email or '' }}"
+                            data-position="{{ candidate.position or '' }}"
+                            data-current-stage="Second Interview"
+                            data-next-status="joined">
+                            <input type="hidden" name="tab" value="{{ stage_tab }}">
+                            <button type="submit" class="btn btn-skip">Skip (Move to Joined)</button>
+                        </form>
+                    {% endif %}
+
+                    <form class="inline-form js-stage-decision" method="POST"
+                        action="{{ url_for('candidate.cancel_candidate', candidate_id=candidate.id) }}"
+                        data-decision="cancel" data-candidate-name="{{ candidate.name }}">
+                        <input type="hidden" name="tab" value="{{ stage_tab }}">
+                        <button type="submit" class="btn btn-light">Cancel</button>
+                    </form>
+                {% endif %}
+
+                {# Offer Tab #}
+                {% if stage_tab == 'offer' and candidate.status == 'offer' %}
+                    <form class="inline-form js-stage-decision" method="POST"
+                        action="{{ url_for('candidate.accept_candidate', candidate_id=candidate.id) }}"
+                        data-decision="accept" data-candidate-name="{{ candidate.name }}"
+                        data-email="{{ candidate.email or '' }}"
+                        data-position="{{ candidate.position or '' }}"
+                        data-current-stage="Offer"
+                        data-next-status="joined">
+                        <input type="hidden" name="tab" value="{{ stage_tab }}">
+                        <button type="submit" class="btn btn-primary">Accept (Mark Joined)</button>
+                    </form>
+
+                    <form class="inline-form js-stage-decision" method="POST"
+                        action="{{ url_for('candidate.reject_candidate', candidate_id=candidate.id) }}"
+                        data-decision="reject" data-candidate-name="{{ candidate.name }}"
+                        data-email="{{ candidate.email or '' }}"
+                        data-position="{{ candidate.position or '' }}"
+                        data-current-stage="Offer">
+                        <input type="hidden" name="tab" value="{{ stage_tab }}">
+                        <button type="submit" class="btn btn-danger">Reject</button>
+                    </form>
+
+                    <form class="inline-form js-stage-decision" method="POST"
+                        action="{{ url_for('candidate.cancel_candidate', candidate_id=candidate.id) }}"
+                        data-decision="cancel" data-candidate-name="{{ candidate.name }}">
+                        <input type="hidden" name="tab" value="{{ stage_tab }}">
+                        <button type="submit" class="btn btn-light">Cancel</button>
+                    </form>
+                {% endif %}
+
+                {# Joined Tab #}
+                {% if stage_tab == 'joined' and candidate.status == 'joined' %}
+                    <form class="inline-form js-stage-decision" method="POST"
+                        action="{{ url_for('candidate.resign_candidate', candidate_id=candidate.id) }}"
+                        data-decision="resign" data-candidate-name="{{ candidate.name }}">
+                        <input type="hidden" name="tab" value="joined">
+                        <button type="submit" class="btn btn-skip">Resign</button>
+                    </form>
+                {% endif %}
+
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- အောက်ဆုံးမှာရှိတဲ့ Back Button အပိုင်း (Back to Candidate Workflow ရဲ့ အပေါ်နားမှာ) ကို ရှာပြီး အောက်ပါအတိုင်း အစားထိုးပါ -->
+
+    <!-- =============================================================
+             BACK BUTTON
+     ============================================================= -->
+
+    <div class="back-row">
+      {% if return_to == 'records' %}
+
+      <a class="btn btn-light" href="{{ url_for('candidate.records') }}">
+        ← Back to Records
+      </a>
+
+      {% elif return_to == 'view_candidates' %}
+
+      <a
+        class="btn btn-light"
+        href="{{ url_for('candidate.view_candidates') }}"
+      >
+        ← Back to Manage Candidates
+      </a>
+
+      {% elif return_to == 'interview_schedules' %}
+
+      <a
+        class="btn btn-light"
+        href="{{ url_for('candidate.interview_schedules') }}"
+      >
+        ← Back to Interview Schedules
+      </a>
+
+      {% else %}
+
+      <a
+        class="btn btn-light"
+        href="{{ url_for(
+                    'candidate.candidates',
+                    tab=return_tab,
+                    global_search=return_global_search,
+                    stage_search=return_stage_search,
+                    status=return_status
+                ) }}"
+      >
+        ← Back to Candidate Workflow
+      </a>
+
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endif %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const pdfUrl =
+      "{{ url_for('candidate.candidate_file', candidate_id=candidate.id, file_type='cv') }}";
+
+    const container = document.getElementById("cv-preview-container");
+    const pagesContainer = document.getElementById("pdf-preview-pages");
+    const loading = document.getElementById("cv-preview-loading");
+    const errorBox = document.getElementById("cv-preview-error");
+
+    if (!container || !pagesContainer || !loading || !errorBox) {
+      return;
+    }
+
+    if (!window.pdfjsLib) {
+      console.error("PDF.js library could not be loaded.");
+      loading.style.display = "none";
+      errorBox.style.display = "flex";
+      return;
+    }
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+    function showPreviewError() {
+      loading.style.display = "none";
+      pagesContainer.innerHTML = "";
+      errorBox.style.display = "flex";
+    }
+
+    async function renderPage(page, pageNumber) {
+      const wrapper = document.createElement("div");
+
+      wrapper.className = "pdf-page-wrapper";
+      wrapper.setAttribute("data-page", String(pageNumber));
+
+      const canvas = document.createElement("canvas");
+
+      wrapper.appendChild(canvas);
+      pagesContainer.appendChild(wrapper);
+
+      const context = canvas.getContext("2d", {
+        alpha: false,
+      });
+
+      const originalViewport = page.getViewport({
+        scale: 1,
+      });
+
+      const containerWidth = pagesContainer.clientWidth;
+
+      const horizontalPadding = window.innerWidth <= 600 ? 10 : 40;
+
+      const availableWidth = Math.max(200, containerWidth - horizontalPadding);
+
+      let scale = availableWidth / originalViewport.width;
+
+      const maxScale = window.innerWidth <= 600 ? 2 : 1.8;
+
+      scale = Math.min(scale, maxScale);
+
+      const viewport = page.getViewport({
+        scale: scale,
+      });
+
+      const devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
+      canvas.width = Math.floor(viewport.width * devicePixelRatio);
+
+      canvas.height = Math.floor(viewport.height * devicePixelRatio);
+
+      canvas.style.width = Math.floor(viewport.width) + "px";
+
+      canvas.style.height = Math.floor(viewport.height) + "px";
+
+      const renderContext = {
+        canvasContext: context,
+        viewport: viewport,
+        transform: [devicePixelRatio, 0, 0, devicePixelRatio, 0, 0],
+      };
+
+      await page.render(renderContext).promise;
+    }
+
+    async function loadAndRenderPdf() {
+      try {
+        pagesContainer.innerHTML = "";
+
+        const loadingTask = pdfjsLib.getDocument({
+          url: pdfUrl,
+          withCredentials: true,
+        });
+
+        const pdf = await loadingTask.promise;
+
+        if (!pdf || pdf.numPages < 1) {
+          throw new Error("The PDF contains no pages.");
+        }
+
+        for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+          const page = await pdf.getPage(pageNumber);
+
+          await renderPage(page, pageNumber);
+        }
+
+        loading.style.display = "none";
+      } catch (error) {
+        console.error("CV Preview Error:", error);
+
+        showPreviewError();
+      }
+    }
+
+    loadAndRenderPdf();
+  });
+
+  function returnToPreviousPage() {
+    const fallbackUrl = "{{ url_for('candidate.candidates') }}";
+
+    if (document.referrer) {
+      try {
+        const previousUrl = new URL(document.referrer);
+
+        if (previousUrl.origin === window.location.origin) {
+          window.history.back();
+          return;
+        }
+      } catch (error) {
+        console.error("Previous page URL error:", error);
+      }
+    }
+
+    window.location.href = fallbackUrl;
+  }
+  
+  function closePermissionModal(event) {
+    if (event.target.id === "permissionModal") {
+        returnToPreviousPage();
+    }
+  }
+
+  // ==========================================
+  // WORKFLOW DECISION MODAL LOGIC
+  // ==========================================
+  document.addEventListener("DOMContentLoaded", function () {
+    
+    function titleCase(value) {
+        return String(value || '')
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, function (character) {
+                return character.toUpperCase();
+            });
+    }
+
+    const forms = document.querySelectorAll(".js-stage-decision");
+    if (forms.length === 0) return;
+
+    const modal = document.createElement("div");
+    modal.className = "modal-backdrop";
+    modal.id = "decisionModal";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.style.display = "none";
+    
+    // MODAL SIZE REDUCED: max-width: 420px, padding: 22px, font-size adjustments
+    modal.innerHTML = `
+        <div class="confirm-modal decision-modal" style="max-width: 420px; padding: 22px; background: #fff; border-radius: 16px; width: 100%; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column;">
+            <div class="modal-icon" id="decisionModalIcon" aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: #fef2f2; color: #dc2626; font-size: 20px; font-weight: 800; margin-bottom: 12px; flex-shrink: 0;">✓</div>
+            <div class="decision-eyebrow" id="decisionModalEyebrow" style="margin-bottom: 6px; color: #64748b; font-size: 9px; font-weight: 800; letter-spacing: 1.2px; flex-shrink: 0;">CANDIDATE STATUS</div>
+            <h3 id="decisionModalTitle" style="font-size: 18px; margin: 0 0 6px; color: #1e293b; flex-shrink: 0;">Confirm decision</h3>
+            <p id="decisionModalDescription" style="margin: 0 0 14px; color: #64748b; font-size: 12px; line-height: 1.5; flex-shrink: 0;">Are you sure you want to continue?</p>
+
+            <form id="decisionModalForm" method="POST" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+                <div class="email-preview-fields" id="emailPreviewFields" style="display:none; overflow-y: auto; flex: 1; padding-right: 4px;">
+                    
+                    <div class="email-field" id="interviewScheduleFields" style="display:none; margin-bottom:12px; padding:12px; background:#f8faff; border:1px solid #dbeafe; border-radius:10px;">
+                        <div class="interview-schedule-title" id="interviewScheduleTitle" style="margin-bottom:8px; color:#1e40af; font-size:11px; font-weight:800;"></div>
+                        <div class="schedule-row" style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px;">
+                            <div class="email-field">
+                                <label style="display:block; margin-bottom:4px; font-size:11px; font-weight:700;">Interview Date <span style="color:red;">*</span></label>
+                                <input type="date" id="interviewDate" style="width:100%; height:36px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px;">
+                            </div>
+                            <div class="email-field">
+                                <label style="display:block; margin-bottom:4px; font-size:11px; font-weight:700;">Interview Time <span style="color:red;">*</span></label>
+                                <input type="time" id="interviewTime" style="width:100%; height:36px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px;">
+                            </div>
+                        </div>
+                        <div class="email-field" style="margin-top:8px;">
+                            <label style="display:block; margin-bottom:4px; font-size:11px; font-weight:700;">Interviewer <span style="color:red;">*</span></label>
+                            <input type="text" id="interviewer" maxlength="150" placeholder="Enter interviewer name" style="width:100%; height:36px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px;">
+                        </div>
+                    </div>
+
+                    <div class="email-field" style="margin-bottom:10px;">
+                        <label style="display:block; margin-bottom:4px; font-size:11px; font-weight:700;">To (Recipient Email) <span style="color:red;">*</span></label>
+                        <input type="email" id="previewEmailTo" style="width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px;">
+                    </div>
+                    <div class="email-field" style="margin-bottom:10px;">
+                        <label style="display:block; margin-bottom:4px; font-size:11px; font-weight:700;">Subject <span style="color:red;">*</span></label>
+                        <input type="text" id="previewEmailSubject" style="width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px;">
+                    </div>
+                    <div class="email-field" style="margin-bottom:10px;">
+                        <label style="display:block; margin-bottom:4px; font-size:11px; font-weight:700;">Email Message <span style="color:red;">*</span></label>
+                        <textarea id="previewEmailBody" rows="3" style="width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; min-height:80px; font-size:12px; resize: vertical;"></textarea>
+                    </div>
+                    <p class="small-note" style="font-size:10px; color:#64748b; line-height: 1.4;">Review the recipient and message before sending. Cancelling will not send the email or change the candidate status.</p>
+                </div>
+
+                <!-- RESIGN / SKIP / REJECT REASON -->
+                <div
+                    class="email-field"
+                    id="decisionReasonField"
+                    style="display:none; margin-top:12px;"
+                >
+                    <label
+                        for="decisionReason"
+                        style="display:block; margin-bottom:7px; font-size:12px; font-weight:700; color:#334155;"
+                    >
+                        Reason <span style="color:#dc2626;">*</span>
+                    </label>
+
+                    <textarea
+                        id="decisionReason"
+                        rows="3"
+                        maxlength="1000"
+                        placeholder="Enter reason..."
+                        style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:9px; font-size:12px; min-height:85px; resize:vertical; outline:none;"
+                    ></textarea>
+
+                    <p style="margin:6px 0 0; font-size:10px; color:#64748b;">
+                        Please provide a reason before confirming this action.
+                    </p>
+                </div>
+
+                <div class="modal-actions" style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px; padding-top:16px; border-top: 1px solid #eee; flex-shrink: 0;">
+                    <button type="button" class="btn btn-light" id="cancelDecision" style="min-width:80px; border:1px solid #e2e8f0; padding: 8px 12px; border-radius: 8px; background: #f1f5f9; color: #475569; font-weight: 600; font-size: 12px; cursor: pointer;">Cancel</button>
+                    <button type="submit" class="btn btn-decision-confirm" id="confirmDecision" style="min-width:80px; border:0; padding: 8px 12px; border-radius: 8px; color: white; font-weight: 600; font-size: 12px; cursor: pointer;">Confirm</button>
+                </div>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .48); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 9999; }
+        .modal-backdrop.open { display: flex; }
+        .decision-accept .btn-decision-confirm { background: #059669; }
+        .decision-accept .btn-decision-confirm:hover { background: #047857; }
+        .decision-reject .btn-decision-confirm { background: #dc2626; }
+        .decision-reject .btn-decision-confirm:hover { background: #b91c1c; }
+        .decision-skip .btn-decision-confirm { background: #d97706; }
+        .decision-skip .btn-decision-confirm:hover { background: #b45309; }
+        .decision-cancel .btn-decision-confirm { background: #64748b; }
+        .decision-cancel .btn-decision-confirm:hover { background: #475569; }
+        .decision-resign .btn-decision-confirm { background: #7c3aed; }
+        .decision-resign .btn-decision-confirm:hover { background: #6d28d9; }
+        .decision-accept #decisionModalIcon { color: #047857; background: #ecfdf5; }
+        .decision-reject #decisionModalIcon { color: #b91c1c; background: #fef2f2; }
+        .decision-skip #decisionModalIcon { color: #92400e; background: #fffbeb; }
+        .decision-cancel #decisionModalIcon { color: #475569; background: #f1f5f9; }
+        .decision-resign #decisionModalIcon { color: #6d28d9; background: #f5f3ff; }
+        
+        /* Custom scrollbar for modal content */
+        #emailPreviewFields::-webkit-scrollbar { width: 6px; }
+        #emailPreviewFields::-webkit-scrollbar-track { background: transparent; }
+        #emailPreviewFields::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    `;
+    document.head.appendChild(style);
+
+    const decisionModal = document.getElementById("decisionModal");
+    const decisionModalForm = document.getElementById("decisionModalForm");
+    const decisionModalIcon = document.getElementById("decisionModalIcon");
+    const decisionModalEyebrow = document.getElementById("decisionModalEyebrow");
+    const decisionModalTitle = document.getElementById("decisionModalTitle");
+    const decisionModalDescription = document.getElementById("decisionModalDescription");
+    const confirmDecision = document.getElementById("confirmDecision");
+    const cancelDecision = document.getElementById("cancelDecision");
+    const emailPreviewFields = document.getElementById("emailPreviewFields");
+    const previewEmailTo = document.getElementById("previewEmailTo");
+    const previewEmailSubject = document.getElementById("previewEmailSubject");
+    const previewEmailBody = document.getElementById("previewEmailBody");
+    
+    // Schedule fields
+    const interviewScheduleFields = document.getElementById("interviewScheduleFields");
+    const interviewScheduleTitle = document.getElementById("interviewScheduleTitle");
+    const interviewDate = document.getElementById("interviewDate");
+    const interviewTime = document.getElementById("interviewTime");
+    const interviewer = document.getElementById("interviewer");
+    const decisionReasonField = document.getElementById("decisionReasonField");
+    const decisionReason = document.getElementById("decisionReason");
+
+    let pendingDecisionForm = null;
+
+    function getInterviewStage(tab) {
+        if (tab === "interview_request") return "First Interview";
+        if (tab === "first_interview") return "Second Interview";
+        return null;
+    }
+
+    function getTodayDate() {
+        const now = new Date();
+        const yangonTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Yangon" }));
+        const year = yangonTime.getFullYear();
+        const month = String(yangonTime.getMonth() + 1).padStart(2, "0");
+        const day = String(yangonTime.getDate()).padStart(2, "0");
+        return year + "-" + month + "-" + day;
+    }
+
+    function updateInterviewSchedulePreview() {
+        if (!previewEmailBody) return;
+        const marker = "\n\nInterview Schedule\n";
+        let baseBody = previewEmailBody.value;
+        const idx = baseBody.indexOf(marker);
+        if (idx !== -1) baseBody = baseBody.substring(0, idx);
+
+        if (!interviewDate || !interviewTime || !interviewer || !interviewDate.value || !interviewTime.value || !interviewer.value.trim()) {
+            previewEmailBody.value = baseBody;
+            return;
+        }
+        const d = interviewDate.value.split("-");
+        const formattedDate = d[2] + "/" + d[1] + "/" + d[0];
+        const t = interviewTime.value.split(":");
+        const hour = Number(t[0]);
+        const period = hour >= 12 ? "PM" : "AM";
+        const formattedTime = String(hour % 12 || 12).padStart(2, "0") + ":" + t[1] + " " + period;
+        previewEmailBody.value = baseBody + marker + "Date: " + formattedDate + "\nTime: " + formattedTime + "\nInterviewer: " + interviewer.value.trim();
+    }
+
+    if (interviewDate) interviewDate.addEventListener("change", updateInterviewSchedulePreview);
+    if (interviewTime) interviewTime.addEventListener("change", updateInterviewSchedulePreview);
+    if (interviewer) interviewer.addEventListener("input", updateInterviewSchedulePreview);
+    if (decisionReason) decisionReason.addEventListener("input", function() { decisionReason.setCustomValidity(""); });
+
+    document.querySelectorAll(".js-stage-decision").forEach(function(form) {
+        form.addEventListener("submit", function(e) {
+            e.preventDefault();
+            pendingDecisionForm = this;
+            const decision = this.dataset.decision;
+            const name = this.dataset.candidateName || "Candidate";
+            const email = this.dataset.email || "";
+            const currentStage = this.dataset.currentStage || "Current Stage";
+            const nextStatus = this.dataset.nextStatus ? titleCase(this.dataset.nextStatus) : "Next Stage";
+            const activeTabField = this.querySelector('input[name="tab"]');
+            const activeTab = activeTabField ? activeTabField.value : "";
+            const interviewStage = getInterviewStage(activeTab);
+            const requiresSchedule = decision === "accept" && interviewStage !== null;
+
+            // Reset classes
+            decisionModal.className = "modal-backdrop";
+            emailPreviewFields.style.display = "none";
+            interviewScheduleFields.style.display = "none";
+            decisionReasonField.style.display = "none";
+            previewEmailTo.value = email;
+            previewEmailSubject.value = "";
+            previewEmailBody.value = "";
+            confirmDecision.disabled = false;
+
+            // Reset schedule fields
+            if (interviewDate) { interviewDate.value = ""; interviewDate.required = false; interviewDate.min = getTodayDate(); }
+            if (interviewTime) { interviewTime.value = ""; interviewTime.required = false; }
+            if (interviewer) { interviewer.value = ""; interviewer.required = false; }
+
+            if (decision === "accept") {
+                decisionModal.classList.add("decision-accept");
+                decisionModalIcon.textContent = "✉";
+                decisionModalEyebrow.textContent = "ACCEPT CANDIDATE";
+                decisionModalTitle.textContent = "Review acceptance email";
+                decisionModalDescription.textContent = "Review and edit the email before moving " + name + " to " + nextStatus + ".";
+                
+                previewEmailSubject.value = "Recruitment Update - " + nextStatus;
+                previewEmailBody.value = "Dear " + name + ",\n\nThank you for your interest in joining our team.\n\nWe are pleased to inform you that you have been accepted to proceed to the next stage of our recruitment process: " + nextStatus + ".\n\nWe will share further information about the next steps with you in due course.\n\nBest regards,\nHR Team\nPro1 Global Home Center";
+                confirmDecision.textContent = "Send & Accept";
+                
+                emailPreviewFields.style.display = "block";
+                if (requiresSchedule) {
+                    interviewScheduleFields.style.display = "block";
+                    interviewScheduleTitle.textContent = interviewStage + " Schedule";
+                    interviewDate.required = true;
+                    interviewTime.required = true;
+                    interviewer.required = true;
+                    interviewDate.min = getTodayDate();
+                    updateInterviewSchedulePreview();
+                }
+            } else if (decision === "skip") {
+                decisionModal.classList.add("decision-skip");
+                decisionModalIcon.textContent = "⏭";
+                decisionModalEyebrow.textContent = "SKIP STAGE";
+                decisionModalTitle.textContent = "Review skip email";
+                decisionModalDescription.textContent = "Review the email explaining the skipped stage and the stage the candidate will proceed to.";
+                previewEmailSubject.value = "Recruitment Stage Update - " + nextStatus;
+                previewEmailBody.value = "Dear " + name + ",\n\nWe are pleased to inform you that you have successfully progressed past the " + currentStage + " stage of our recruitment process and have been accepted to proceed to the " + nextStatus + " stage.\n\nThank you for your continued interest in joining our company. We will keep you informed of the next steps.\n\nBest regards,\nHR Recruitment Team\nPro1 Global Home Center";
+                confirmDecision.textContent = "Send & Skip";
+                emailPreviewFields.style.display = "block";
+                decisionReasonField.style.display = "block";
+            } else if (decision === "reject") {
+                decisionModal.classList.add("decision-reject");
+                decisionModalIcon.textContent = "✉";
+                decisionModalEyebrow.textContent = "REJECT CANDIDATE";
+                decisionModalTitle.textContent = "Review rejection email";
+                decisionModalDescription.textContent = "Review the rejection email before confirming this decision.";
+                previewEmailSubject.value = "Reject The Recruitment Application";
+                previewEmailBody.value = "Dear " + name + ",\n\nThank you for your interest in joining our company.\n\nAfter careful consideration, we regret to inform you that your application has been rejected at the " + currentStage + " stage of our recruitment process.\n\nWe appreciate the time and effort you have invested in your application and wish you success in your future career.\n\nBest regards,\nHR Recruitment Team\nPro1 Global Home Center";
+                confirmDecision.textContent = "Send & Reject";
+                emailPreviewFields.style.display = "block";
+                decisionReasonField.style.display = "block";
+            } else if (decision === "cancel") {
+                decisionModal.classList.add("decision-cancel");
+                decisionModalIcon.textContent = "↩";
+                decisionModalEyebrow.textContent = "CANCEL CANDIDATE";
+                decisionModalTitle.textContent = "Cancel this candidate?";
+                decisionModalDescription.textContent = "You are cancelling " + name + " from the current recruitment stage. Do you want to continue?";
+                confirmDecision.textContent = "Yes, Cancel";
+            } else if (decision === "resign") {
+                decisionModal.classList.add("decision-resign");
+
+                decisionModalIcon.textContent = "🚪";
+                decisionModalEyebrow.textContent = "MARK AS RESIGNED";
+                decisionModalTitle.textContent = "Mark candidate as resigned?";
+
+                decisionModalDescription.textContent =
+                    name +
+                    " will be moved from Joined to Resigned. Please provide a reason.";
+
+                // Show reason input
+                decisionReasonField.style.display = "block";
+
+                // Reset reason input
+                decisionReason.value = "";
+                decisionReason.required = true;
+                decisionReason.placeholder = "Enter reason for resignation...";
+
+                confirmDecision.textContent = "Yes, Mark Resign";
+            }
+
+            decisionModal.style.display = "flex";
+            if (requiresSchedule && interviewDate) {
+                interviewDate.focus();
+            } else if (cancelDecision && cancelDecision.style.display !== "none") {
+                cancelDecision.focus();
+            } else {
+                confirmDecision.focus();
+            }
+        });
+    });
+
+    function closeDecisionModal() {
+        if (decisionModal) {
+            decisionModal.style.display = "none";
+            pendingDecisionForm = null;
+        }
+    }
+
+    if (cancelDecision) cancelDecision.addEventListener("click", closeDecisionModal);
+
+    if (decisionModal) {
+        decisionModal.addEventListener("click", function(e) {
+            if (e.target === decisionModal) closeDecisionModal();
+        });
+    }
+
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape" && decisionModal && decisionModal.style.display === "flex") {
+            closeDecisionModal();
+        }
+    });
+
+    if (confirmDecision) {
+        confirmDecision.addEventListener("click", function(e) {
+            e.preventDefault();
+            if (!pendingDecisionForm) return;
+
+            const originalForm = pendingDecisionForm;
+            const decision = originalForm.dataset.decision;
+            const activeTabField = originalForm.querySelector('input[name="tab"]');
+            const activeTab = activeTabField ? activeTabField.value : "";
+            const interviewStage = getInterviewStage(activeTab);
+            const requiresSchedule = decision === "accept" && interviewStage !== null;
+            const requiresEmail = ["accept", "skip", "reject"].includes(decision);
+            const requiresReason = ["skip", "reject", "resign"].includes(decision);
+
+            function setHiddenField(name, value) {
+                let field = originalForm.querySelector('input[type="hidden"][name="' + name + '"]');
+                if (!field) {
+                    field = document.createElement("input");
+                    field.type = "hidden";
+                    field.name = name;
+                    originalForm.appendChild(field);
+                }
+                field.value = value;
+            }
+
+            if (requiresSchedule) {
+                if (!interviewDate.value || !interviewTime.value || !interviewer.value.trim()) {
+                    if (!interviewDate.value) { interviewDate.setCustomValidity("Please select the " + interviewStage + " date."); interviewDate.reportValidity(); interviewDate.focus(); }
+                    else if (!interviewTime.value) { interviewTime.setCustomValidity("Please select the " + interviewStage + " time."); interviewTime.reportValidity(); interviewTime.focus(); }
+                    else if (!interviewer.value.trim()) { interviewer.setCustomValidity("Please enter the interviewer name."); interviewer.reportValidity(); interviewer.focus(); }
+                    return;
+                }
+                interviewDate.setCustomValidity("");
+                interviewTime.setCustomValidity("");
+                interviewer.setCustomValidity("");
+                if (interviewDate.value < getTodayDate()) {
+                    interviewDate.setCustomValidity("Interview date cannot be in the past.");
+                    interviewDate.reportValidity();
+                    interviewDate.focus();
+                    return;
+                }
+                setHiddenField("interview_date", interviewDate.value);
+                setHiddenField("interview_time", interviewTime.value);
+                setHiddenField("interviewer", interviewer.value.trim());
+            }
+
+            if (requiresEmail) {
+                if (!previewEmailTo.value.trim() || !previewEmailSubject.value.trim() || !previewEmailBody.value.trim() || !previewEmailTo.checkValidity()) {
+                    if (!previewEmailTo.checkValidity()) previewEmailTo.reportValidity();
+                    else if (!previewEmailSubject.value.trim()) previewEmailSubject.reportValidity();
+                    else previewEmailBody.reportValidity();
+                    return;
+                }
+                setHiddenField("email_to", previewEmailTo.value.trim());
+                setHiddenField("email_subject", previewEmailSubject.value.trim());
+                setHiddenField("email_body", previewEmailBody.value.trim());
+            }
+
+            if (requiresReason) {
+
+                const reason = decisionReason.value.trim();
+
+                if (!reason) {
+                    decisionReason.setCustomValidity(
+                        "Please enter a reason before confirming."
+                    );
+
+                    decisionReason.reportValidity();
+                    decisionReason.focus();
+                    return;
+                }
+
+                decisionReason.setCustomValidity("");
+
+                // Send reason to backend
+                setHiddenField("remarks", reason);
+            }
+            confirmDecision.disabled = true;
+            confirmDecision.textContent = "Processing...";
+            decisionModal.style.display = "none";
+            pendingDecisionForm = null;
+            HTMLFormElement.prototype.submit.call(originalForm);
+        });
+    }
+  });
+</script>
+
+{% endblock %}

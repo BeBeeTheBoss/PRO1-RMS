@@ -1,0 +1,1825 @@
+{% extends "base.html" %} {% block title %}View Department Head{% endblock %} {%
+block page_heading %}View Department Head{% endblock %} {% block page_subtitle
+%} Manage department head accounts and department assignments {% endblock %} {%
+block extra_css %}
+<style>
+  .department-head-page,
+  .department-head-page * {
+    box-sizing: border-box;
+  }
+
+  .department-head-page {
+    --dh-primary: #5145cd;
+    --dh-primary-hover: #4338b8;
+    --dh-text: #1e293b;
+    --dh-muted: #64748b;
+    --dh-border: #e8edf4;
+    width: 100%;
+    min-width: 0;
+    color: var(--dh-text);
+    font-family: "Poppins", sans-serif;
+    font-size: 14px;
+  }
+
+  /* Toolbar */
+  .department-head-page .dh-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 18px;
+    padding: 8px 0 24px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #e9edf5;
+  }
+
+  .department-head-page .dh-welcome {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    min-width: 0;
+  }
+
+  .department-head-page .dh-welcome-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    flex: 0 0 54px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #5145cd, #8175f4);
+    color: #fff;
+    font-size: 22px;
+    box-shadow: 0 7px 18px rgba(81, 69, 205, 0.25);
+  }
+
+  .department-head-page .dh-breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 7px;
+    color: #8b95a7;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .department-head-page .dh-breadcrumb i {
+    font-size: 9px;
+  }
+
+  .department-head-page .dh-welcome h2 {
+    margin: 0 0 5px;
+    color: #172033;
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.35;
+  }
+
+  .department-head-page .dh-welcome p {
+    margin: 0;
+    color: #758197;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  /* Summary cards */
+  .department-head-page .dh-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+
+  .department-head-page .dh-summary-card {
+    position: relative;
+    min-width: 0;
+    padding: 22px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 18px;
+    color: #fff;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.12);
+    transition:
+      transform 0.25s,
+      box-shadow 0.25s;
+  }
+
+  .department-head-page .dh-summary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.18);
+  }
+
+  .department-head-page .dh-summary-card::after {
+    content: "";
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.13);
+    pointer-events: none;
+  }
+
+  .department-head-page .dh-summary-card::before {
+    content: "";
+    position: absolute;
+    bottom: -40px;
+    right: 20px;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+  }
+
+  .department-head-page .dh-summary-card.card-purple {
+    background: linear-gradient(135deg, #6d5ce7 0%, #4f46e5 55%, #3b32b8 100%);
+  }
+
+  .department-head-page .dh-summary-card.card-green {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 55%, #059669 100%);
+  }
+
+  .department-head-page .dh-summary-card.card-blue {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 55%, #2563eb 100%);
+  }
+
+  .department-head-page button.dh-summary-card {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .department-head-page .dh-summary-card:focus-visible {
+    outline: 3px solid #c4baff;
+    outline-offset: 4px;
+  }
+
+  .department-head-page .dh-summary-card.is-selected {
+    outline: 3px solid rgba(81, 69, 205, 0.3);
+    outline-offset: 3px;
+  }
+
+  .department-head-page .dh-summary-top {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+
+  .department-head-page .dh-summary-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.22);
+    color: #fff;
+    font-size: 18px;
+    backdrop-filter: blur(6px);
+  }
+
+  .department-head-page .dh-summary-value {
+    position: relative;
+    z-index: 1;
+    margin-top: 18px;
+    color: #fff;
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -1.2px;
+    line-height: 1.15;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  }
+
+  .department-head-page .dh-summary-caption {
+    position: relative;
+    z-index: 1;
+    margin-top: 8px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+
+  /* General cards */
+  .department-head-page .dh-card {
+    min-width: 0;
+    margin-bottom: 22px;
+    padding: 24px;
+    overflow: hidden;
+    border: 1px solid var(--dh-border);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.035);
+  }
+
+  .department-head-page .dh-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+
+  .department-head-page .dh-card-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .department-head-page .dh-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    border-radius: 13px;
+    background: linear-gradient(135deg, #5145cd, #8175f4);
+    color: #fff;
+    font-size: 18px;
+    box-shadow: 0 5px 14px rgba(81, 69, 205, 0.25);
+  }
+
+  .department-head-page .dh-card-heading h3 {
+    margin: 1px 0 5px;
+    color: var(--dh-text);
+    font-size: 16px;
+    font-weight: 750;
+    line-height: 1.4;
+  }
+
+  .department-head-page .dh-card-heading p {
+    margin: 0;
+    color: var(--dh-muted);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  /* Flash messages */
+  .department-head-page .dh-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 13px 16px;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .department-head-page .dh-message.success {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+  }
+
+  .department-head-page .dh-message.error {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+  }
+
+  /* Table - automatic width based on content */
+  .department-head-page .dh-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--dh-border);
+    border-radius: 12px;
+    scrollbar-width: thin;
+  }
+
+  .department-head-page .dh-table {
+    width: 100%;
+    min-width: 0;
+    table-layout: auto;
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+  }
+
+  .department-head-page .dh-table th {
+    padding: 12px 10px;
+    border: 0;
+    border-bottom: 1px solid var(--dh-border);
+    background: #f8faff;
+    color: #64748b;
+    text-align: left;
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+  }
+
+  .department-head-page .dh-table td {
+    padding: 12px 10px;
+    border: 0;
+    border-bottom: 1px solid #eef1f6;
+    color: #334155;
+    text-align: left;
+    vertical-align: middle;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  .department-head-page .dh-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .department-head-page .dh-table tbody tr {
+    transition: background 0.15s ease;
+  }
+
+  .department-head-page .dh-table tbody tr:hover {
+    background: #fafaff;
+  }
+
+  .department-head-page .dh-id {
+    color: #64748b;
+    font-weight: 700;
+  }
+
+  /* Column widths */
+  .department-head-page .dh-table th:first-child,
+  .department-head-page .dh-table td:first-child {
+    width: 85px;
+  }
+
+  .department-head-page .dh-table th:nth-child(2),
+  .department-head-page .dh-table td:nth-child(2) {
+    min-width: 130px;
+    max-width: 210px;
+  }
+
+  .department-head-page .dh-table th:nth-child(3),
+  .department-head-page .dh-table td:nth-child(3) {
+    min-width: 105px;
+    max-width: 150px;
+  }
+
+  /* Department column — widened */
+  .department-head-page .dh-table th:nth-child(4),
+  .department-head-page .dh-table td:nth-child(4) {
+    min-width: 150px;
+    max-width: 200px;
+  }
+
+  .department-head-page .dh-table th:nth-child(5),
+  .department-head-page .dh-table td:nth-child(5) {
+    width: 90px;
+  }
+
+  .department-head-page .dh-table th:nth-child(6),
+  .department-head-page .dh-table td:nth-child(6) {
+    width: 105px;
+    white-space: nowrap;
+  }
+  .department-head-page .dh-table th:nth-child(8),
+  .department-head-page .dh-table td:nth-child(8) {
+    min-width: 100px;
+    max-width: 150px;
+  }
+  .department-head-page .dh-table th:last-child,
+  .department-head-page .dh-table td:last-child {
+    width: 125px;
+    min-width: 125px;
+  }
+
+  /* Department tags */
+  .department-head-page .dh-view-departments {
+    display: grid;
+    align-items: flex-start;
+    gap: 5px;
+    max-width: 340px;
+  }
+
+  .department-head-page .dh-department-tag {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    border: 1px solid #c7d2fe;
+    border-radius: 10px;
+    color: #4338ca;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+    box-shadow: 0 2px 6px rgba(67, 56, 202, 0.1);
+    transition: all 0.2s ease;
+  }
+
+  .department-head-page .dh-department-tag:hover {
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+    border-color: #a5b4fc;
+    color: #3730a3;
+    box-shadow: 0 4px 10px rgba(67, 56, 202, 0.18);
+    transform: translateY(-1px);
+  }
+
+  /* Status */
+  .department-head-page .dh-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 750;
+  }
+
+  .department-head-page .dh-status::before {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    content: "";
+  }
+
+  .department-head-page .dh-status-active {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  .department-head-page .dh-status-inactive {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  /* Actions */
+  .department-head-page .dh-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .department-head-page .dh-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 7px 9px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.3;
+    white-space: nowrap;
+    transition:
+      background 0.2s,
+      border-color 0.2s,
+      transform 0.2s;
+  }
+
+  .department-head-page .dh-btn:active {
+    transform: translateY(1px);
+  }
+
+  .department-head-page .dh-btn-secondary {
+    border-color: #e3e0ff;
+    background: #f3f1ff;
+    color: #4f46c8;
+  }
+
+  .department-head-page .dh-btn-secondary:hover {
+    background: #e9e6ff;
+  }
+
+  .department-head-page .dh-btn-danger {
+    border-color: #fecaca;
+    background: #fff1f2;
+    color: #be123c;
+  }
+
+  .department-head-page .dh-btn-danger:hover {
+    background: #ffe4e6;
+  }
+
+  .department-head-page .dh-toggle-form {
+    display: inline-flex;
+    margin: 0;
+  }
+
+  .department-head-page .dh-edit-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border: 1px solid #e3e0ff;
+    border-radius: 8px;
+    background: #f3f1ff;
+    color: #5145cd;
+    font-size: 13px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .department-head-page .dh-edit-icon:hover {
+    border-color: #5145cd;
+    background: #5145cd;
+    color: #fff;
+    transform: translateY(-2px);
+  }
+
+  .department-head-page .dh-table-empty {
+    padding: 35px 15px !important;
+    color: #94a3b8 !important;
+    text-align: center !important;
+  }
+
+  .department-head-page .dh-table-empty i {
+    display: block;
+    margin-bottom: 10px;
+    color: #c4cadd;
+    font-size: 25px;
+  }
+
+  .department-head-page .dh-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin: 16px 0 0;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .department-head-page .dh-note i {
+    margin-top: 3px;
+    color: #818cf8;
+  }
+
+  /* Pagination */
+  .department-head-page .dh-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .department-head-page .dh-pagination-info {
+    color: #64748b;
+    font-size: 12px;
+  }
+
+  .department-head-page .dh-pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .department-head-page .dh-page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    color: #475569;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 650;
+    transition: all 0.2s ease;
+  }
+
+  .department-head-page .dh-page-btn:hover:not(:disabled) {
+    border-color: #c7c2ff;
+    background: #f5f3ff;
+    color: var(--dh-primary);
+  }
+
+  .department-head-page .dh-page-btn.active {
+    border-color: var(--dh-primary);
+    background: var(--dh-primary);
+    color: #fff;
+  }
+
+  .department-head-page .dh-page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .department-head-page .dh-page-btn:focus-visible {
+    outline: 3px solid #c4baff;
+    outline-offset: 2px;
+  }
+
+  /* Responsive */
+  @media (max-width: 1050px) {
+    .department-head-page .dh-summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 768px) {
+    .department-head-page .dh-table {
+      min-width: 680px;
+    }
+
+    .department-head-page .dh-view-departments {
+      max-width: 200px;
+    }
+  }
+
+  @media (max-width: 650px) {
+    .department-head-page .dh-toolbar {
+      align-items: flex-start;
+    }
+
+    .department-head-page .dh-card {
+      padding: 17px;
+      border-radius: 13px;
+    }
+
+    .department-head-page .dh-welcome h2 {
+      font-size: 19px;
+    }
+
+    .department-head-page .dh-welcome-badge {
+      width: 46px;
+      height: 46px;
+      flex-basis: 46px;
+    }
+
+    .department-head-page .dh-summary-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .department-head-page .dh-summary-value {
+      font-size: 28px;
+    }
+
+    .department-head-page .dh-pagination {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+
+  /* =========================================
+   MODERN ACTIVATE / DEACTIVATE MODAL
+========================================= */
+
+  .dh-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.48);
+    backdrop-filter: blur(5px);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.25s ease,
+      visibility 0.25s ease;
+  }
+
+  .dh-modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .dh-confirm-modal {
+    width: 100%;
+    max-width: 420px;
+    padding: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 25px 70px rgba(15, 23, 42, 0.22);
+    text-align: center;
+    transform: translateY(18px) scale(0.96);
+    transition: transform 0.25s ease;
+  }
+
+  .dh-modal-overlay.show .dh-confirm-modal {
+    transform: translateY(0) scale(1);
+  }
+
+  .dh-modal-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    height: 76px;
+    margin: 0 auto 20px;
+    border-radius: 24px;
+    font-size: 30px;
+  }
+
+  .dh-modal-icon.activate {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+
+  .dh-modal-icon.deactivate {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  .dh-modal-title {
+    margin: 0 0 10px;
+    color: #172033;
+    font-size: 21px;
+    font-weight: 800;
+  }
+
+  .dh-modal-description {
+    margin: 0 auto 12px;
+    max-width: 330px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .dh-modal-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 5px 0 24px;
+    padding: 9px 15px;
+    border: 1px solid #e8edf4;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .dh-modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .dh-modal-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 125px;
+    min-height: 43px;
+    padding: 10px 17px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 750;
+    transition: all 0.2s ease;
+  }
+
+  .dh-modal-cancel {
+    border-color: #e2e8f0;
+    background: #fff;
+    color: #475569;
+  }
+
+  .dh-modal-cancel:hover {
+    background: #f1f5f9;
+  }
+
+  .dh-modal-confirm.activate {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    box-shadow: 0 5px 13px rgba(22, 163, 74, 0.22);
+  }
+
+  .dh-modal-confirm.activate:hover {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    transform: translateY(-1px);
+  }
+
+  .dh-modal-confirm.deactivate {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff;
+    box-shadow: 0 5px 13px rgba(220, 38, 38, 0.2);
+  }
+
+  .dh-modal-confirm.deactivate:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 480px) {
+    .dh-confirm-modal {
+      padding: 25px 18px;
+      border-radius: 18px;
+    }
+
+    .dh-modal-actions {
+      flex-direction: column-reverse;
+    }
+
+    .dh-modal-button {
+      width: 100%;
+    }
+  }
+  /* Department Permissions */
+  .department-head-page .dh-permission-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 220px;
+  }
+
+  .department-head-page .dh-permission-group {
+    padding: 9px;
+    border: 1px solid #e8edf4;
+    border-radius: 9px;
+    background: #fafbff;
+  }
+
+  .department-head-page .dh-permission-department {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 8px;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 750;
+  }
+
+  .department-head-page .dh-permission-department i {
+    color: #5145cd;
+  }
+
+  .department-head-page .dh-permission-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .department-head-page .dh-permission-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 7px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  /* Only allowed permissions are shown — green */
+  .department-head-page .dh-permission-chip.allowed {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  .department-head-page .dh-no-permission {
+    color: #dc2626;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .department-head-page .dh-table th:nth-child(5),
+  .department-head-page .dh-table td:nth-child(5) {
+    min-width: 240px;
+  }
+
+  .department-head-page .dh-table th:nth-child(6),
+  .department-head-page .dh-table td:nth-child(6) {
+    width: 90px;
+  }
+
+  .department-head-page .dh-table th:nth-child(7),
+  .department-head-page .dh-table td:nth-child(7) {
+    width: 105px;
+    white-space: nowrap;
+  }
+
+  .department-head-page .dh-table th:last-child,
+  .department-head-page .dh-table td:last-child {
+    width: 125px;
+    min-width: 125px;
+  }
+
+
+.department-head-page .dh-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    width: 100%;
+}
+
+.department-head-page .dh-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+.department-head-page .dh-search-section {
+    flex: 1;
+    min-width: 0;
+    max-width: 650px;
+    margin-left: auto;
+}
+
+.department-head-page .dh-search-bar {
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) auto auto;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.department-head-page .dh-search-input-wrap {
+    position: relative;
+    min-width: 0;
+}
+
+.department-head-page .dh-search-input-wrap i {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8b95a7;
+    pointer-events: none;
+}
+
+.department-head-page .dh-search-input {
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+    padding: 0 12px 0 37px;
+    border: 1.5px solid #b2c3d8;
+    border-radius: 9px;
+    outline: none;
+    background: #fff;
+    color: #1e293b;
+    font-family: Poppins;
+    font-size: 12px;
+}
+
+.department-head-page .dh-search-input:focus {
+    border-color: #5145cd;
+    box-shadow: 0 0 0 3px rgba(81, 69, 205, .10);
+}
+
+.department-head-page .dh-search-button,
+.department-head-page .dh-reset-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 42px;
+    padding: 0 13px;
+    border-radius: 9px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.department-head-page .dh-search-button {
+    border: 1px solid #5145cd;
+    background: #5145cd;
+    color: #fff;
+}
+
+.department-head-page .dh-reset-button {
+    border: 1.5px solid #b2c3d8;
+    background: #f8fafc;
+    color: #475569;
+}
+
+.department-head-page .dh-search-result {
+    margin-top: 8px;
+    color: #64748b;
+    font-size: 12px;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+    .department-head-page .dh-card-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .department-head-page .dh-search-section {
+        width: 100%;
+        max-width: none;
+        margin-left: 0;
+    }
+}
+
+/* Mobile */
+@media (max-width: 520px) {
+    .department-head-page .dh-search-bar {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .department-head-page .dh-search-input-wrap {
+        grid-column: 1 / -1;
+    }
+
+    .department-head-page .dh-search-button,
+    .department-head-page .dh-reset-button {
+        width: 100%;
+    }
+}
+
+</style>
+{% endblock %} {% block content %}
+<div class="department-head-page">
+  <!-- Toolbar -->
+  <div class="dh-toolbar">
+    <div class="dh-welcome">
+      <div class="dh-welcome-badge">
+        <i class="fa-solid fa-users-gear"></i>
+      </div>
+
+      <div>
+        <div class="dh-breadcrumb">
+          <span>Administration</span>
+          <i class="fa-solid fa-chevron-right"></i>
+          <span>Department Head</span>
+        </div>
+
+        <h2>Department Head Directory</h2>
+        <p>Manage access, assignments and account activity.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="dh-summary-grid">
+    <button
+      type="button"
+      class="dh-summary-card card-purple is-selected"
+      data-account-filter="all"
+      aria-pressed="true"
+    >
+      <div class="dh-summary-top">
+        <span>Total Accounts</span>
+        <span class="dh-summary-icon">
+          <i class="fa-solid fa-users"></i>
+        </span>
+      </div>
+
+      <div class="dh-summary-value">{{ department_heads|length }}</div>
+
+      <div class="dh-summary-caption">Registered department accounts</div>
+    </button>
+
+    <button
+      type="button"
+      class="dh-summary-card card-green"
+      data-account-filter="active"
+      aria-pressed="false"
+    >
+      <div class="dh-summary-top">
+        <span>Active Accounts</span>
+        <span class="dh-summary-icon">
+          <i class="fa-solid fa-user-check"></i>
+        </span>
+      </div>
+
+      <div class="dh-summary-value">
+        {{ department_heads|selectattr('5')|list|length }}
+      </div>
+
+      <div class="dh-summary-caption">Click to show active accounts only</div>
+    </button>
+
+    <a
+      class="dh-summary-card card-blue"
+      href="{{ url_for('main.manage_departments') }}"
+      style="display: block; text-decoration: none"
+      title="View departments"
+    >
+      <div class="dh-summary-top">
+        <span>Available Departments</span>
+        <span class="dh-summary-icon">
+          <i class="fa-solid fa-building"></i>
+        </span>
+      </div>
+
+      <div class="dh-summary-value">{{ departments|length }}</div>
+
+      <div class="dh-summary-caption">Click to view departments</div>
+    </a>
+  </div>
+
+  <!-- Account Directory -->
+  <section class="dh-card">
+     <div class="dh-card-header">
+        <div class="dh-card-heading">
+            <div class="dh-card-icon">
+                <i class="fa-solid fa-users-gear"></i>
+            </div>
+            <div>
+                <h3>Account Directory</h3>
+                <p>View account details and department assignments</p>
+            </div>
+        </div>
+
+        <div class="dh-search-section">
+            <div class="dh-search-bar">
+                <div class="dh-search-input-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input
+                        type="text"
+                        id="dh-search-input"
+                        class="dh-search-input"
+                        placeholder="Search name, employee code, branch or department..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <button type="button" class="dh-search-button" id="dh-search-button">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    Search
+                </button>
+
+                <button type="button" class="dh-reset-button" id="dh-reset-button">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    Reset
+                </button>
+            </div>
+            <div class="dh-search-result" id="dh-search-result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div class="dh-table-wrap">
+      <table class="dh-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Employee Code</th>
+            <th>Branch</th>
+            <th>Department</th>
+            <th>Permissions</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody id="dh-account-tbody">
+          {% for u in department_heads %}
+          <tr
+            data-account-row
+            data-account-active="{{ 'true' if u[5] else 'false' }}"
+          >
+            <td>
+              <span class="dh-id">{{ u[0] }}</span>
+            </td>
+
+            <td>
+              <strong>{{ u[1] }}</strong>
+            </td>
+
+            <td>{{ u[2] }}</td>
+            <td>
+              <div class="">
+                {% for branch_name in (u[9] or []) %}
+                <span class="dh-department-tag"> {{ branch_name }} </span>
+                {% else %}
+                <span class="dh-no-permission"> No branch assigned </span>
+                {% endfor %}
+              </div>
+            </td>
+            <td>
+              <div class="dh-view-departments">
+                {% for d in departments %} {% if d[0] in (u[8] or []) %}
+                <span class="dh-department-tag"> {{ d[1] }} </span>
+                {% endif %} {% endfor %}
+              </div>
+            </td>
+
+            <!-- Permissions Column -->
+            <td>
+              <div class="dh-permission-list">
+                {% for d in departments %} {% if d[0] in (u[8] or []) %} {% set
+                permission = permission_map.get(u[0], {}).get(d[0]) %}
+
+                <div class="dh-permission-group">
+                  <div class="dh-permission-department">
+                    <i class="fa-solid fa-building"></i>
+                    {{ d[1] }}
+                  </div>
+
+                  {% if permission %} {# Build a list of allowed permissions
+                  only #} {% set allowed_items = [] %} {% if permission.can_view
+                  %}{% set _ = allowed_items.append(('fa-eye', 'View')) %}{%
+                  endif %} {% if permission.can_add %}{% set _ =
+                  allowed_items.append(('fa-plus', 'Add')) %}{% endif %} {% if
+                  permission.can_edit %}{% set _ =
+                  allowed_items.append(('fa-pen', 'Edit')) %}{% endif %} {% if
+                  permission.can_delete %}{% set _ =
+                  allowed_items.append(('fa-trash', 'Delete')) %}{% endif %} {%
+                  if permission.can_export %}{% set _ =
+                  allowed_items.append(('fa-download', 'Export')) %}{% endif %}
+                  {% if allowed_items %}
+                  <div class="dh-permission-items">
+                    {% for icon, label in allowed_items %}
+                    <span class="dh-permission-chip allowed">
+                      <i class="fa-solid {{ icon }}"></i>
+                      {{ label }}
+                    </span>
+                    {% endfor %}
+                  </div>
+                  {% else %}
+                  <span class="dh-no-permission">
+                    No permissions assigned
+                  </span>
+                  {% endif %} {% else %}
+
+                  <span class="dh-no-permission">
+                    No permissions assigned
+                  </span>
+
+                  {% endif %}
+                </div>
+
+                {% endif %} {% endfor %}
+              </div>
+            </td>
+
+            <td>
+              {% if u[5] %}
+              <span class="dh-status dh-status-active">Active</span>
+              {% else %}
+              <span class="dh-status dh-status-inactive">Inactive</span>
+              {% endif %}
+            </td>
+
+            <td>{% if u[6] %} {{ u[6].strftime('%Y-%m-%d') }} {% endif %}</td>
+
+            <td>
+              <div class="dh-actions">
+                <!-- Edit -->
+                <a
+                  href="{{ url_for('main.edit_department_head', user_id=u[0]) }}"
+                  class="dh-edit-icon"
+                  title="Edit Department Head"
+                  aria-label="Edit {{ u[1] }}"
+                >
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+
+                <!-- Activate / Deactivate -->
+                <form
+                  method="POST"
+                  action="{{ url_for('main.manage_department_heads') }}"
+                  class="dh-toggle-form"
+                  data-user-name="{{ u[1] }}"
+                  data-user-id="{{ u[0] }}"
+                  data-current-status="{{ 'active' if u[5] else 'inactive' }}"
+                >
+                  <input type="hidden" name="action" value="toggle" />
+                  <input type="hidden" name="user_id" value="{{ u[0] }}" />
+
+                  {% if u[5] %}
+                  <button
+                    type="button"
+                    class="dh-btn dh-btn-danger dh-open-confirm"
+                    data-action="deactivate"
+                  >
+                    <i class="fa-solid fa-user-slash"></i>
+                    Deactivate
+                  </button>
+                  {% else %}
+                  <button
+                    type="button"
+                    class="dh-btn dh-btn-secondary dh-open-confirm"
+                    data-action="activate"
+                  >
+                    <i class="fa-solid fa-user-check"></i>
+                    Activate
+                  </button>
+                  {% endif %}
+                </form>
+              </div>
+            </td>
+          </tr>
+
+          {% else %}
+          <tr data-empty-row>
+            <td colspan="9" class="dh-table-empty">
+              <i class="fa-solid fa-users"></i>
+              No accounts found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="dh-pagination" id="dh-pagination">
+      <div class="dh-pagination-info" id="dh-pagination-info">
+        Showing 0–0 of 0 accounts
+      </div>
+
+      <div class="dh-pagination-controls">
+        <button
+          type="button"
+          class="dh-page-btn"
+          id="dh-prev-page"
+          aria-label="Previous page"
+        >
+          <i class="fa-solid fa-chevron-left"></i>
+          <span style="margin-left: 6px">Previous</span>
+        </button>
+
+        <div id="dh-page-numbers" class="dh-pagination-controls"></div>
+
+        <button
+          type="button"
+          class="dh-page-btn"
+          id="dh-next-page"
+          aria-label="Next page"
+        >
+          <span style="margin-right: 6px">Next</span>
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <p class="dh-note">
+      <i class="fa-solid fa-circle-info"></i>
+      <span>
+        Use the Edit icon to update account information and department
+        assignments. Use Activate or Deactivate to control account access.
+      </span>
+    </p>
+  </section>
+</div>
+
+<!-- Activate / Deactivate Confirmation Modal -->
+<div
+  class="dh-modal-overlay"
+  id="dh-confirm-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="dh-modal-title"
+  aria-hidden="true"
+>
+  <div class="dh-confirm-modal">
+    <div class="dh-modal-icon" id="dh-modal-icon">
+      <i class="fa-solid fa-user-check"></i>
+    </div>
+
+    <h3 class="dh-modal-title" id="dh-modal-title">Confirm Account Action</h3>
+
+    <p class="dh-modal-description" id="dh-modal-description">
+      Are you sure you want to continue?
+    </p>
+
+    <div class="dh-modal-user">
+      <i class="fa-solid fa-user"></i>
+      <span id="dh-modal-user-name"></span>
+    </div>
+
+    <div class="dh-modal-actions">
+      <button
+        type="button"
+        class="dh-modal-button dh-modal-cancel"
+        id="dh-modal-cancel"
+      >
+        <i class="fa-solid fa-xmark"></i>
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="dh-modal-button dh-modal-confirm"
+        id="dh-modal-confirm"
+      >
+        <i class="fa-solid fa-check"></i>
+        Confirm
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  
+  document.addEventListener("DOMContentLoaded", function () {
+      const page = document.querySelector(".department-head-page");
+      if (!page) return;
+
+      const tbody = page.querySelector("#dh-account-tbody");
+      const tableWrap = page.querySelector(".dh-table-wrap");
+      const pagination = page.querySelector("#dh-pagination");
+      const paginationInfo = page.querySelector("#dh-pagination-info");
+      const pageNumbers = page.querySelector("#dh-page-numbers");
+      const prevButton = page.querySelector("#dh-prev-page");
+      const nextButton = page.querySelector("#dh-next-page");
+      const filterCards = page.querySelectorAll("[data-account-filter]");
+
+      const searchInput = page.querySelector("#dh-search-input");
+      const searchButton = page.querySelector("#dh-search-button");
+      const resetButton = page.querySelector("#dh-reset-button");
+      const searchResult = page.querySelector("#dh-search-result");
+
+      if (!tbody || !pagination || !paginationInfo ||
+          !pageNumbers || !prevButton || !nextButton) {
+          return;
+      }
+
+      const allRows = Array.from(
+          tbody.querySelectorAll("tr[data-account-row]")
+      );
+
+      const rowsPerPage = 5;
+
+      let filteredRows = allRows.slice();
+      let currentPage = 1;
+      let currentFilter = "all";
+      let searchTerm = "";
+
+      // Burmese Unicode normalization
+      function normalizeText(value) {
+          return (value || "")
+              .toString()
+              .normalize("NFC")
+              .replace(/[\u200B-\u200D\uFEFF]/g, "")
+              .replace(/\s+/g, " ")
+              .trim()
+              .toLocaleLowerCase();
+      }
+
+      // Search Name, Employee Code, Branch and Department
+      function getRowSearchText(row) {
+          const name = row.cells[1]?.innerText || "";
+          const employeeCode = row.cells[2]?.innerText || "";
+          const branch = row.cells[3]?.innerText || "";
+          const department = row.cells[4]?.innerText || "";
+
+          return normalizeText(
+              name + " " +
+              employeeCode + " " +
+              branch + " " +
+              department
+          );
+      }
+
+      function applyCombinedFilters() {
+          filteredRows = allRows.filter(function (row) {
+              const matchesStatus =
+                  currentFilter === "all" ||
+                  row.dataset.accountActive === "true";
+
+              const matchesSearch =
+                  !searchTerm ||
+                  getRowSearchText(row).includes(searchTerm);
+
+              return matchesStatus && matchesSearch;
+          });
+
+          currentPage = 1;
+
+          if (searchResult) {
+              if (searchTerm) {
+                  searchResult.style.display = "block";
+                  searchResult.textContent =
+                      filteredRows.length +
+                      " matching account(s) found.";
+              } else {
+                  searchResult.style.display = "none";
+              }
+          }
+
+          renderPage();
+      }
+
+      function renderPage() {
+          const totalRows = filteredRows.length;
+          const totalPages = Math.ceil(totalRows / rowsPerPage);
+
+          allRows.forEach(function (row) {
+              row.style.display = "none";
+          });
+
+          const emptyRow = tbody.querySelector("[data-empty-row]");
+
+          if (emptyRow) {
+              emptyRow.style.display = totalRows === 0 ? "" : "none";
+
+              const emptyCell = emptyRow.querySelector("td");
+
+              if (emptyCell) {
+                  emptyCell.innerHTML =
+                      '<i class="fa-solid fa-users"></i>' +
+                      (searchTerm
+                          ? "No matching accounts found."
+                          : currentFilter === "active"
+                              ? "No active accounts found."
+                              : "No accounts found.");
+              }
+          }
+
+          if (totalRows === 0) {
+              paginationInfo.textContent = "Showing 0–0 of 0 accounts";
+              pageNumbers.innerHTML = "";
+              prevButton.disabled = true;
+              nextButton.disabled = true;
+              pagination.style.display = "none";
+              return;
+          }
+
+          pagination.style.display = "flex";
+
+          if (currentPage > totalPages) {
+              currentPage = totalPages;
+          }
+
+          const startIndex = (currentPage - 1) * rowsPerPage;
+          const endIndex = Math.min(
+              startIndex + rowsPerPage,
+              totalRows
+          );
+
+          filteredRows.forEach(function (row, index) {
+              row.style.display =
+                  index >= startIndex && index < endIndex ? "" : "none";
+          });
+
+          paginationInfo.textContent =
+              "Showing " +
+              (startIndex + 1) +
+              "–" +
+              endIndex +
+              " of " +
+              totalRows +
+              " accounts";
+
+          prevButton.disabled = currentPage === 1;
+          nextButton.disabled = currentPage === totalPages;
+
+          pageNumbers.innerHTML = "";
+
+          for (let number = 1; number <= totalPages; number++) {
+              const button = document.createElement("button");
+
+              button.type = "button";
+              button.className = "dh-page-btn";
+              button.textContent = number;
+              button.setAttribute("aria-label", "Page " + number);
+
+              if (number === currentPage) {
+                  button.classList.add("active");
+                  button.setAttribute("aria-current", "page");
+              }
+
+              button.addEventListener("click", function () {
+                  currentPage = number;
+                  renderPage();
+              });
+
+              pageNumbers.appendChild(button);
+          }
+      }
+
+      function applyFilter(filter) {
+          currentFilter = filter;
+
+          filterCards.forEach(function (card) {
+              const selected =
+                  card.dataset.accountFilter === filter;
+
+              card.classList.toggle("is-selected", selected);
+              card.setAttribute("aria-pressed", String(selected));
+          });
+
+          applyCombinedFilters();
+      }
+
+      function performSearch() {
+          searchTerm = normalizeText(searchInput?.value || "");
+          applyCombinedFilters();
+
+          // Scroll directly to the account table
+          if (tableWrap) {
+              setTimeout(function () {
+                  tableWrap.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start"
+                  });
+              }, 100);
+          }
+      }
+
+      if (searchButton && searchInput) {
+          searchButton.addEventListener("click", performSearch);
+
+          searchInput.addEventListener("keydown", function (event) {
+              if (event.key === "Enter") {
+                  event.preventDefault();
+                  performSearch();
+              }
+          });
+      }
+
+      if (resetButton) {
+          resetButton.addEventListener("click", function () {
+              if (searchInput) {
+                  searchInput.value = "";
+              }
+
+              searchTerm = "";
+              currentFilter = "all";
+
+              filterCards.forEach(function (card) {
+                  const selected =
+                      card.dataset.accountFilter === "all";
+
+                  card.classList.toggle("is-selected", selected);
+                  card.setAttribute("aria-pressed", String(selected));
+              });
+
+              applyCombinedFilters();
+          });
+      }
+
+      filterCards.forEach(function (card) {
+          card.addEventListener("click", function () {
+              applyFilter(card.dataset.accountFilter);
+          });
+      });
+
+      prevButton.addEventListener("click", function () {
+          if (currentPage > 1) {
+              currentPage--;
+              renderPage();
+          }
+      });
+
+      nextButton.addEventListener("click", function () {
+          const totalPages = Math.ceil(
+              filteredRows.length / rowsPerPage
+          );
+
+          if (currentPage < totalPages) {
+              currentPage++;
+              renderPage();
+          }
+      });
+
+      renderPage();
+  });
+
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("dh-confirm-modal");
+    const modalIcon = document.getElementById("dh-modal-icon");
+    const modalTitle = document.getElementById("dh-modal-title");
+    const modalDescription = document.getElementById("dh-modal-description");
+    const modalUserName = document.getElementById("dh-modal-user-name");
+    const cancelButton = document.getElementById("dh-modal-cancel");
+    const confirmButton = document.getElementById("dh-modal-confirm");
+
+    if (!modal) return;
+
+    let selectedForm = null;
+    let previousFocus = null;
+
+    function openModal(form, action) {
+      selectedForm = form;
+      previousFocus = document.activeElement;
+
+      const userName = form.dataset.userName || "Department Head";
+
+      modalUserName.textContent = userName;
+
+      modalIcon.className = "dh-modal-icon";
+      confirmButton.className = "dh-modal-button dh-modal-confirm";
+
+      if (action === "activate") {
+        modalIcon.classList.add("activate");
+
+        modalIcon.innerHTML = '<i class="fa-solid fa-user-check"></i>';
+
+        modalTitle.textContent = "Activate Account?";
+
+        modalDescription.textContent =
+          "This account will be activated and the Department Head will be able to access the system again.";
+
+        confirmButton.classList.add("activate");
+
+        confirmButton.innerHTML = '<i class="fa-solid fa-check"></i> Activate';
+      } else {
+        modalIcon.classList.add("deactivate");
+
+        modalIcon.innerHTML = '<i class="fa-solid fa-user-slash"></i>';
+
+        modalTitle.textContent = "Deactivate Account?";
+
+        modalDescription.textContent =
+          "This account will be deactivated and the Department Head will no longer be able to access the system.";
+
+        confirmButton.classList.add("deactivate");
+
+        confirmButton.innerHTML =
+          '<i class="fa-solid fa-user-slash"></i> Deactivate';
+      }
+
+      modal.classList.add("show");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+
+      confirmButton.focus();
+    }
+
+    function closeModal() {
+      modal.classList.remove("show");
+      modal.setAttribute("aria-hidden", "true");
+
+      document.body.style.overflow = "";
+
+      selectedForm = null;
+
+      if (previousFocus) {
+        previousFocus.focus();
+        previousFocus = null;
+      }
+    }
+
+    document.querySelectorAll(".dh-open-confirm").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const form = button.closest(".dh-toggle-form");
+
+        if (!form) return;
+
+        openModal(form, button.dataset.action);
+      });
+    });
+
+    cancelButton.addEventListener("click", closeModal);
+
+    modal.addEventListener("click", function (event) {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+
+    confirmButton.addEventListener("click", function () {
+      if (!selectedForm) return;
+
+      const formToSubmit = selectedForm;
+
+      confirmButton.disabled = true;
+      confirmButton.innerHTML =
+        '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+
+      formToSubmit.submit();
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (!modal.classList.contains("show")) return;
+
+      if (event.key === "Escape") {
+        closeModal();
+      }
+    });
+  });
+</script>
+{% endblock %}

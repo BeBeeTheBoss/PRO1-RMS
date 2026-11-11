@@ -1,0 +1,1475 @@
+{% extends "base.html" %}
+
+{% block title %}Interview Schedules{% endblock %}
+{% block page_heading %}Interview Schedules{% endblock %}
+
+{% block page_subtitle %}
+Manage interview appointments, schedules and candidate progress.
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.interview-page {
+    --primary: #4f46e5;
+    --primary-light: #eef2ff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    color: var(--text);
+    font-family: Inter, 'Poppins', "Segoe UI", Arial, sans-serif;
+}
+
+.interview-page * {
+    box-sizing: border-box;
+}
+
+/* ==============================
+   STATISTICS CARDS (Gradient Colors)
+============================== */
+
+.interview-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 17px;
+    margin-bottom: 22px;
+}
+
+.interview-stat {
+    position: relative;
+    overflow: hidden;
+    display: block;
+    padding: 21px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 17px;
+    color: #ffffff;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(30, 41, 59, 0.10);
+    transition: transform .22s ease, box-shadow .22s ease;
+}
+
+.interview-stat::after {
+    content: "";
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    right: -45px;
+    top: -75px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    pointer-events: none;
+}
+
+.interview-stat:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 26px rgba(30, 41, 59, 0.15);
+}
+
+.interview-stat:focus-visible {
+    outline: 3px solid #818cf8;
+    outline-offset: 3px;
+}
+
+/* Stat Gradients */
+.stat-total {
+    background: linear-gradient(135deg, #7669ed, #5148c7);
+}
+.stat-upcoming {
+    background: linear-gradient(135deg, #35c78b, #159b68);
+}
+.stat-completed {
+    background: linear-gradient(135deg, #55a4f5, #3474d5);
+}
+.stat-cancelled {
+    background: linear-gradient(135deg, #f5ad55, #e27b32);
+}
+
+.stat-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-label {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    font-size: 17px;
+    background: rgba(255, 255, 255, 0.19);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(4px);
+}
+
+.stat-number {
+    position: relative;
+    z-index: 1;
+    margin-top: 15px;
+    font-size: 29px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+}
+
+.stat-bottom {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.stat-bottom i {
+    font-size: 11px;
+    transition: transform .2s ease;
+}
+
+.interview-stat:hover .stat-bottom i {
+    transform: translateX(4px);
+}
+
+.stat-active {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+}
+
+/* ==============================
+   MAIN PANEL
+============================== */
+
+.interview-panel {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    overflow: hidden;
+    box-shadow: 0 4px 18px rgba(31, 45, 90, .035);
+}
+
+.panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 22px 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.panel-title {
+    font-size: 17px;
+    font-weight: 800;
+    margin: 0;
+    color: #1e293b;
+}
+
+.panel-description {
+    margin-top: 5px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* ==============================
+   STAGE TABS
+============================== */
+
+.schedule-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 17px 24px 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+}
+
+.schedule-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 15px;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 650;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: .2s;
+}
+
+.schedule-tab:hover,
+.schedule-tab.active {
+    color: var(--primary);
+}
+
+.schedule-tab.active {
+    border-bottom-color: var(--primary);
+}
+
+/* ==============================
+   FILTERS (UPDATED WITH LABELS)
+============================== */
+
+.schedule-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    background: #fff;
+}
+
+.filter-control {
+    position: relative;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 130px;
+}
+
+.filter-search {
+    flex: 1 1 200px;
+}
+
+.filter-control label {
+    display: block;
+    margin-bottom: 6px;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-control input,
+.filter-control select {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    outline: none;
+    background: #f8fafc;
+    color: #1e293b;
+    font-family: inherit;
+    font-size: 13px;
+    transition: .2s;
+}
+
+.filter-control input:focus,
+.filter-control select:focus {
+    border-color: #818cf8;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, .12);
+}
+
+.filter-control select {
+    cursor: pointer;
+}
+
+.filter-control select:disabled {
+    background: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+    border-color: #e2e8f0;
+    opacity: 1;
+}
+
+/* Search Icon နေရာချခြင်း */
+.filter-search input {
+    padding-left: 36px;
+}
+
+.filter-search > i {
+    position: absolute;
+    top: 36px;
+    left: 13px;
+    color: #94a3b8;
+    font-size: 13px;
+    pointer-events: none;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+    height: 40px;
+}
+
+.filter-btn {
+    height: 40px;
+    padding: 0 16px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #475569;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: .2s;
+}
+
+.filter-btn.primary {
+    color: #fff;
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, .2);
+}
+
+.filter-btn.primary:hover {
+    background: linear-gradient(135deg, #4338ca, #4f46e5);
+    box-shadow: 0 6px 14px rgba(79, 70, 229, .25);
+}
+
+.filter-btn:not(.primary):hover {
+    background: #f1f5f9;
+}
+
+/* ==============================
+   TABLE
+============================== */
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    scroll-margin-top: 100px;
+    outline: none;
+    border: none;
+    box-shadow: none;
+}
+
+.interview-page #scheduleTableSection:focus,
+.interview-page #scheduleTableSection:focus-visible,
+.interview-page #scheduleTableSection:target {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.interview-page .schedule-table {
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.schedule-table {
+    width: 100%;
+    min-width: 1150px;
+    border-collapse: collapse;
+}
+
+.schedule-table thead th {
+    padding: 14px 17px;
+    background: #f8f9fc;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: .55px;
+    white-space: nowrap;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.schedule-table tbody td {
+    padding: 16px 17px;
+    border-bottom: 1px solid #f0f2f7;
+    color: #334155;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.schedule-table tbody tr {
+    transition: background .15s;
+}
+
+.schedule-table tbody tr:hover {
+    background: #f8faff;
+}
+
+.candidate-info {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 180px;
+}
+
+.candidate-avatar {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: #eef2ff;
+    border: 1px solid #e0e7ff;
+    color: #4338ca;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.candidate-name {
+    color: #1e293b;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.candidate-sub {
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 11px;
+}
+
+.stage-badge,
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.stage-first {
+    color: #4338ca;
+    background: #eef2ff;
+    border: 1px solid #e0e7ff;
+}
+
+.stage-second {
+    color: #6d28d9;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+}
+
+.date-cell {
+    color: #1e293b;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.time-cell {
+    color: #4f46e5;
+    font-weight: 750;
+    white-space: nowrap;
+}
+
+/* ==============================
+   STATUS UPDATE
+============================== */
+
+.status-update-form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 165px;
+}
+
+.status-update-form select {
+    min-width: 112px;
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    outline: none;
+    background: #fff;
+    color: #334155;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.status-update-form select:focus {
+    border-color: #818cf8;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, .12);
+}
+
+.status-save-btn {
+    width: 32px;
+    height: 34px;
+    flex-shrink: 0;
+    display: inline-grid;
+    place-items: center;
+    border: 0;
+    border-radius: 8px;
+    background: #4f46e5;
+    color: #fff;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.status-save-btn:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
+}
+
+/* ==============================
+   ACTION BUTTONS
+============================== */
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid #e5e2ff;
+    border-radius: 9px;
+    color: #635bdb;
+    background: #f2f0ff;
+    text-decoration: none;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.action-btn:hover {
+    color: #fff;
+    background: #635bdb;
+    border-color: #635bdb;
+    transform: translateY(-1px);
+}
+
+/* ==============================
+   EMPTY STATE
+============================== */
+
+.empty-state {
+    padding: 55px 20px !important;
+    text-align: center;
+}
+
+.empty-icon {
+    width: 55px;
+    height: 55px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 13px;
+    border-radius: 17px;
+    background: #f1f0ff;
+    color: #756ce1;
+    font-size: 21px;
+}
+
+.empty-title {
+    color: #1e293b;
+    font-size: 14px;
+    font-weight: 750;
+}
+
+.empty-text {
+    margin-top: 6px;
+    color: #64748b;
+    font-size: 12px;
+}
+
+/* ==============================
+   TABLE FOOTER
+============================== */
+
+.table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    color: #64748b;
+    font-size: 11px;
+    border-top: 1px solid #e2e8f0;
+    background: #fafbff;
+}
+
+/* ==============================
+   RESPONSIVE
+============================== */
+
+@media (max-width: 1200px) {
+    .interview-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .schedule-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .interview-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .interview-stat {
+        padding: 14px;
+        border-radius: 13px;
+    }
+
+    .stat-number {
+        font-size: 24px;
+    }
+
+    .stat-label {
+        font-size: 11px;
+    }
+
+    .stat-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 14px;
+    }
+
+    .panel-heading {
+        padding: 17px;
+        align-items: flex-start;
+    }
+
+    .schedule-tabs {
+        padding: 12px 15px 0;
+    }
+
+    .schedule-tab {
+        padding: 10px 8px;
+        font-size: 11px;
+    }
+
+    .schedule-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-actions > * {
+        flex: 1;
+    }
+
+    .table-footer {
+        padding: 14px 16px;
+    }
+}
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="interview-page">
+
+    <!-- ==============================
+         OVERVIEW CARDS
+    =============================== -->
+
+    <div class="interview-stats">
+
+        <!-- TOTAL -->
+        <a href="{{ url_for(
+            'candidate.interview_schedules',
+            stage=selected_stage or None,
+            branch_id=branch_filter or None,
+            department_id=department_filter or None,
+            search=search or None,
+            from_date=from_date_filter or None,
+            to_date=to_date_filter or None
+        ) }}#scheduleTableSection"
+           class="interview-stat stat-total {% if not status_filter %}stat-active{% endif %}">
+
+            <div class="stat-top">
+                <span class="stat-label">Total Interviews</span>
+                <span class="stat-icon">
+                    <i class="fa-solid fa-calendar-days"></i>
+                </span>
+            </div>
+
+            <div class="stat-number">
+                {{ total_interviews|default(0) }}
+            </div>
+
+            <div class="stat-bottom">
+                <span>All interview appointments</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+
+        </a>
+
+
+        <!-- UPCOMING -->
+        <a href="{{ url_for(
+            'candidate.interview_schedules',
+            stage=selected_stage or None,
+            branch_id=branch_filter or None,
+            department_id=department_filter or None,
+            search=search or None,
+            from_date=from_date_filter or None,
+            to_date=to_date_filter or None,
+            status='scheduled'
+        ) }}#scheduleTableSection"
+           class="interview-stat stat-upcoming {% if status_filter == 'scheduled' %}stat-active{% endif %}">
+
+            <div class="stat-top">
+                <span class="stat-label">Upcoming</span>
+                <span class="stat-icon">
+                    <i class="fa-regular fa-clock"></i>
+                </span>
+            </div>
+
+            <div class="stat-number">
+                {{ upcoming_interviews|default(0) }}
+            </div>
+
+            <div class="stat-bottom">
+                <span>Waiting for interview</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+
+        </a>
+
+
+        <!-- COMPLETED -->
+        <a href="{{ url_for(
+            'candidate.interview_schedules',
+            stage=selected_stage or None,
+            branch_id=branch_filter or None,
+            department_id=department_filter or None,
+            search=search or None,
+            from_date=from_date_filter or None,
+            to_date=to_date_filter or None,
+            status='completed'
+        ) }}#scheduleTableSection"
+           class="interview-stat stat-completed {% if status_filter == 'completed' %}stat-active{% endif %}">
+
+            <div class="stat-top">
+                <span class="stat-label">Completed</span>
+                <span class="stat-icon">
+                    <i class="fa-solid fa-circle-check"></i>
+                </span>
+            </div>
+
+            <div class="stat-number">
+                {{ completed_interviews|default(0) }}
+            </div>
+
+            <div class="stat-bottom">
+                <span>Successfully completed</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+
+        </a>
+
+
+        <!-- CANCELLED -->
+        <a href="{{ url_for(
+            'candidate.interview_schedules',
+            stage=selected_stage or None,
+            branch_id=branch_filter or None,
+            department_id=department_filter or None,
+            search=search or None,
+            from_date=from_date_filter or None,
+            to_date=to_date_filter or None,
+            status='cancelled'
+        ) }}#scheduleTableSection"
+           class="interview-stat stat-cancelled {% if status_filter == 'cancelled' %}stat-active{% endif %}">
+
+            <div class="stat-top">
+                <span class="stat-label">Cancelled</span>
+                <span class="stat-icon">
+                    <i class="fa-solid fa-calendar-xmark"></i>
+                </span>
+            </div>
+
+            <div class="stat-number">
+                {{ cancelled_interviews|default(0) }}
+            </div>
+
+            <div class="stat-bottom">
+                <span>Cancelled appointments</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+
+        </a>
+
+    </div>
+
+
+    <!-- ==============================
+         MAIN SCHEDULE PANEL
+    =============================== -->
+
+    <div class="interview-panel">
+
+        <div class="panel-heading">
+            <div>
+                <h3 class="panel-title">
+                    Interview Calendar &amp; Schedule
+                </h3>
+
+                <div class="panel-description">
+                    View and manage all candidate interview appointments.
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==============================
+             INTERVIEW STAGE TABS
+        =============================== -->
+
+        <div class="schedule-tabs">
+
+            <a href="{{ url_for(
+                'candidate.interview_schedules',
+                branch_id=branch_filter or None,
+                department_id=department_filter or None,
+                search=search or None,
+                from_date=from_date_filter or None,
+                to_date=to_date_filter or None,
+                status=status_filter or None
+            ) }}"
+               class="schedule-tab {% if not selected_stage %}active{% endif %}">
+
+                <i class="fa-solid fa-calendar-days"></i>
+                All Interviews
+
+            </a>
+
+
+            <a href="{{ url_for(
+                'candidate.interview_schedules',
+                stage='first_interview',
+                branch_id=branch_filter or None,
+                department_id=department_filter or None,
+                search=search or None,
+                from_date=from_date_filter or None,
+                to_date=to_date_filter or None,
+                status=status_filter or None
+            ) }}"
+               class="schedule-tab {% if selected_stage == 'first_interview' %}active{% endif %}">
+
+                <i class="fa-solid fa-user-tie"></i>
+                First Interview
+
+            </a>
+
+
+            <a href="{{ url_for(
+                'candidate.interview_schedules',
+                stage='second_interview',
+                branch_id=branch_filter or None,
+                department_id=department_filter or None,
+                search=search or None,
+                from_date=from_date_filter or None,
+                to_date=to_date_filter or None,
+                status=status_filter or None
+            ) }}"
+               class="schedule-tab {% if selected_stage == 'second_interview' %}active{% endif %}">
+
+                <i class="fa-solid fa-users"></i>
+                Second Interview
+
+            </a>
+
+        </div>
+
+
+        <!-- ==============================
+             FILTERS (UPDATED WITH LABELS)
+        =============================== -->
+
+        <form method="GET"
+              action="{{ url_for('candidate.interview_schedules') }}"
+              class="schedule-filters"
+              id="scheduleFilterForm">
+
+            {% if selected_stage %}
+                <input type="hidden"
+                       name="stage"
+                       value="{{ selected_stage }}">
+            {% endif %}
+
+
+            <!-- SEARCH -->
+            <div class="filter-control filter-search">
+                <label for="scheduleSearch">Search</label>
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text"
+                       id="scheduleSearch"
+                       name="search"
+                       value="{{ search or '' }}"
+                       placeholder="Candidate, position..."
+                       aria-label="Search candidate or position">
+            </div>
+
+
+            <!-- BRANCH -->
+            
+            <div class="filter-control">
+                <label for="scheduleBranch">Branch</label>
+                <select name="branch_id"
+                        id="scheduleBranch"
+                        aria-label="Select Branch">
+
+                    <option value="">All Branches</option>
+
+                    {% for branch in branches %}
+                        <option value="{{ branch.id }}"
+                            {% if branch_filter|string == branch.id|string %}selected{% endif %}>
+                            {{ branch.name }}
+                        </option>
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <!-- DEPARTMENT -->
+            <div class="filter-control">
+                <label for="scheduleDepartment">Department</label>
+
+                <select name="department_id"
+                        id="scheduleDepartment"
+                        aria-label="Select Department"
+                        {% if not branch_filter %}disabled{% endif %}>
+
+                    <option value="">
+                        {% if branch_filter %}
+                            All Departments
+                        {% else %}
+                            Select Branch First
+                        {% endif %}
+                    </option>
+
+                    {% for department in departments %}
+                        <option value="{{ department.id }}"
+                            {% if department_filter|string == department.id|string %}selected{% endif %}>
+                            {{ department.name }}
+                        </option>
+                    {% endfor %}
+
+                </select>
+            </div>
+
+
+            <!-- FROM DATE -->
+            <div class="filter-control">
+                <label for="scheduleFromDate">From Date</label>
+                <input type="date"
+                    name="from_date"
+                    id="scheduleFromDate"
+                    value="{{ from_date_filter or '' }}"
+                    aria-label="From date">
+            </div>
+
+            <!-- TO DATE -->
+            <div class="filter-control">
+                <label for="scheduleToDate">To Date</label>
+                <input type="date"
+                    name="to_date"
+                    id="scheduleToDate"
+                    value="{{ to_date_filter or '' }}"
+                    aria-label="To date">
+            </div>
+
+
+            <!-- STATUS -->
+            <div class="filter-control">
+                <label for="scheduleStatus">Status</label>
+                <select name="status"
+                        id="scheduleStatus"
+                        aria-label="Interview status">
+                    <option value="">All Status</option>
+                    <option value="scheduled"
+                        {% if status_filter == 'scheduled' %}selected{% endif %}>
+                        Scheduled / Upcoming
+                    </option>
+                    <option value="completed"
+                        {% if status_filter == 'completed' %}selected{% endif %}>
+                        Completed
+                    </option>
+                    <option value="cancelled"
+                        {% if status_filter == 'cancelled' %}selected{% endif %}>
+                        Cancelled
+                    </option>
+                </select>
+            </div>
+
+
+            <!-- FILTER ACTIONS -->
+            <div class="filter-actions">
+                <button type="submit"
+                        class="filter-btn primary">
+                    <i class="fas fa-search"></i>
+                    Search
+                </button>
+
+                <a href="{{ url_for(
+                    'candidate.interview_schedules',
+                    stage=selected_stage or None
+                ) }}"
+                   class="filter-btn">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    Reset
+                </a>
+            </div>
+
+        </form>
+
+
+        <!-- ==============================
+             SCHEDULE TABLE
+        =============================== -->
+
+        <div class="table-wrapper" id="scheduleTableSection">
+
+            <table class="schedule-table">
+
+                <thead>
+                    <tr>
+                        <th>Candidate ID</th>
+                        <th>Candidate</th>
+                        <th>Position</th>
+                        <th>Branch</th>
+                        <th>Department</th>
+                        <th>Interview Stage</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Interviewer</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+
+                <tbody>
+
+                    {% for item in schedules %}
+
+                    <tr>
+                        <!-- CANDIDATE ID -->
+                        <td>
+                            <span style="font-weight: 700; color: #635bdb;">#{{ item.candidate_id }}</span>
+                        </td>
+                        
+                        <!-- CANDIDATE -->
+                        <td>
+
+                            <div class="candidate-info">
+
+                                <div class="candidate-avatar">
+                                    {{ (item.candidate_name or 'C')[:1]|upper }}
+                                </div>
+
+                                <div>
+
+                                    <div class="candidate-name">
+                                        {{ item.candidate_name }}
+                                    </div>
+
+                                    <div class="candidate-sub">
+                                        {{ item.email or 'No email available' }}
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+
+                        <!-- POSITION -->
+                        <td>
+                            {{ item.position or '-' }}
+                        </td>
+
+
+                        <!-- BRANCH -->
+                        <td>
+                            {{ item.branch_name or '-' }}
+                        </td>
+
+
+                        <!-- DEPARTMENT -->
+                        <td>
+                            {{ item.department_name or '-' }}
+                        </td>
+
+
+                        <!-- INTERVIEW STAGE -->
+                        <td>
+
+                            {% if item.interview_stage == 'first_interview' %}
+
+                                <span class="stage-badge stage-first">
+                                    <i class="fa-solid fa-user-tie"></i>
+                                    First Interview
+                                </span>
+
+                            {% else %}
+
+                                <span class="stage-badge stage-second">
+                                    <i class="fa-solid fa-users"></i>
+                                    Second Interview
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <!-- DATE -->
+                        <td class="date-cell">
+
+                            {{ item.interview_date.strftime('%d %b %Y') if item.interview_date else '-' }}
+
+                        </td>
+
+
+                        <!-- TIME -->
+                        <td class="time-cell">
+
+                            {{ item.interview_time.strftime('%I:%M %p') if item.interview_time else '-' }}
+
+                        </td>
+
+
+                        <!-- INTERVIEWER -->
+                        <td>
+                            {{ item.interviewer or 'Not assigned' }}
+                        </td>
+
+
+                        <!-- STATUS UPDATE -->
+                        <td>
+
+                            <form method="POST"
+                                action="{{ url_for(
+                                    'candidate.update_interview_status',
+                                    interview_id=item.interview_id
+                                ) }}"
+                                class="status-update-form">
+
+                                {% if csrf_token is defined %}
+                                    <input type="hidden"
+                                           name="csrf_token"
+                                           value="{{ csrf_token() }}">
+                                {% endif %}
+
+                                <input type="hidden"
+                                       name="interview_id"
+                                       value="{{ item.interview_id }}">
+
+                                <input type="hidden"
+                                       name="stage"
+                                       value="{{ selected_stage or '' }}">
+
+                                <input type="hidden"
+                                       name="search"
+                                       value="{{ search or '' }}">
+
+                                <input type="hidden"
+                                       name="branch_id"
+                                       value="{{ branch_filter or '' }}">
+
+                                <input type="hidden"
+                                       name="department_id"
+                                       value="{{ department_filter or '' }}">
+
+                                <input type="hidden"
+                                        name="from_date"
+                                        value="{{ from_date_filter or '' }}">
+
+                                <input type="hidden"
+                                        name="to_date"
+                                        value="{{ to_date_filter or '' }}">
+
+                                <input type="hidden"
+                                       name="status_filter"
+                                       value="{{ status_filter or '' }}">
+
+
+                                <select name="status"
+                                        aria-label="Change interview status"
+                                        required>
+
+                                    <option value="scheduled"
+                                        {% if item.status == 'scheduled' %}selected{% endif %}>
+                                        Scheduled
+                                    </option>
+
+                                    <option value="completed"
+                                        {% if item.status == 'completed' %}selected{% endif %}>
+                                        Completed
+                                    </option>
+
+                                    <option value="cancelled"
+                                        {% if item.status == 'cancelled' %}selected{% endif %}>
+                                        Cancelled
+                                    </option>
+
+                                </select>
+
+
+                                <button type="submit"
+                                        class="status-save-btn"
+                                        title="Save Status"
+                                        aria-label="Save Status">
+
+                                    <i class="fa-solid fa-check"></i>
+
+                                </button>
+
+                            </form>
+
+                        </td>
+
+
+                        <!-- ACTION -->
+                        <td>
+
+                            <div class="action-buttons">
+
+                                <a href="{{ url_for(
+                                    'candidate.view_candidate',
+                                    candidate_id=item.candidate_id,
+                                    return_to='interview_schedules'
+                                ) }}"
+                                class="action-btn"
+                                title="View Candidate"
+                                aria-label="View Candidate">
+
+                                    <i class="fa-regular fa-eye"></i>
+
+                                </a>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+
+                    {% else %}
+
+                    <tr>
+
+                        <td colspan="11" class="empty-state">
+
+                            <div class="empty-icon">
+                                <i class="fa-regular fa-calendar-xmark"></i>
+                            </div>
+
+                            <div class="empty-title">
+                                No Interview Schedules Found
+                            </div>
+
+                            <div class="empty-text">
+                                There are no interview appointments matching your filters.
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- TABLE FOOTER -->
+        <div class="table-footer">
+
+            <span>
+                Showing {{ schedules|length }} interview schedule(s)
+            </span>
+
+            <span>
+                Interview Management
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const filterForm = document.getElementById("scheduleFilterForm");
+    const branchSelect = document.getElementById("scheduleBranch");
+    const departmentSelect = document.getElementById("scheduleDepartment");
+
+    const fromDate = document.getElementById("scheduleFromDate");
+    const toDate = document.getElementById("scheduleToDate");
+    
+    // -----------------------------------------
+    // SCROLL TO TABLE AFTER SEARCH / FILTER
+    // -----------------------------------------
+    const tableSection = document.getElementById("scheduleTableSection");
+
+    if (tableSection) {
+
+        const params = new URLSearchParams(window.location.search);
+
+        const filterParams = [
+            "search",
+            "stage",
+            "branch_id",
+            "department_id",
+            "from_date",
+            "to_date",
+            "status"
+        ];
+
+        const hasActiveFilter = filterParams.some(function (param) {
+            return params.has(param) && params.get(param).trim() !== "";
+        });
+
+        if (hasActiveFilter) {
+
+            setTimeout(function () {
+
+                tableSection.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+            }, 300);
+        }
+    }
+
+    // -----------------------------------------
+    // BRANCH CHANGE
+    // Clear old department and reload departments
+    // for the newly selected branch.
+    // -----------------------------------------
+    if (branchSelect && departmentSelect && filterForm) {
+
+        branchSelect.addEventListener("change", function () {
+
+            departmentSelect.value = "";
+
+            // Submit the GET form so the backend
+            // can load departments for this branch.
+            filterForm.requestSubmit();
+
+        });
+    }
+
+
+    // -----------------------------------------
+    // DATE VALIDATION
+    // Supports:
+    // 1. From Date only
+    // 2. To Date only
+    // 3. Both dates
+    // -----------------------------------------
+    if (fromDate && toDate) {
+
+        fromDate.addEventListener("change", function () {
+
+            if (this.value) {
+                toDate.min = this.value;
+            } else {
+                toDate.removeAttribute("min");
+            }
+
+            // If From Date is later than To Date,
+            // clear the old To Date constraint.
+            if (
+                toDate.value &&
+                this.value &&
+                toDate.value < this.value
+            ) {
+                toDate.value = "";
+            }
+        });
+
+
+        toDate.addEventListener("change", function () {
+
+            if (this.value) {
+                fromDate.max = this.value;
+            } else {
+                fromDate.removeAttribute("max");
+            }
+
+            if (
+                fromDate.value &&
+                this.value &&
+                fromDate.value > this.value
+            ) {
+                fromDate.value = "";
+            }
+        });
+
+
+        // Restore date constraints after page reload.
+        if (fromDate.value) {
+            toDate.min = fromDate.value;
+        }
+
+        if (toDate.value) {
+            fromDate.max = toDate.value;
+        }
+    }
+
+
+    // -----------------------------------------
+    // FORM SUBMIT VALIDATION
+    // Only compare when both dates are provided.
+    // -----------------------------------------
+    if (filterForm && fromDate && toDate) {
+
+        filterForm.addEventListener("submit", function (event) {
+
+            if (
+                fromDate.value &&
+                toDate.value &&
+                fromDate.value > toDate.value
+            ) {
+                event.preventDefault();
+
+                alert(
+                    "To Date must be later than or equal to From Date."
+                );
+
+                toDate.focus();
+                return false;
+            }
+        });
+    }
+
+});
+</script>
+{% endblock %}

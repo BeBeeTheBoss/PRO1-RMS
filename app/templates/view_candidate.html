@@ -1,0 +1,1697 @@
+{% extends "base.html" %} {% block title %}Manage Candidates{% endblock %} {%
+block page_heading %}Manage Candidates{% endblock %} {% block page_subtitle
+%}Manage candidate profiles, recruitment details and application status.{%
+endblock %} {% block content %}
+
+<style>
+  .vc-page {
+    --vc-primary: #6254e8;
+    --vc-text: #202938;
+    --vc-muted: #788397;
+    --vc-border: #e7eaf1;
+    color: var(--vc-text);
+    padding: 8px 0 30px;
+    font-family: "Poppins";
+  }
+
+  .vc-page * {
+    box-sizing: border-box;
+  }
+
+  /* PAGE HEADER */
+  .vc-page .vc-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .vc-page .vc-title {
+    margin: 0 0 7px;
+    font-size: clamp(23px, 2.4vw, 30px);
+    font-weight: 750;
+    letter-spacing: -0.7px;
+    color: #202938;
+  }
+
+  .vc-page .vc-subtitle {
+    margin: 0;
+    font-size: 14px;
+    color: var(--vc-muted);
+    line-height: 1.6;
+  }
+
+  /* BUTTONS */
+  .vc-page .vc-primary-btn,
+  .vc-page .vc-secondary-btn,
+  .vc-page .vc-search-btn,
+  .vc-page .vc-reset-btn {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 650;
+    text-decoration: none !important;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition:
+      background 0.2s ease,
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      border-color 0.2s ease;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+
+  .vc-page .vc-primary-btn {
+    color: #fff;
+    background: linear-gradient(135deg, #6c5ce7, #5145cd);
+    box-shadow: 0 5px 14px rgba(98, 84, 232, 0.18);
+  }
+
+  .vc-page .vc-primary-btn:hover {
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 7px 18px rgba(98, 84, 232, 0.25);
+  }
+
+  .vc-page .vc-secondary-btn {
+    color: #48546a;
+    background: #fff;
+    border-color: var(--vc-border);
+  }
+
+  .vc-page .vc-secondary-btn:hover {
+    color: var(--vc-primary);
+    background: #f8f7ff;
+    border-color: #d7d2ff;
+  }
+
+  .vc-page .vc-search-btn {
+    color: #fff;
+    background: linear-gradient(135deg, #6254e8, #5145cd);
+    box-shadow: 0 4px 12px rgba(98, 84, 232, 0.18);
+  }
+
+  .vc-page .vc-search-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 7px 17px rgba(98, 84, 232, 0.24);
+  }
+
+  .vc-page .vc-reset-btn {
+    color: #536074;
+    background: #fff;
+    border-color: #dfe4ec;
+  }
+
+  .vc-page .vc-reset-btn:hover {
+    color: #c44c4c;
+    border-color: #f0caca;
+    background: #fff7f7;
+  }
+
+  /* SUMMARY CARDS */
+  .vc-page .vc-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+
+  .vc-page .vc-summary-card {
+    min-width: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(32, 41, 56, 0.07);
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .vc-page .vc-summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(32, 41, 56, 0.11);
+  }
+
+  .vc-page .vc-summary-card:focus-visible {
+    outline: 3px solid #202938;
+    outline-offset: 4px;
+  }
+
+  .vc-page .vc-summary-card:active {
+    transform: scale(0.99);
+  }
+
+  .vc-page .vc-summary-card::after {
+    content: "";
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    right: -28px;
+    top: -28px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .vc-page .vc-summary-card:nth-child(1) {
+    background: linear-gradient(135deg, #6254e8, #806ff1);
+    border-color: #5d50dc;
+  }
+
+  .vc-page .vc-summary-card:nth-child(2) {
+    background: linear-gradient(135deg, #1789df, #39a9ef);
+    border-color: #1683d5;
+  }
+
+  .vc-page .vc-summary-card:nth-child(3) {
+    background: linear-gradient(135deg, #0eaa76, #38c996);
+    border-color: #0c9e6d;
+  }
+
+  .vc-page .vc-summary-icon {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    font-size: 19px;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+  }
+
+  .vc-page .vc-summary-label {
+    margin: 0 0 5px;
+    color: rgba(255, 255, 255, 0.84);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .vc-page .vc-summary-number {
+    margin: 0;
+    color: #fff;
+    font-size: 27px;
+    font-weight: 750;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  /* PANEL */
+  .vc-page .vc-panel {
+    background: #fff;
+    border: 1px solid var(--vc-border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 5px 22px rgba(32, 41, 56, 0.045);
+  }
+
+  .vc-page .vc-panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    padding: 21px 22px;
+    border-bottom: 1px solid var(--vc-border);
+  }
+
+  .vc-page .vc-panel-title {
+    margin: 0 0 5px;
+    font-size: 17px;
+    font-weight: 750;
+    color: #202938;
+  }
+
+  .vc-page .vc-panel-description {
+    margin: 0;
+    font-size: 12px;
+    color: var(--vc-muted);
+  }
+
+  /* SEARCH TOOLBAR */
+  .vc-page .vc-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 17px 22px;
+    border-bottom: 1px solid var(--vc-border);
+    background: #fcfcff;
+  }
+
+  .vc-page .vc-search-wrap {
+    position: relative;
+    flex: 1 1 300px;
+    min-width: 240px;
+  }
+
+  .vc-page .vc-search-wrap > i {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    color: #8c96a8;
+    pointer-events: none;
+  }
+
+  .vc-page .vc-input,
+  .vc-page .vc-select {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 13px;
+    border: 1px solid #e2e7f0;
+    border-radius: 10px;
+    outline: none;
+    background: #fff;
+    color: #344054;
+    font-family: inherit;
+    font-size: 13px;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .vc-page .vc-search-input {
+    padding-left: 39px;
+  }
+
+  .vc-page .vc-input:focus,
+  .vc-page .vc-select:focus {
+    border-color: #9489ff;
+    box-shadow: 0 0 0 3px rgba(98, 84, 232, 0.1);
+  }
+
+  .vc-page .vc-select {
+    flex: 0 1 190px;
+    min-width: 160px;
+    cursor: pointer;
+  }
+
+  .vc-page .vc-result-count {
+    color: var(--vc-muted);
+    font-size: 12px;
+    white-space: nowrap;
+    margin-left: auto;
+  }
+
+  /* TABLE */
+  .vc-page .vc-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .vc-page .vc-table {
+    width: 100%;
+    min-width: 1180px;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: left;
+    table-layout: auto;
+  }
+
+  .vc-page .vc-table thead th {
+    padding: 14px 16px;
+    background: #f8f9fd;
+    color: #758096;
+    border-bottom: 1px solid var(--vc-border);
+    font-size: 10px;
+    font-weight: 750;
+    text-transform: uppercase;
+    letter-spacing: 0.65px;
+    white-space: nowrap;
+  }
+
+  .vc-page .vc-table tbody td {
+    padding: 15px 16px;
+    border-bottom: 1px solid #edf0f5;
+    font-size: 12px;
+    color: #475467;
+    vertical-align: middle;
+    line-height: 1.5;
+  }
+
+  .vc-page .vc-table tbody tr {
+    transition: background 0.18s ease;
+  }
+
+  .vc-page .vc-table tbody tr:hover {
+    background: #fafaff;
+  }
+
+  .vc-page .vc-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .vc-page .vc-id {
+    color: #6254e8;
+    font-weight: 750;
+    white-space: nowrap;
+  }
+
+  /* CANDIDATE */
+  .vc-page .vc-candidate {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 220px;
+  }
+
+  .vc-page .vc-avatar {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: #efedff;
+    color: #6254e8;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .vc-page .vc-candidate-name {
+    display: block;
+    margin-bottom: 4px;
+    color: #273246;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .vc-page .vc-candidate-name:hover {
+    color: #6254e8;
+    text-decoration: none !important;
+  }
+
+  .vc-page .vc-candidate-email {
+    display: block;
+    max-width: 260px;
+    color: #8a94a6;
+    font-size: 11px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .vc-page .vc-cell-main {
+    display: block;
+    min-width: 100px;
+    color: #344054;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .vc-page .vc-cell-sub {
+    display: block;
+    margin-top: 4px;
+    color: #98a2b3;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  /* STATUS */
+  .vc-page .vc-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 750;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+
+  .vc-page .vc-status::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    flex: 0 0 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .vc-page .status-applied,
+  .vc-page .status-interview-requested {
+    color: #286bd6;
+    background: #edf4ff;
+  }
+
+  .vc-page .status-first-interview,
+  .vc-page .status-second-interview {
+    color: #7550cf;
+    background: #f1edff;
+  }
+
+  .vc-page .status-offer {
+    color: #a96a13;
+    background: #fff5df;
+  }
+
+  .vc-page .status-joined {
+    color: #16835e;
+    background: #e7f8ef;
+  }
+
+  .vc-page .status-rejected,
+  .vc-page .status-cancelled {
+    color: #c44545;
+    background: #fff0f0;
+  }
+
+  .vc-page .status-default {
+    color: #5f6b7b;
+    background: #f0f2f6;
+  }
+
+  /* ACTIONS */
+  .vc-page .vc-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .vc-page .vc-action {
+    width: 33px;
+    height: 33px;
+    flex: 0 0 33px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e8ebf3;
+    border-radius: 9px;
+    background: #fff;
+    color: #647187;
+    font-size: 12px;
+    text-decoration: none !important;
+    cursor: pointer;
+    transition:
+      color 0.18s ease,
+      background 0.18s ease,
+      border-color 0.18s ease,
+      transform 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  .vc-page .vc-action:link,
+  .vc-page .vc-action:visited,
+  .vc-page .vc-action:hover,
+  .vc-page .vc-action:active,
+  .vc-page .vc-action:focus {
+    text-decoration: none !important;
+  }
+
+  .vc-page .vc-action:hover {
+    color: #6254e8;
+    border-color: #d8d3ff;
+    background: #f5f3ff;
+    transform: translateY(-1px);
+  }
+
+  .vc-page .vc-action-delete {
+    color: #d34b4b;
+    border-color: #f0dddd;
+    background: #fffafa;
+  }
+
+  .vc-page .vc-action-delete:hover {
+    color: #fff;
+    border-color: #d94f4f;
+    background: #d94f4f;
+    box-shadow: 0 5px 12px rgba(211, 75, 75, 0.18);
+  }
+
+  /* EMPTY */
+  .vc-page .vc-empty {
+    padding: 54px 20px;
+    text-align: center;
+  }
+
+  .vc-page .vc-empty-icon {
+    width: 62px;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    border-radius: 19px;
+    background: #f0efff;
+    color: #6254e8;
+    font-size: 25px;
+  }
+
+  .vc-page .vc-empty h3 {
+    margin: 0 0 8px;
+    color: #273246;
+    font-size: 17px;
+  }
+
+  .vc-page .vc-empty p {
+    margin: 0;
+    color: var(--vc-muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .vc-page .vc-no-results[hidden],
+  .vc-page .vc-record-row[hidden] {
+    display: none !important;
+  }
+
+  /* PAGINATION */
+  .vc-page .vc-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+    padding: 15px 22px;
+    border-top: 1px solid var(--vc-border);
+    background: #fff;
+  }
+
+  .vc-page #vcPageNumbers {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .vc-page .vc-page-btn {
+    min-width: 35px;
+    height: 35px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e1e5ed;
+    border-radius: 9px;
+    background: #fff;
+    color: #536074;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+
+  .vc-page .vc-page-btn:hover:not(:disabled) {
+    color: #6254e8;
+    border-color: #cfc9ff;
+    background: #f7f5ff;
+  }
+
+  .vc-page .vc-page-btn.active {
+    color: #fff;
+    border-color: #6254e8;
+    background: #6254e8;
+    box-shadow: 0 4px 10px rgba(98, 84, 232, 0.18);
+  }
+
+  .vc-page .vc-page-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .vc-page .vc-page-info {
+    margin: 0 7px;
+    color: #7c8799;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  /* FOOTER */
+  .vc-page .vc-panel-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px 22px;
+    background: #fcfcff;
+    border-top: 1px solid var(--vc-border);
+    color: #7c8799;
+    font-size: 12px;
+  }
+
+  /* DELETE MODAL */
+  .vc-page .vc-modal[hidden] {
+    display: none !important;
+  }
+
+  .vc-page .vc-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(19, 25, 38, 0.55);
+    backdrop-filter: blur(6px);
+  }
+
+  .vc-page .vc-modal-card {
+    width: min(430px, 100%);
+    background: #fff;
+    border: 1px solid #edf0f5;
+    border-radius: 20px;
+    box-shadow: 0 22px 70px rgba(15, 23, 42, 0.22);
+    overflow: hidden;
+    animation: vcModalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes vcModalIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .vc-page .vc-modal-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 22px 22px 14px;
+  }
+
+  .vc-page .vc-modal-danger-icon {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    color: #d64545;
+    background: #fff0f0;
+    font-size: 20px;
+  }
+
+  .vc-page .vc-modal-title {
+    margin: 0 0 4px;
+    color: #202938;
+    font-size: 17px;
+    font-weight: 750;
+  }
+
+  .vc-page .vc-modal-text {
+    margin: 0;
+    color: #788397;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .vc-page .vc-modal-body {
+    padding: 0 22px 20px;
+    color: #475467;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .vc-page .vc-delete-name {
+    display: inline-block;
+    max-width: 100%;
+    color: #202938;
+    font-weight: 750;
+    overflow-wrap: anywhere;
+  }
+
+  .vc-page .vc-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 9px;
+    padding: 15px 22px 20px;
+    background: #fafbfe;
+    border-top: 1px solid #edf0f5;
+  }
+
+  .vc-page .vc-modal-cancel {
+    min-height: 40px;
+    padding: 9px 15px;
+    border: 1px solid #e0e5ed;
+    border-radius: 10px;
+    color: #536074;
+    background: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: background 0.18s ease;
+  }
+
+  .vc-page .vc-modal-cancel:hover {
+    background: #f7f8fb;
+  }
+
+  .vc-page .vc-delete-confirm {
+    min-height: 40px;
+    padding: 9px 15px;
+    border: 0;
+    border-radius: 10px;
+    color: #fff;
+    background: linear-gradient(135deg, #df5555, #c83f3f);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 5px 13px rgba(200, 63, 63, 0.18);
+    transition:
+      transform 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  .vc-page .vc-delete-confirm:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 7px 17px rgba(200, 63, 63, 0.24);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 1100px) {
+    .vc-page .vc-table {
+      min-width: 1100px;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .vc-page .vc-summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .vc-page .vc-summary-card:last-child {
+      grid-column: 1 / -1;
+    }
+
+    .vc-page .vc-result-count {
+      margin-left: 0;
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .vc-page {
+      padding-top: 2px;
+    }
+
+    .vc-page .vc-heading {
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .vc-page .vc-summary-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .vc-page .vc-summary-card,
+    .vc-page .vc-summary-card:last-child {
+      grid-column: auto;
+      padding: 15px;
+    }
+
+    .vc-page .vc-summary-number {
+      font-size: 22px;
+    }
+
+    .vc-page .vc-panel-heading {
+      padding: 17px;
+    }
+
+    .vc-page .vc-toolbar {
+      padding: 14px;
+    }
+
+    .vc-page .vc-search-wrap,
+    .vc-page .vc-select,
+    .vc-page .vc-search-btn,
+    .vc-page .vc-reset-btn {
+      flex: 1 1 100%;
+      width: 100%;
+    }
+
+    .vc-page .vc-result-count {
+      width: 100%;
+    }
+
+    .vc-page .vc-panel-footer {
+      padding: 13px 15px;
+    }
+
+    .vc-page .vc-pagination {
+      padding: 13px 8px;
+      gap: 3px;
+    }
+
+    .vc-page .vc-page-info {
+      margin: 0 3px;
+    }
+  }
+</style>
+
+<div class="vc-page">
+  <!-- SUMMARY CARDS -->
+  <div class="vc-summary-grid">
+    <div
+      class="vc-summary-card"
+      id="vcTotalCard"
+      role="button"
+      tabindex="0"
+      aria-label="Show all candidates"
+      title="Click to view all candidates"
+    >
+      <div class="vc-summary-icon">
+        <i class="fa-solid fa-users"></i>
+      </div>
+      <div>
+        <p class="vc-summary-label">Total Candidates</p>
+        <p class="vc-summary-number" id="vcTotalCount">
+          {{ candidates|length }}
+        </p>
+      </div>
+    </div>
+
+    <div
+      class="vc-summary-card"
+      id="vcRecruitmentCard"
+      role="button"
+      tabindex="0"
+      aria-label="Show candidates currently in recruitment"
+      title="Click to view candidates in recruitment"
+    >
+      <div class="vc-summary-icon">
+        <i class="fa-solid fa-user-clock"></i>
+      </div>
+      <div>
+        <p class="vc-summary-label">In Recruitment</p>
+        <p class="vc-summary-number" id="vcProgressCount">0</p>
+      </div>
+    </div>
+
+    <div
+      class="vc-summary-card"
+      id="vcJoinedCard"
+      role="button"
+      tabindex="0"
+      aria-label="Show successfully joined candidates"
+      title="Click to view joined candidates"
+    >
+      <div class="vc-summary-icon">
+        <i class="fa-solid fa-user-check"></i>
+      </div>
+      <div>
+        <p class="vc-summary-label">Successfully Joined</p>
+        <p class="vc-summary-number" id="vcJoinedCount">0</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANDIDATE DIRECTORY -->
+  <section class="vc-panel">
+    <div class="vc-panel-heading">
+      <div>
+        <h2 class="vc-panel-title">Candidate Directory</h2>
+        <p class="vc-panel-description">
+          View candidate information and open individual profiles.
+        </p>
+      </div>
+    </div>
+
+    <!-- SEARCH / FILTER -->
+    <div class="vc-toolbar">
+      <div class="vc-search-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input
+          type="search"
+          id="vcSearch"
+          class="vc-input vc-search-input"
+          placeholder="Search name, ID, phone, email, branch, department, position..."
+          autocomplete="off"
+          aria-label="Search candidates"
+        />
+      </div>
+
+      <select
+        id="vcStatusFilter"
+        class="vc-select"
+        aria-label="Filter by candidate status"
+      >
+        <option value="">All statuses</option>
+
+        {% for status in [ 'applied', 'interview_requested', 'candidate_reject',
+        'first_interview', 'second_interview', 'interview_request_reject',
+        'interview_request_cancel', 'first_interview_reject',
+        'first_interview_cancel', 'second_interview_reject',
+        'second_interview_cancel', 'offer', 'offer_reject', 'offer_cancel',
+        'joined', 'resign' ] %}
+        <option value="{{ status }}">
+          {{ status.replace('_', ' ').title() }}
+        </option>
+        {% endfor %}
+      </select>
+
+      <button type="button" class="vc-search-btn" id="vcSearchButton">
+        <i class="fa-solid fa-magnifying-glass"></i> Search
+      </button>
+
+      <button type="button" class="vc-reset-btn" id="vcResetButton">
+        <i class="fa-solid fa-rotate-left"></i> Reset
+      </button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="vc-table-wrap">
+      <table class="vc-table">
+        <thead>
+          <tr>
+            <th>Candidate ID</th>
+            <th>Candidate</th>
+            <th>Phone</th>
+            <th>Branch</th>
+            <th>Department</th>
+            <th>Position</th>
+            <th>Channel</th>
+            <th>Status</th>
+            <th>Date Added</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody id="vcTableBody">
+          {% for candidate in candidates %} {% set status = candidate.status or
+          'unknown' %} {% if status == 'joined' %} {% set status_class =
+          'status-joined' %} {% elif status == 'offer' %} {% set status_class =
+          'status-offer' %} {% elif status in ['first_interview',
+          'second_interview'] %} {% set status_class = 'status-first-interview'
+          %} {% elif status == 'interview_requested' %} {% set status_class =
+          'status-interview-requested' %} {% elif status == 'applied' %} {% set
+          status_class = 'status-applied' %} {% elif status in [
+          'candidate_reject', 'interview_request_reject',
+          'first_interview_reject', 'second_interview_reject', 'offer_reject' ]
+          %} {% set status_class = 'status-rejected' %} {% elif status in [
+          'interview_request_cancel', 'first_interview_cancel',
+          'second_interview_cancel', 'offer_cancel' ] %} {% set status_class =
+          'status-cancelled' %} {% else %} {% set status_class =
+          'status-default' %} {% endif %}
+
+          <tr
+            class="vc-record-row"
+            data-status="{{ status }}"
+            data-search="{{ (
+                (candidate.id|string) ~ ' ' ~
+                (candidate.name or '') ~ ' ' ~
+                (candidate.phone or '') ~ ' ' ~
+                (candidate.email or '') ~ ' ' ~
+                (candidate.branch_name or '') ~ ' ' ~
+                (candidate.position or '') ~ ' ' ~
+                (candidate.channel or '') ~ ' ' ~
+                (candidate.department_name or '') ~ ' ' ~
+                (candidate.nrc or '') ~ ' ' ~
+                (candidate.status or '')
+              )|lower|e }}"
+          >
+            <td>
+              <span class="vc-id">#{{ candidate.id }}</span>
+            </td>
+
+            <td>
+              <div class="vc-candidate">
+                <div class="vc-avatar">{{ (candidate.name or 'C')[:1] }}</div>
+                <div>
+                  <a class="vc-candidate-name">
+                    {{ candidate.name or 'Unnamed Candidate' }}
+                  </a>
+                  <span class="vc-candidate-email">
+                    {{ candidate.email or 'No email provided' }}
+                  </span>
+                </div>
+              </div>
+            </td>
+
+            <td>
+              <span class="vc-cell-main"> {{ candidate.phone or '—' }} </span>
+            </td>
+
+            <td>
+              <span class="vc-cell-main">
+                {{ candidate.branch_name or '—' }}
+              </span>
+            </td>
+
+            <td>
+              <span class="vc-cell-main">
+                {{ candidate.department_name or '—' }}
+              </span>
+            </td>
+
+            <td>
+              <span class="vc-cell-main">
+                {{ candidate.position or '—' }}
+              </span>
+            </td>
+
+            <td>
+              <span class="vc-cell-main"> {{ candidate.channel or '—' }} </span>
+            </td>
+
+            <td>
+              <span class="vc-status {{ status_class }}">
+                {{ status.replace('_', ' ').title() }}
+              </span>
+            </td>
+
+            <td>
+              {% if candidate.created_at %}
+              <span class="vc-cell-main">
+                {{ candidate.created_at.strftime('%d %b %Y') }}
+              </span>
+              <span class="vc-cell-sub">
+                {{ candidate.created_at.strftime('%I:%M %p') }}
+              </span>
+              {% else %}
+              <span class="vc-cell-main">—</span>
+              {% endif %}
+            </td>
+
+            <!-- PERMISSION-BASED ACTIONS -->
+            <td>
+              <div class="vc-actions">
+                {% if candidate.can_view %}
+                <a
+                  class="vc-action"
+                  href="{{ url_for('candidate.view_candidate', candidate_id=candidate.id, return_to='view_candidates') }}"
+                  title="View candidate details"
+                >
+                  <i class="fa-regular fa-eye"></i>
+                </a>
+
+                <a
+                  class="vc-action"
+                  href="{{ url_for('candidate.candidate_history', candidate_id=candidate.id, return_to='view_candidates') }}"
+                  title="View candidate history"
+                >
+                  <i class="fa-solid fa-clock-rotate-left"></i>
+                </a>
+                {% endif %}
+
+                {% if candidate.can_edit %}
+                <a
+                  class="vc-action"
+                  href="{{ url_for('candidate.edit_candidate', candidate_id=candidate.id) }}"
+                  title="Edit candidate"
+                >
+                  <i class="fa-regular fa-pen-to-square"></i>
+                </a>
+                {% endif %}
+
+                {% if candidate.can_delete %}
+                <a
+                  class="vc-action vc-action-delete vc-delete-trigger"
+                  data-candidate-id="{{ candidate.id }}"
+                  data-candidate-name="{{ candidate.name or 'Unnamed Candidate' }}"
+                  title="Delete candidate"
+                  aria-label="Delete candidate"
+                  role="button"
+                  tabindex="0"
+                >
+                  <i class="fa-regular fa-trash-can"></i>
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+
+          {% else %}
+
+          <tr id="vcInitialEmptyRow">
+            <td colspan="9">
+              <div class="vc-empty">
+                <div class="vc-empty-icon">
+                  <i class="fa-solid fa-users"></i>
+                </div>
+                <h3>No candidates yet</h3>
+                <p>
+                  Start building your candidate directory by adding your first
+                  candidate.
+                </p>
+                <div style="margin-top: 18px">
+                  <a
+                    href="{{ url_for('candidate.add_candidate_page') }}"
+                    class="vc-primary-btn"
+                  >
+                    <i class="fa-solid fa-user-plus"></i> Add Candidate
+                  </a>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- NO SEARCH RESULTS -->
+    <div class="vc-empty vc-no-results" id="vcNoResults" hidden>
+      <div class="vc-empty-icon">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </div>
+      <h3>No matching candidates</h3>
+      <p>Try another keyword or select a different status.</p>
+    </div>
+
+    <!-- PAGINATION -->
+    <div
+      class="vc-pagination"
+      id="vcPagination"
+      aria-label="Candidate table pagination"
+    >
+      <button
+        type="button"
+        class="vc-page-btn"
+        id="vcPrevPage"
+        aria-label="Previous page"
+      >
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+
+      <div id="vcPageNumbers"></div>
+
+      <button
+        type="button"
+        class="vc-page-btn"
+        id="vcNextPage"
+        aria-label="Next page"
+      >
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+
+      <span class="vc-page-info" id="vcPageInfo">Page 1 of 1</span>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="vc-panel-footer">
+      <span id="vcFooterCount">
+        Showing {{ candidates|length }} candidate(s)
+      </span>
+    </div>
+  </section>
+
+  <!-- DELETE CONFIRMATION MODAL -->
+  <div class="vc-modal" id="vcDeleteModal" hidden>
+    <div
+      class="vc-modal-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="vcDeleteTitle"
+    >
+      <div class="vc-modal-top">
+        <div class="vc-modal-danger-icon">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+
+        <div>
+          <h3 class="vc-modal-title" id="vcDeleteTitle">Delete Candidate?</h3>
+          <p class="vc-modal-text">This action cannot be undone.</p>
+        </div>
+      </div>
+
+      <div class="vc-modal-body">
+        Are you sure you want to permanently delete
+        <span class="vc-delete-name" id="vcDeleteName"> this candidate </span>?
+      </div>
+
+      <div class="vc-modal-actions">
+        <button type="button" class="vc-modal-cancel" id="vcDeleteCancel">
+          Cancel
+        </button>
+
+        <form method="POST" id="vcDeleteForm">
+          <button type="submit" class="vc-delete-confirm">
+            <i class="fa-regular fa-trash-can"></i>
+            Delete Candidate
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    "use strict";
+
+    const page = document.querySelector(".vc-page");
+
+    if (!page) {
+      return;
+    }
+
+    /* ELEMENTS */
+    const searchInput = page.querySelector("#vcSearch");
+    const statusFilter = page.querySelector("#vcStatusFilter");
+    const searchButton = page.querySelector("#vcSearchButton");
+    const resetButton = page.querySelector("#vcResetButton");
+    const tableBody = page.querySelector("#vcTableBody");
+    const resultCount = page.querySelector("#vcResultCount");
+    const footerCount = page.querySelector("#vcFooterCount");
+    const noResults = page.querySelector("#vcNoResults");
+    const initialEmptyRow = page.querySelector("#vcInitialEmptyRow");
+    const prevPage = page.querySelector("#vcPrevPage");
+    const nextPage = page.querySelector("#vcNextPage");
+    const pageNumbers = page.querySelector("#vcPageNumbers");
+    const pageInfo = page.querySelector("#vcPageInfo");
+
+    const deleteModal = page.querySelector("#vcDeleteModal");
+    const deleteForm = page.querySelector("#vcDeleteForm");
+    const deleteName = page.querySelector("#vcDeleteName");
+    const deleteCancel = page.querySelector("#vcDeleteCancel");
+
+    if (!searchInput || !statusFilter || !tableBody || !footerCount) {
+      return;
+    }
+
+    /* ROWS */
+    const rows = Array.from(tableBody.querySelectorAll(".vc-record-row"));
+
+    /* SETTINGS */
+    const ROWS_PER_PAGE = 10;
+
+    const RECRUITMENT_STATUSES = [
+      "applied",
+      "interview_requested",
+      "first_interview",
+      "second_interview",
+      "offer",
+    ];
+
+    let currentPage = 1;
+    let filteredRows = rows.slice();
+    let activeSummaryFilter = "all";
+
+    /* SUMMARY COUNTS */
+    function updateSummaryCounts() {
+      const total = rows.length;
+
+      const joined = rows.filter(function (row) {
+        return row.dataset.status === "joined";
+      }).length;
+
+      const inRecruitment = rows.filter(function (row) {
+        return RECRUITMENT_STATUSES.includes(row.dataset.status);
+      }).length;
+
+      const totalElement = page.querySelector("#vcTotalCount");
+      const progressElement = page.querySelector("#vcProgressCount");
+      const joinedElement = page.querySelector("#vcJoinedCount");
+
+      if (totalElement) {
+        totalElement.textContent = total;
+      }
+
+      if (progressElement) {
+        progressElement.textContent = inRecruitment;
+      }
+
+      if (joinedElement) {
+        joinedElement.textContent = joined;
+      }
+    }
+
+    /* PAGE COUNT */
+    function getPageCount() {
+      return Math.max(1, Math.ceil(filteredRows.length / ROWS_PER_PAGE));
+    }
+
+    /* PAGINATION */
+    function renderPagination() {
+      const totalPages = getPageCount();
+
+      if (currentPage > totalPages) {
+        currentPage = totalPages;
+      }
+
+      prevPage.disabled = currentPage <= 1;
+      nextPage.disabled = currentPage >= totalPages;
+
+      pageNumbers.innerHTML = "";
+
+      let pageList = [];
+
+      if (totalPages <= 7) {
+        for (let i = 1; i <= totalPages; i++) {
+          pageList.push(i);
+        }
+      } else {
+        pageList.push(1);
+
+        if (currentPage > 4) {
+          pageList.push("...");
+        }
+
+        for (
+          let i = Math.max(2, currentPage - 1);
+          i <= Math.min(totalPages - 1, currentPage + 1);
+          i++
+        ) {
+          pageList.push(i);
+        }
+
+        if (currentPage < totalPages - 3) {
+          pageList.push("...");
+        }
+
+        pageList.push(totalPages);
+      }
+
+      pageList.forEach(function (item) {
+        if (item === "...") {
+          const span = document.createElement("span");
+          span.className = "vc-page-info";
+          span.textContent = "…";
+          pageNumbers.appendChild(span);
+          return;
+        }
+
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className = "vc-page-btn";
+        button.textContent = item;
+        button.setAttribute("aria-label", "Go to page " + item);
+
+        if (item === currentPage) {
+          button.classList.add("active");
+          button.setAttribute("aria-current", "page");
+        }
+
+        button.addEventListener("click", function () {
+          currentPage = item;
+          renderTable();
+        });
+
+        pageNumbers.appendChild(button);
+      });
+
+      pageInfo.textContent = "Page " + currentPage + " of " + totalPages;
+    }
+
+    /* TABLE RENDER */
+    function renderTable() {
+      rows.forEach(function (row) {
+        row.hidden = true;
+      });
+
+      const start = (currentPage - 1) * ROWS_PER_PAGE;
+      const end = start + ROWS_PER_PAGE;
+
+      filteredRows.slice(start, end).forEach(function (row) {
+        row.hidden = false;
+      });
+
+      renderPagination();
+
+      const visibleCount = filteredRows.length;
+
+      if (resultCount) {
+        resultCount.textContent =
+          visibleCount + (visibleCount === 1 ? " candidate" : " candidates");
+      }
+
+      if (visibleCount === 0) {
+        footerCount.textContent =
+          "Showing 0 of " + rows.length + " candidate(s)";
+      } else {
+        footerCount.textContent =
+          "Showing " +
+          (start + 1) +
+          "-" +
+          Math.min(end, visibleCount) +
+          " of " +
+          visibleCount +
+          " candidate(s)";
+      }
+
+      if (noResults) {
+        noResults.hidden = visibleCount !== 0 || rows.length === 0;
+      }
+
+      if (initialEmptyRow) {
+        initialEmptyRow.hidden = rows.length !== 0;
+      }
+    }
+
+    /* FILTER CANDIDATES */
+    function filterCandidates(resetToFirstPage) {
+      const keyword = searchInput.value.trim().toLowerCase();
+      const selectedStatus = statusFilter.value;
+
+      filteredRows = rows.filter(function (row) {
+        const searchableText = row.dataset.search || "";
+        const rowStatus = row.dataset.status || "";
+
+        const matchesSearch = !keyword || searchableText.includes(keyword);
+
+        const matchesStatus = !selectedStatus || rowStatus === selectedStatus;
+
+        let matchesSummary = true;
+
+        if (activeSummaryFilter === "recruitment") {
+          matchesSummary = RECRUITMENT_STATUSES.includes(rowStatus);
+        } else if (activeSummaryFilter === "joined") {
+          matchesSummary = rowStatus === "joined";
+        }
+
+        return matchesSearch && matchesStatus && matchesSummary;
+      });
+
+      if (resetToFirstPage !== false) {
+        currentPage = 1;
+      }
+
+      renderTable();
+    }
+
+    /* SUMMARY CARD FILTER */
+    function activateSummaryFilter(filterType) {
+      activeSummaryFilter = filterType;
+
+      searchInput.value = "";
+
+      if (filterType === "joined") {
+        statusFilter.value = "joined";
+      } else {
+        statusFilter.value = "";
+      }
+
+      currentPage = 1;
+      filterCandidates(true);
+
+      const candidatePanel = page.querySelector(".vc-panel");
+
+      if (candidatePanel) {
+        candidatePanel.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }
+
+    function bindSummaryCard(cardId, filterType) {
+      const card = page.querySelector("#" + cardId);
+
+      if (!card) {
+        return;
+      }
+
+      card.addEventListener("click", function () {
+        activateSummaryFilter(filterType);
+      });
+
+      card.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          activateSummaryFilter(filterType);
+        }
+      });
+    }
+
+    bindSummaryCard("vcTotalCard", "all");
+    bindSummaryCard("vcRecruitmentCard", "recruitment");
+    bindSummaryCard("vcJoinedCard", "joined");
+
+    /* RESET */
+    function clearFilters() {
+      searchInput.value = "";
+      statusFilter.value = "";
+      activeSummaryFilter = "all";
+      currentPage = 1;
+
+      filterCandidates(false);
+      searchInput.focus();
+    }
+
+    /* SEARCH BUTTON */
+    if (searchButton) {
+      searchButton.addEventListener("click", function () {
+        filterCandidates(true);
+      });
+    }
+
+    /* ENTER TO SEARCH */
+    searchInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        filterCandidates(true);
+      }
+    });
+
+    /* STATUS FILTER */
+    statusFilter.addEventListener("change", function () {
+      activeSummaryFilter = "all";
+      filterCandidates(true);
+    });
+
+    /* RESET BUTTON */
+    if (resetButton) {
+      resetButton.addEventListener("click", clearFilters);
+    }
+
+    /* PREVIOUS PAGE */
+    prevPage.addEventListener("click", function () {
+      if (currentPage > 1) {
+        currentPage--;
+        renderTable();
+      }
+    });
+
+    /* NEXT PAGE */
+    nextPage.addEventListener("click", function () {
+      if (currentPage < getPageCount()) {
+        currentPage++;
+        renderTable();
+      }
+    });
+
+    /* DELETE MODAL */
+    function openDeleteModal(candidateId, candidateName) {
+      if (!deleteModal || !deleteForm) {
+        console.error("Delete modal or form element is missing.");
+        return;
+      }
+
+      const baseUrl =
+        "{{ url_for('candidate.delete_candidate', candidate_id=0) }}";
+
+      const deleteUrl = baseUrl.replace(
+        "/0/delete",
+        "/" + encodeURIComponent(candidateId) + "/delete",
+      );
+
+      deleteForm.action = deleteUrl;
+
+      if (deleteName) {
+        deleteName.textContent = candidateName || "this candidate";
+      }
+
+      deleteModal.hidden = false;
+      document.body.style.overflow = "hidden";
+
+      if (deleteCancel) {
+        deleteCancel.focus();
+      }
+    }
+
+    function closeDeleteModal() {
+      if (!deleteModal) {
+        return;
+      }
+
+      deleteModal.hidden = true;
+      document.body.style.overflow = "";
+    }
+
+    /* DELETE BUTTON CLICK
+     Permission is handled by Jinja visibility and backend authorization.
+     No AJAX permission check and no permission-denied modal.
+  */
+    page.querySelectorAll(".vc-delete-trigger").forEach(function (link) {
+      function handleDeleteClick(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const candidateId = link.dataset.candidateId;
+        const candidateName = link.dataset.candidateName;
+
+        if (!candidateId) {
+          console.error("Delete error: Missing candidate ID.");
+          return;
+        }
+
+        openDeleteModal(candidateId, candidateName);
+      }
+
+      link.addEventListener("click", handleDeleteClick);
+
+      link.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleDeleteClick(event);
+        }
+      });
+    });
+
+    /* DELETE CANCEL */
+    if (deleteCancel) {
+      deleteCancel.addEventListener("click", closeDeleteModal);
+    }
+
+    /* CLICK OUTSIDE DELETE MODAL */
+    if (deleteModal) {
+      deleteModal.addEventListener("click", function (event) {
+        if (event.target === deleteModal) {
+          closeDeleteModal();
+        }
+      });
+    }
+
+    /* ESCAPE KEY */
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && deleteModal && !deleteModal.hidden) {
+        closeDeleteModal();
+      }
+    });
+
+    /* INITIALIZE */
+    updateSummaryCounts();
+    filterCandidates(false);
+  })();
+</script>
+
+{% endblock %}

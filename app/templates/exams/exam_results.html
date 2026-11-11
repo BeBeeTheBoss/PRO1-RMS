@@ -1,0 +1,1541 @@
+{% extends "base.html" %}
+
+{% block title %}Exam Results{% endblock %}
+{% block page_heading %}Exam Results{% endblock %}
+{% block page_subtitle %}Review candidate assessment performance and examination outcomes.{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --er-primary: #635bdb;
+    --er-primary-dark: #5148c7;
+    --er-primary-soft: #f0efff;
+    --er-bg: #f8f9fd;
+    --er-text: #26324c;
+    --er-muted: #8992a6;
+    --er-border: #e9ecf4;
+}
+
+.results-wrap {
+    max-width: 1450px;
+    margin: auto;
+}
+
+/* STATS */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+}
+.stat {
+    position: relative;
+    border: none;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 5px 18px rgba(30, 40, 80, .09);
+    transition: .2s ease;
+    overflow: hidden;
+    color: #fff;
+}
+.stat::after {
+    content: "";
+    position: absolute;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.10);
+    right: -30px;
+    bottom: -55px;
+}
+.stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(30, 40, 80, .15);
+}
+.stat:nth-child(1) { background: linear-gradient(135deg, #7669ed, #5148c7); }
+.stat:nth-child(2) { background: linear-gradient(135deg, #35c78b, #159b68); }
+.stat:nth-child(3) { background: linear-gradient(135deg, #55a4f5, #3474d5); }
+.stat:nth-child(4) { background: linear-gradient(135deg, #f5ad55, #e27b32); }
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    font-size: 19px;
+    background: rgba(255,255,255,.19);
+    color: #fff;
+    position: relative;
+    z-index: 1;
+}
+.stat-content { position: relative; z-index: 1; }
+.stat-label {
+    color: rgba(255,255,255,.85);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+.stat-value {
+    font-size: 27px;
+    font-weight: 800;
+    color: #fff;
+    margin-top: 5px;
+    line-height: 1.2;
+}
+
+/* TOOLBAR */
+.filter-panel {
+    background: #fff;
+    border: 1px solid var(--er-border);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 16px rgba(30, 40, 80, .025);
+}
+.filter-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+.filter-title {
+    color: var(--er-text);
+    font-size: 14px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.filter-title i { color: var(--er-primary); }
+.filter-form {
+    display: flex;
+    gap: 11px;
+    align-items: center;
+}
+.search-box {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+}
+.search-box i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #929bb0;
+    font-size: 14px;
+    pointer-events: none;
+}
+.search-box input,
+.filter-form select {
+    width: 100%;
+    height: 43px;
+    border: 1px solid #e2e6ef;
+    border-radius: 10px;
+    padding: 0 13px;
+    background: #fff;
+    color: var(--er-text);
+    font-family: inherit;
+    font-size: 12px;
+    outline: none;
+    transition: .2s;
+}
+.search-box input { padding-left: 39px; }
+.search-box input:focus,
+.filter-form select:focus {
+    border-color: var(--er-primary);
+    box-shadow: 0 0 0 3px rgba(99, 91, 219, .09);
+}
+.filter-form select {
+    width: 175px;
+    cursor: pointer;
+}
+.er-btn {
+    height: 43px;
+    padding: 0 17px;
+    border: none;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: .2s;
+    white-space: nowrap;
+}
+.btn-search {
+    background: var(--er-primary);
+    color: #fff;
+}
+.btn-search:hover {
+    background: var(--er-primary-dark);
+    box-shadow: 0 5px 12px rgba(99, 91, 219, .2);
+}
+.btn-reset {
+    background: #f0f2f8;
+    color: #647087;
+}
+.btn-reset:hover { background: #e8eaf2; }
+
+/* TABLE */
+.table-panel {
+    background: #fff;
+    border: 1px solid var(--er-border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 18px rgba(30, 40, 80, .035);
+}
+.table-heading {
+    padding: 17px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--er-border);
+}
+.table-heading h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--er-text);
+}
+.result-count {
+    font-size: 11px;
+    color: var(--er-muted);
+    background: #f4f5fa;
+    padding: 6px 11px;
+    border-radius: 20px;
+    font-weight: 700;
+}
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+table {
+    width: 100%;
+    min-width: 1250px;
+    border-collapse: collapse;
+}
+thead th {
+    background: #f8f9fc;
+    color: #778198;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .55px;
+    padding: 15px 14px;
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--er-border);
+}
+tbody td {
+    padding: 15px 14px;
+    border-bottom: 1px solid #f0f1f6;
+    color: #58647a;
+    font-size: 12px;
+    white-space: nowrap;
+}
+tbody tr { transition: background .15s; }
+tbody tr:hover { background: #fafaff; }
+tbody tr:last-child td { border-bottom: none; }
+
+.id-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0efff;
+    color: #635bdb;
+    border-radius: 8px;
+    padding: 6px 9px;
+    font-size: 11px;
+    font-weight: 800;
+}
+.name {
+    color: #29344d;
+    font-weight: 800;
+    font-size: 12px;
+}
+.muted {
+    font-size: 10px;
+    color: #929bb0;
+    margin-top: 5px;
+}
+.branch-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f1f5ff;
+    color: #5475bc;
+    border-radius: 7px;
+    padding: 6px 9px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.branch-badge i { font-size: 10px; }
+.department-text { color: #56647d; font-weight: 600; }
+.score {
+    font-weight: 800;
+    color: var(--er-primary);
+    font-size: 13px;
+}
+.status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: capitalize;
+}
+.status::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+.submitted { background: #e9f8ef; color: #23945d; }
+.in_progress { background: #edf1ff; color: #5369e8; }
+.ready { background: #fff5df; color: #b98220; }
+.expired { background: #fff0f0; color: #d64f5d; }
+
+/* EMPTY STATE */
+.empty {
+    text-align: center;
+    padding: 65px 20px !important;
+    white-space: normal;
+}
+.empty-icon {
+    width: 62px;
+    height: 62px;
+    margin: 0 auto 16px;
+    background: #f1f0ff;
+    color: #756ce1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    font-size: 24px;
+}
+.empty-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--er-text);
+    margin-bottom: 7px;
+}
+.empty-description {
+    font-size: 12px;
+    color: var(--er-muted);
+    line-height: 1.7;
+}
+
+/* PAGINATION */
+.pagination-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 17px 20px;
+    border-top: 1px solid var(--er-border);
+    flex-wrap: wrap;
+}
+.pagination-info {
+    font-size: 11px;
+    color: var(--er-muted);
+    font-weight: 600;
+}
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.page-link {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    border: 1px solid #e7e9f1;
+    background: #fff;
+    color: #657087;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: .2s;
+}
+.page-link:hover {
+    border-color: var(--er-primary);
+    color: var(--er-primary);
+    background: #f7f6ff;
+}
+.page-link.active {
+    background: var(--er-primary);
+    color: #fff;
+    border-color: var(--er-primary);
+    box-shadow: 0 4px 10px rgba(99, 91, 219, .2);
+}
+.page-link.disabled {
+    opacity: .4;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+.page-dots {
+    color: #929bb0;
+    font-size: 12px;
+    padding: 0 3px;
+}
+
+/* VIEW BUTTON */
+.view-result-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #e5e2ff;
+    border-radius: 10px;
+    background: #f2f0ff;
+    color: #635bdb;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: .2s ease;
+}
+.view-result-btn:hover {
+    background: #635bdb;
+    color: #fff;
+    border-color: #635bdb;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(99,91,219,.2);
+}
+
+/* ================= RESULT DETAILS MODAL ================= */
+.result-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(35, 27, 75, .42);
+    backdrop-filter: blur(5px);
+}
+.result-modal.show { display: flex; }
+.result-modal-box {
+    width: 100%;
+    max-width: 750px; /* Reduced modal width */
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    color: #30294b;
+    background: #ffffff;
+    border: 1px solid #e5defb;
+    border-radius: 16px;
+    box-shadow: 0 24px 75px rgba(54, 39, 112, .24);
+    animation: resultModalIn .2s ease;
+}
+@keyframes resultModalIn {
+    from { opacity: 0; transform: translateY(12px) scale(.99); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.result-modal-header {
+    display: flex;
+    align-items: center; /* Align items to center */
+    justify-content: space-between;
+    gap: 15px;
+    padding: 17px 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #eeeaf7;
+    color: #30294b;
+}
+.result-modal-heading h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 800;
+    color: #30294b;
+}
+.result-modal-heading p {
+    margin: 5px 0 0;
+    color: #81799b;
+    font-size: 11px;
+}
+
+/* Header Actions (Status + Close) */
+.modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto; /* Push to the right */
+}
+
+.modal-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: #e8f8ef;
+    color: #168b54;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: capitalize;
+}
+
+.result-modal-close {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border: 1px solid #e8e2f8;
+    border-radius: 9px;
+    background: #f7f4ff;
+    color: #7567b5;
+    cursor: pointer;
+    transition: .2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.result-modal-close:hover {
+    background: #eee9ff;
+    color: #5746b5;
+}
+.result-modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    background: #ffffff;
+}
+
+/* RESULT SUMMARY */
+.result-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 24px;
+    padding: 14px 15px 16px;
+    border: 1px solid #e9e3fb;
+    border-radius: 12px;
+    background: #faf8ff;
+    margin-bottom: 20px;
+}
+.result-summary-card {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+.result-summary-label {
+    margin-bottom: 4px;
+    color: #81799b;
+    font-size: 10px;
+    font-weight: 600;
+}
+.result-summary-value {
+    color: #342d50;
+    font-size: 13px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+.result-summary-card.correct-card .result-summary-value { color: #159b60; }
+.result-summary-card.wrong-card .result-summary-value { color: #df4d60; }
+.result-summary-card.score-card .result-summary-value { color: #6352c8; }
+
+/* ================= UPDATED QUESTION OUTPUT (COMPACT) ================= */
+.question-result-card {
+    padding: 14px 16px 16px;
+    margin: 0 0 12px;
+    border: none;
+    border-radius: 10px;
+    background: #eef2f5; /* Soft grey background matching screenshot */
+}
+.question-result-card:last-child {
+    margin-bottom: 0;
+}
+
+.question-top {
+    display: block;
+    margin-bottom: 12px;
+}
+
+.question-number {
+    margin: 0 0 8px;
+    color: #30294b;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.question-text {
+    margin-top: 0;
+    color: #1f2937;
+    font-size: 16px;
+    line-height: 1.4;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+/* Hide old status text */
+.answer-status {
+    display: none;
+}
+
+/* Options */
+.answer-options {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.answer-option {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #1f2937;
+    font-size: 14px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+/* Radio circle */
+.option-radio {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    margin-top: 2px;
+    border: 2px solid #cbd5e1;
+    border-radius: 50%;
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: .2s ease;
+}
+
+.option-radio.selected {
+    border-color: #9ca3af;
+    background: #e5e7eb;
+}
+
+.option-radio.selected::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #9ca3af;
+}
+
+.option-letter {
+    min-width: 18px;
+    color: #1f2937;
+    font-weight: 400;
+}
+
+.option-text {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Right-side answer icons */
+.option-result-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 6px;
+    font-size: 18px;
+}
+
+.option-result-icon.correct {
+    color: #16a34a;
+}
+
+/* Restored Correct answer line */
+.correct-answer-line {
+    margin-top: 14px;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.correct-answer-line strong {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+/* Mobile adjustments */
+@media (max-width: 650px) {
+    .question-result-card {
+        padding: 12px;
+    }
+    .question-text {
+        font-size: 14px;
+    }
+    .answer-option {
+        font-size: 13px;
+        gap: 10px;
+    }
+    .option-radio {
+        width: 18px;
+        height: 18px;
+        min-width: 18px;
+    }
+    .option-radio.selected::after {
+        width: 7px;
+        height: 7px;
+    }
+    .option-result-icon {
+        font-size: 16px;
+    }
+}
+
+.result-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 14px 20px;
+    border-top: 1px solid #eeeaf7;
+    background: #ffffff;
+}
+.result-close-btn {
+    padding: 9px 17px;
+    border: 1px solid #dcd5f8;
+    border-radius: 8px;
+    background: #f1edff;
+    color: #5d4db5;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: .2s ease;
+}
+.result-close-btn:hover {
+    background: #e5defe;
+    border-color: #c9bdf5;
+}
+
+/* RESPONSIVE */
+@media(max-width: 900px) {
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media(max-width: 600px) {
+    .stats { gap: 10px; }
+    .stat { padding: 13px; gap: 10px; }
+    .stat-icon { width: 37px; height: 37px; font-size: 15px; }
+    .stat-value { font-size: 21px; }
+    .stat-label { font-size: 9px; }
+    .filter-panel { padding: 14px; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .search-box, .filter-form select { width: 100%; min-width: 0; }
+    .er-btn { width: 100%; }
+    .table-heading { padding: 14px; }
+    .pagination-wrap { flex-direction: column; align-items: flex-start; }
+    .pagination { width: 100%; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="results-wrap">
+
+    <div class="stats">
+
+        <div class="stat">
+            <div class="stat-icon">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Total Assignments</div>
+                <div class="stat-value">
+                    {{ stats.total_records|default(0) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Completed</div>
+                <div class="stat-value">
+                    {{ stats.completed|default(0) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-icon">
+                <i class="fas fa-spinner"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">In Progress</div>
+                <div class="stat-value">
+                    {{ stats.in_progress|default(0) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Expired</div>
+                <div class="stat-value">
+                    {{ stats.expired|default(0) }}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="filter-panel">
+
+        <div class="filter-heading">
+            <div class="filter-title">
+                <i class="fas fa-sliders-h"></i>
+                Search & Filter Results
+            </div>
+        </div>
+
+        <form method="GET"
+              action="{{ url_for('exam.exam_results') }}"
+              class="filter-form">
+
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input
+                    type="search"
+                    name="search"
+                    value="{{ search }}"
+                    placeholder="Search ID, candidate, branch, department or exam..."
+                >
+            </div>
+
+            <select name="status">
+                <option value="">All Statuses</option>
+
+                <option value="submitted"
+                    {% if selected_status == 'submitted' %}selected{% endif %}>
+                    Submitted
+                </option>
+
+                <option value="in_progress"
+                    {% if selected_status == 'in_progress' %}selected{% endif %}>
+                    In Progress
+                </option>
+
+                <option value="ready"
+                    {% if selected_status == 'ready' %}selected{% endif %}>
+                    Ready
+                </option>
+
+                <option value="expired"
+                    {% if selected_status == 'expired' %}selected{% endif %}>
+                    Expired
+                </option>
+            </select>
+
+            <button type="submit" class="er-btn btn-search">
+                <i class="fas fa-search"></i>
+                Search
+            </button>
+
+            <a href="{{ url_for('exam.exam_results') }}"
+               class="er-btn btn-reset">
+                <i class="fas fa-redo-alt"></i>
+                Reset
+            </a>
+
+        </form>
+    </div>
+
+    <div class="table-panel">
+
+        <div class="table-heading">
+            <h3>
+                <i class="fas fa-list-alt"
+                   style="color:#635bdb;margin-right:7px;"></i>
+                Examination Records
+            </h3>
+
+            <span class="result-count">
+                {{ total_records }} Records Found
+            </span>
+        </div>
+
+        <div class="table-scroll">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Candidate</th>
+                        <th>Branch</th>
+                        <th>Department</th>
+                        <th>Exam</th>
+                        <th>Questions</th>
+                        <th>Correct</th>
+                        <th>Wrong</th>
+                        <th>Score</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Submitted Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                {% for row in results %}
+
+                    <tr>
+
+                        <td>
+                            <span class="id-badge">
+                                #{{ row.id }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="name">
+                                {{ row.candidate_name }}
+                            </div>
+                            <div class="muted">
+                                {{ row.position or '—' }}
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="branch-badge">
+                                {{ row.branch_name or '—' }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="department-text">
+                                {{ row.department_name or '—' }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="name">
+                                {{ row.exam_title }}
+                            </div>
+                            <div class="muted">
+                                {{ row.sub_department or '—' }}
+                            </div>
+                        </td>
+
+                        <td>{{ row.total_questions or 0 }}</td>
+
+                        <td>
+                            {{ row.correct_answers if row.correct_answers is not none else '—' }}
+                        </td>
+
+                        <td>
+                            {{ row.wrong_answers if row.wrong_answers is not none else '—' }}
+                        </td>
+
+                        <td class="score">
+                            {% if row.score is not none %}
+                                {{ '%.2f'|format(row.score|float) }}%
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ (row.exam_method or '—')|upper }}
+                        </td>
+
+                        <td>
+                            <span class="status {{ row.status }}">
+                                {{ row.status|replace('_', ' ') }}
+                            </span>
+                        </td>
+
+                        <td>
+                            {{ row.submitted_at.strftime('%d %b %Y %I:%M %p') if row.submitted_at else '—' }}
+                        </td>
+
+                        <td>
+                            <button
+                                type="button"
+                                class="view-result-btn"
+                                data-snapshot="{{ row.question_snapshot|tojson|forceescape }}"
+                                data-answers="{{ row.answers|tojson|forceescape }}"
+                                data-correct="{{ row.correct_answers or 0 }}"
+                                data-wrong="{{ row.wrong_answers or 0 }}"
+                                data-total="{{ row.total_questions or 0 }}"
+                                data-score="{{ row.score if row.score is not none else '' }}"
+                                data-status="{{ row.status }}"
+                                data-candidate="{{ row.candidate_name|e }}"
+                                data-exam="{{ row.exam_title|e }}"
+                                data-id="{{ row.id }}"
+                                title="View Exam Answers">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+
+                    </tr>
+
+                {% else %}
+
+                    <tr>
+                        <td colspan="13" class="empty">
+
+                            <div class="empty-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+
+                            <div class="empty-title">
+                                {% if search or selected_status %}
+                                    No Matching Results Found
+                                {% else %}
+                                    No Exam Results Available
+                                {% endif %}
+                            </div>
+
+                            <div class="empty-description">
+                                {% if search or selected_status %}
+                                    We couldn't find any examination records matching your search.
+                                    <br>
+                                    Try another keyword or change the status filter.
+                                {% else %}
+                                    Examination assignments and candidate results will appear here.
+                                {% endif %}
+                            </div>
+
+                        </td>
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% if total_records > 0 %}
+
+        <div class="pagination-wrap">
+
+            <div class="pagination-info">
+                Showing
+                {{ ((page - 1) * per_page) + 1 }}
+                -
+                {{ [page * per_page, total_records]|min }}
+                of {{ total_records }} records
+            </div>
+
+            <div class="pagination">
+
+                {% if page > 1 %}
+                    <a class="page-link"
+                       href="{{ url_for('exam.exam_results',
+                            page=page-1,
+                            search=search,
+                            status=selected_status) }}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                {% else %}
+                    <span class="page-link disabled">
+                        <i class="fas fa-chevron-left"></i>
+                    </span>
+                {% endif %}
+
+                {% if page > 3 %}
+                    <a class="page-link"
+                       href="{{ url_for('exam.exam_results',
+                            page=1,
+                            search=search,
+                            status=selected_status) }}">
+                        1
+                    </a>
+
+                    {% if page > 4 %}
+                        <span class="page-dots">...</span>
+                    {% endif %}
+                {% endif %}
+
+                {% for p in range([1, page - 2]|max, [total_pages, page + 2]|min + 1) %}
+
+                    <a class="page-link {% if p == page %}active{% endif %}"
+                       href="{{ url_for('exam.exam_results',
+                            page=p,
+                            search=search,
+                            status=selected_status) }}">
+                        {{ p }}
+                    </a>
+
+                {% endfor %}
+
+                {% if page < total_pages - 2 %}
+
+                    {% if page < total_pages - 3 %}
+                        <span class="page-dots">...</span>
+                    {% endif %}
+
+                    <a class="page-link"
+                       href="{{ url_for('exam.exam_results',
+                            page=total_pages,
+                            search=search,
+                            status=selected_status) }}">
+                        {{ total_pages }}
+                    </a>
+
+                {% endif %}
+
+                {% if page < total_pages %}
+                    <a class="page-link"
+                       href="{{ url_for('exam.exam_results',
+                            page=page+1,
+                            search=search,
+                            status=selected_status) }}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                {% else %}
+                    <span class="page-link disabled">
+                        <i class="fas fa-chevron-right"></i>
+                    </span>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+<!-- EXAM DETAIL MODAL -->
+
+<div class="result-modal" id="examResultModal" aria-hidden="true">
+    <div class="result-modal-box"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="examResultTitle">
+
+        <div class="result-modal-header">
+
+            <div class="result-modal-heading">
+                <h3 id="examResultTitle">Candidate Examination</h3>
+                <p id="modalCandidateName">Candidate</p>
+            </div>
+
+            <!-- Status and Close button pushed to the right -->
+            <div class="modal-header-actions">
+                <span class="modal-status" id="modalStatus">Submitted</span>
+
+                <button type="button"
+                        class="result-modal-close"
+                        aria-label="Close"
+                        onclick="closeExamResultModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+        </div>
+
+        <div class="result-modal-body">
+
+            <div class="result-summary">
+
+                <div class="result-summary-card">
+                    <div class="result-summary-label">Candidate</div>
+                    <div class="result-summary-value" id="modalCandidate">—</div>
+                </div>
+
+                <div class="result-summary-card score-card">
+                    <div class="result-summary-label">Score</div>
+                    <div class="result-summary-value" id="modalScore">—</div>
+                </div>
+
+                <div class="result-summary-card correct-card">
+                    <div class="result-summary-label">Correct Answers</div>
+                    <div class="result-summary-value" id="modalCorrect">0</div>
+                </div>
+
+                <div class="result-summary-card wrong-card">
+                    <div class="result-summary-label">Wrong Answers</div>
+                    <div class="result-summary-value" id="modalWrong">0</div>
+                </div>
+
+            </div>
+
+            <div id="modalQuestionList"></div>
+
+        </div>
+
+        <div class="result-modal-footer">
+            <button type="button"
+                    class="result-close-btn"
+                    onclick="closeExamResultModal()">
+                Close
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const modal = document.getElementById("examResultModal");
+    const questionList = document.getElementById("modalQuestionList");
+
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, function (char) {
+            return {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;"
+            }[char];
+        });
+    }
+
+    function normalize(value) {
+        if (value === null || value === undefined) return "";
+
+        if (typeof value === "object") {
+            return String(
+                value.key ??
+                value.value ??
+                value.id ??
+                value.label ??
+                ""
+            ).trim().toLowerCase();
+        }
+
+        return String(value).trim().toLowerCase();
+    }
+
+    function getOptionEntries(options) {
+
+        if (Array.isArray(options)) {
+
+            return options.map(function (option, index) {
+
+                const defaultKey = String.fromCharCode(97 + index); // lowercase a, b, c...
+
+                if (option !== null && typeof option === "object") {
+
+                    return {
+                        key: String(
+                            option.key ??
+                            option.value_key ??
+                            option.id ??
+                            defaultKey
+                        ),
+
+                        text: String(
+                            option.text ??
+                            option.label ??
+                            option.option_text ??
+                            option.value ??
+                            option.key ??
+                            ""
+                        )
+                    };
+                }
+
+                return {
+                    key: defaultKey,
+                    text: String(option ?? "")
+                };
+
+            });
+        }
+
+        if (options && typeof options === "object") {
+
+            return Object.entries(options).map(function ([key, value]) {
+
+                return {
+                    key: String(key).toLowerCase(),
+
+                    text: typeof value === "object"
+                        ? String(value.text ?? value.label ?? value.value ?? "")
+                        : String(value ?? "")
+                };
+
+            });
+        }
+
+        return [];
+    }
+
+    function findOption(entries, answer) {
+
+        if (
+            answer === null ||
+            answer === undefined ||
+            String(answer).trim() === ""
+        ) {
+            return null;
+        }
+
+        const value = normalize(answer);
+
+        let found = entries.find(function (option) {
+            return normalize(option.key) === value ||
+                   normalize(option.text) === value;
+        });
+
+        if (found) return found;
+
+        if (/^\d+$/.test(value)) {
+            const index = Number(value);
+            if (entries[index]) return entries[index];
+        }
+
+        return null;
+    }
+
+    function getQuestionText(question) {
+        return question.question_text ??
+               question.question ??
+               question.text ??
+               "Question text unavailable";
+    }
+
+    function renderQuestion(question, index, answers) {
+
+        const options = getOptionEntries(question.options);
+
+        const chosen = answers[String(index)] ??
+                      answers[index] ??
+                      null;
+
+        const correct = question.correct_option ??
+                        question.correct_answer ??
+                        question.answer ??
+                        null;
+
+        const selectedOption = findOption(options, chosen);
+        const correctOption = findOption(options, correct);
+
+        let optionsHTML = "";
+
+        if (options.length) {
+
+            optionsHTML = options.map(function (option) {
+
+                const isSelected = Boolean(
+                    selectedOption &&
+                    normalize(option.key) ===
+                    normalize(selectedOption.key)
+                );
+
+                const isRight = Boolean(
+                    correctOption &&
+                    normalize(option.key) ===
+                    normalize(correctOption.key)
+                );
+
+                let radioClass = "";
+                let resultIcon = "";
+
+                // Candidate selected this option
+                if (isSelected) {
+                    radioClass = "selected";
+                }
+
+                // Correct answer gets a green check
+                if (isRight) {
+                    resultIcon = `
+                        <span class="option-result-icon correct"
+                              title="Correct answer">
+                            <i class="fas fa-check-circle"></i>
+                        </span>`;
+                }
+
+                return `
+                    <div class="answer-option">
+                        <span class="option-radio ${radioClass}"></span>
+                        <span class="option-letter">
+                            ${escapeHTML(option.key)}.
+                        </span>
+                        <span class="option-text">
+                            ${escapeHTML(option.text)}
+                        </span>
+                        ${resultIcon}
+                    </div>
+                `;
+
+            }).join("");
+
+        } else {
+
+            optionsHTML = `
+                <div class="no-answer-data" style="display:block; color:#64748b;">
+                    Option data is unavailable.
+                </div>
+            `;
+        }
+
+        let correctAnswerText = "Unavailable";
+
+        if (correctOption) {
+            correctAnswerText = correctOption.key + ". " + correctOption.text;
+        } else if (
+            correct !== null &&
+            correct !== undefined &&
+            String(correct).trim()
+        ) {
+            correctAnswerText = String(correct);
+        }
+
+        return `
+            <div class="question-result-card">
+                <div class="question-top">
+                    <div class="question-number">
+                        Question ${index + 1}
+                    </div>
+                    <div class="question-text">
+                        ${escapeHTML(getQuestionText(question))}
+                    </div>
+                </div>
+
+                <div class="answer-options">
+                    ${optionsHTML}
+                </div>
+
+                <div class="correct-answer-line">
+                    <strong>The correct answer is:</strong>
+                    ${escapeHTML(correctAnswerText)}
+                </div>
+            </div>
+        `;
+    }
+
+    document.querySelectorAll(".view-result-btn").forEach(function (button) {
+
+        button.addEventListener("click", function () {
+
+            let snapshot = [];
+            let answers = {};
+
+            try {
+
+                snapshot = JSON.parse(this.dataset.snapshot || "[]");
+                answers = JSON.parse(this.dataset.answers || "{}");
+
+            } catch (error) {
+
+                console.error(
+                    "Unable to read exam result data:",
+                    error
+                );
+
+                alert("Unable to load this examination's answers.");
+                return;
+            }
+
+            if (!Array.isArray(snapshot) || snapshot.length === 0) {
+
+                questionList.innerHTML = `
+                    <div class="no-answer-data" style="display:block; color:#64748b; text-align:center; padding: 20px;">
+                        <i class="fas fa-info-circle" style="font-size:22px;margin-bottom:9px;"></i>
+                        <div>No question details are available.</div>
+                    </div>`;
+
+            } else {
+
+                questionList.innerHTML = snapshot.map(
+                    function (question, index) {
+                        return renderQuestion(
+                            question,
+                            index,
+                            answers || {}
+                        );
+                    }
+                ).join("");
+            }
+
+            const candidateName = this.dataset.candidate || "Candidate";
+
+            document.getElementById("modalCandidateName").textContent =
+                (this.dataset.exam || "Examination") +
+                " • #" +
+                this.dataset.id;
+
+            document.getElementById("modalCandidate").textContent =
+                candidateName;
+
+            document.getElementById("modalCorrect").textContent =
+                this.dataset.correct || "0";
+
+            document.getElementById("modalWrong").textContent =
+                this.dataset.wrong || "0";
+
+            document.getElementById("modalScore").textContent =
+                this.dataset.score !== ""
+                    ? Number(this.dataset.score).toFixed(2) + "%"
+                    : "—";
+
+            const status = (this.dataset.status || "unknown")
+                .replaceAll("_", " ")
+                .replace(/\b\w/g, character => character.toUpperCase());
+
+            document.getElementById("modalStatus").textContent = status;
+
+            modal.classList.add("show");
+            modal.setAttribute("aria-hidden", "false");
+            document.body.style.overflow = "hidden";
+
+        });
+
+    });
+
+    modal.addEventListener("click", function (event) {
+        if (event.target === modal) {
+            closeExamResultModal();
+        }
+    });
+
+});
+
+function closeExamResultModal() {
+
+    const modal = document.getElementById("examResultModal");
+
+    if (!modal) return;
+
+    modal.classList.remove("show");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+
+}
+
+document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+        closeExamResultModal();
+    }
+});
+</script>
+
+{% endblock %}

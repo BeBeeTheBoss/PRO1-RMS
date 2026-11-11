@@ -1,0 +1,741 @@
+
+{% extends "base.html" %}
+
+{% block title %}Edit Candidate{% endblock %}
+{% block page_heading %}Edit Candidate{% endblock %}
+{% block page_subtitle %}Update candidate contact details, department and uploaded documents.{% endblock %}
+
+{% block extra_css %}
+<style>
+.edit-candidate-page {
+    --ec-primary:#4f46e5;
+    --ec-primary-dark:#4338ca;
+    --ec-surface:#fff;
+    --ec-text:#172033;
+    --ec-muted:#788399;
+    --ec-border:#e6eaf2;
+    --ec-radius:18px;
+    --ec-shadow:0 12px 35px rgba(30,41,59,.07);
+
+    width:100%;
+    max-width:1050px;
+    margin:0 auto;
+    color:var(--ec-text);
+    font:14px Inter,'Poppins',"Segoe UI",Arial,sans-serif;
+    box-sizing:border-box;
+}
+
+.edit-candidate-page *,
+.edit-candidate-page *::before,
+.edit-candidate-page *::after {
+    box-sizing:border-box;
+}
+
+.edit-candidate-page button,
+.edit-candidate-page input,
+.edit-candidate-page select,
+.edit-candidate-page textarea {
+    font:inherit;
+}
+
+.edit-candidate-page .ec-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:24px;
+}
+
+.edit-candidate-page .ec-eyebrow {
+    color:var(--ec-primary);
+    font-weight:800;
+    font-size:11px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+}
+
+.edit-candidate-page .ec-panel {
+    background:var(--ec-surface);
+    border:1px solid var(--ec-border);
+    border-radius:var(--ec-radius);
+    box-shadow:var(--ec-shadow);
+    overflow:hidden;
+}
+
+.edit-candidate-page .ec-panel-head {
+    padding:23px 26px;
+    border-bottom:1px solid var(--ec-border);
+    background:linear-gradient(135deg,#fff,#fafbff);
+}
+
+.edit-candidate-page .ec-panel-title {
+    font-size:17px;
+    margin:0 0 7px;
+    font-weight:750;
+}
+
+.edit-candidate-page .ec-muted {
+    font-size:12px;
+    color:var(--ec-muted);
+    line-height:1.7;
+}
+
+.edit-candidate-page .ec-form-body {
+    padding:26px;
+}
+
+.edit-candidate-page .ec-form-grid {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:19px;
+}
+
+.edit-candidate-page .ec-field {
+    min-width:0;
+}
+
+.edit-candidate-page .ec-field.ec-full {
+    grid-column:1/-1;
+}
+
+.edit-candidate-page .ec-field label {
+    display:block;
+    font-size:12px;
+    font-weight:800;
+    color:#344054;
+    margin-bottom:8px;
+}
+
+.edit-candidate-page .ec-required {
+    color:#e11d48;
+}
+
+.edit-candidate-page input,
+.edit-candidate-page select,
+.edit-candidate-page textarea {
+    width:100%;
+    min-width:0;
+    border:1px solid #dce2ec;
+    border-radius:11px;
+    background:#fff;
+    padding:12px 13px;
+    color:var(--ec-text);
+    outline:none;
+    transition:.15s;
+}
+
+.edit-candidate-page input:focus,
+.edit-candidate-page select:focus,
+.edit-candidate-page textarea:focus {
+    border-color:var(--ec-primary);
+    box-shadow:0 0 0 3px #4f46e51a;
+}
+
+.edit-candidate-page select:disabled {
+    background:#f1f3f8;
+    color:#98a2b3;
+    cursor:not-allowed;
+}
+
+.edit-candidate-page textarea {
+    min-height:95px;
+    resize:vertical;
+}
+
+.edit-candidate-page .ec-file-box {
+    border:1px dashed #c7cfe0;
+    background:#fafbff;
+    border-radius:12px;
+    padding:13px;
+}
+
+.edit-candidate-page .ec-file-box input {
+    border:0;
+    padding:5px 0;
+    background:transparent;
+    box-shadow:none;
+}
+
+.edit-candidate-page .ec-hint {
+    font-size:11px;
+    color:var(--ec-muted);
+    margin:8px 0 0;
+    line-height:1.6;
+    overflow-wrap:anywhere;
+}
+
+.edit-candidate-page .ec-file-link {
+    color:var(--ec-primary);
+    font-weight:750;
+    text-decoration:none;
+}
+
+.edit-candidate-page .ec-form-actions {
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    padding-top:22px;
+    margin-top:24px;
+    border-top:1px solid var(--ec-border);
+}
+
+.edit-candidate-page .ec-btn {
+    border:0;
+    border-radius:10px;
+    padding:11px 15px;
+    font-weight:750;
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    font-size:13px;
+}
+
+.edit-candidate-page .ec-btn-primary {
+    color:#fff;
+    background:var(--ec-primary);
+}
+
+.edit-candidate-page .ec-btn-light {
+    background:#eef1f7;
+    color:#344054;
+}
+
+.edit-candidate-page .ec-flash {
+    padding:12px 15px;
+    border-radius:11px;
+    margin-bottom:14px;
+    font-weight:650;
+    line-height:1.6;
+}
+
+.edit-candidate-page .flash-success {
+    background:#dcfce7;
+    color:#166534;
+}
+
+.edit-candidate-page .flash-error {
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+/* Permission denied modal */
+.permission-modal {
+    position:fixed;
+    inset:0;
+    z-index:99999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:rgba(15,23,42,.58);
+    backdrop-filter:blur(5px);
+}
+
+.permission-modal-content {
+    width:100%;
+    max-width:420px;
+    padding:35px 28px;
+    background:#fff;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 25px 70px rgba(15,23,42,.2);
+    animation:permissionModalShow .25s ease;
+}
+
+.permission-modal-icon {
+    width:68px;
+    height:68px;
+    margin:0 auto 18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:#fff1f2;
+    color:#e11d48;
+    font-size:28px;
+}
+
+.permission-modal-content h2 {
+    margin:0 0 10px;
+    color:#172033;
+    font-size:23px;
+    font-weight:800;
+}
+
+.permission-modal-content p {
+    margin:0 0 24px;
+    color:#788399;
+    font-size:13px;
+    line-height:1.7;
+}
+
+.permission-ok-btn {
+    width:100%;
+    padding:12px 20px;
+    border:none;
+    border-radius:10px;
+    background:#4f46e5;
+    color:#fff;
+    font-size:14px;
+    font-weight:750;
+    cursor:pointer;
+}
+
+@keyframes permissionModalShow {
+    from {
+        opacity:0;
+        transform:translateY(12px) scale(.97);
+    }
+    to {
+        opacity:1;
+        transform:translateY(0) scale(1);
+    }
+}
+
+@media(max-width:650px) {
+    .edit-candidate-page .ec-form-body,
+    .edit-candidate-page .ec-panel-head {
+        padding:19px;
+    }
+
+    .edit-candidate-page .ec-form-grid {
+        grid-template-columns:1fr;
+    }
+
+    .edit-candidate-page .ec-field.ec-full {
+        grid-column:auto;
+    }
+
+    .edit-candidate-page .ec-form-actions {
+        flex-direction:column-reverse;
+    }
+
+    .edit-candidate-page .ec-form-actions .ec-btn {
+        width:100%;
+    }
+
+    .permission-modal-content {
+        padding:28px 22px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% if permission_denied %}
+
+<div class="permission-modal"
+     id="permissionModal"
+     onclick="closePermissionModal(event)">
+
+    <div class="permission-modal-content"
+         onclick="event.stopPropagation()">
+
+        <div class="permission-modal-icon">
+            <i class="fas fa-lock"></i>
+        </div>
+
+        <h2>Access Denied</h2>
+
+        <p>
+            You don't have permission to edit this candidate.
+            Please contact your administrator if you need access.
+        </p>
+
+        <button type="button"
+                class="permission-ok-btn"
+                onclick="returnToPreviousPage()">
+            OK
+        </button>
+
+    </div>
+</div>
+
+{% else %}
+
+<div class="edit-candidate-page">
+
+    <header class="ec-header">
+        <div class="ec-eyebrow">
+            TalentFlow · Candidate Management
+        </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="ec-flash flash-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <section class="ec-panel">
+
+        <div class="ec-panel-head">
+
+            <h3 class="ec-panel-title">
+                {{ candidate.name }}
+            </h3>
+
+            <div class="ec-muted">
+                Candidate #{{ candidate.id }} · Current status:
+                <strong>
+                    {{ candidate.status|replace('_',' ')|title }}
+                </strong>.
+                Editing this form does not change the recruitment stage.
+            </div>
+
+        </div>
+
+        <div class="ec-form-body">
+
+            <form method="POST"
+                  enctype="multipart/form-data"
+                  id="editCandidateForm">
+
+                <div class="ec-form-grid">
+
+                    <div class="ec-field">
+                        <label for="name">
+                            Full name <span class="ec-required">*</span>
+                        </label>
+
+                        <input id="name"
+                               name="name"
+                               maxlength="150"
+                               required
+                               value="{{ candidate.name }}">
+                    </div>
+
+                    <div class="ec-field">
+                        <label for="phone">
+                            Phone number <span class="ec-required">*</span>
+                        </label>
+
+                        <input id="phone"
+                               name="phone"
+                               type="tel"
+                               maxlength="30"
+                               required
+                               inputmode="tel"
+                               pattern="[+0-9()\-\\s]{7,30}"
+                               value="{{ candidate.phone }}">
+
+                        <p class="ec-hint">
+                            Use 7–15 digits; country code is allowed.
+                        </p>
+                    </div>
+
+                    <div class="ec-field">
+                        <label for="email">
+                            Email address <span class="ec-required">*</span>
+                        </label>
+
+                        <input id="email"
+                               name="email"
+                               type="email"
+                               maxlength="255"
+                               required
+                               value="{{ candidate.email }}">
+                    </div>
+
+                    <div class="ec-field">
+                        <label for="nrc">NRC number</label>
+
+                        <input id="nrc"
+                               name="nrc"
+                               maxlength="50"
+                               value="{{ candidate.nrc or '' }}">
+                    </div>
+
+                    <div class="ec-field">
+                        <label for="branch_id">
+                            Branch <span class="ec-required">*</span>
+                        </label>
+
+                        <select id="branch_id"
+                                name="branch_id"
+                                required>
+
+                            <option value="">Select branch</option>
+
+                            {% for branch in branches %}
+                            <option value="{{ branch.id }}"
+                                {% if branch.id == candidate.branch_id %}selected{% endif %}>
+                                {{ branch.name }}
+                            </option>
+                            {% endfor %}
+
+                        </select>
+                    </div>
+
+                    <div class="ec-field">
+                        <label for="department_id">
+                            Department <span class="ec-required">*</span>
+                        </label>
+
+                        <select id="department_id"
+                                name="department_id"
+                                required>
+
+                            <option value="">Select department</option>
+
+                            {% for department in departments %}
+                            <option value="{{ department.id }}"
+                                    data-branch-id="{{ department.branch_id }}"
+                                {% if department.id == candidate.department_id %}selected{% endif %}>
+
+                                {{ department.name }}
+                                {% if department.short_name %}
+                                    ({{ department.short_name }})
+                                {% endif %}
+
+                            </option>
+                            {% endfor %}
+
+                        </select>
+
+                        <p class="ec-hint">
+                            Only departments belonging to the selected branch
+                            will be displayed.
+                        </p>
+                    </div>
+
+                    <div class="ec-field">
+                        <label for="position">
+                            Position <span class="ec-required">*</span>
+                        </label>
+
+                        <input id="position"
+                            name="position"
+                            type="text"
+                            maxlength="150"
+                            required
+                            placeholder="Enter candidate position"
+                            value="{{ candidate.position or '' }}">
+
+                        <p class="ec-hint">
+                            Position applied for by the candidate is required.
+                        </p>
+                    </div>
+
+                    <div class="ec-field">
+                        <label for="cv_file">
+                            Replace CV / Resume
+                        </label>
+
+                        <div class="ec-file-box">
+                            <p class="ec-hint">
+                                Current:
+
+                                {% if candidate.cv_file_path %}
+                                <a class="ec-file-link"
+                                   href="{{ url_for('candidate.candidate_file', candidate_id=candidate.id, file_type='cv') }}"
+                                   target="_blank"
+                                   rel="noopener">
+                                     Current CV
+                                </a>
+                                {% else %}
+                                    No CV uploaded
+                                {% endif %}.
+
+                            </p>
+                            <input id="cv_file"
+                                   name="cv_file"
+                                   type="file"
+                                   accept=".pdf,.doc,.docx">
+                            <p style="font-size: 11px;">Note: To upload a new CV, click "Choose File" above. Leave empty to keep your current file. (Maximum 10 MB)</p>
+                        </div>
+                    </div>
+
+                    <div class="ec-field ec-full">
+                        <label for="address">
+                            Address <span class="ec-muted">(Optional)</span>
+                        </label>
+
+                        <textarea id="address"
+                                  name="address"
+                                  maxlength="5000"
+                                  placeholder="Enter candidate address if available">{{ candidate.address or '' }}</textarea>
+                    </div>
+
+                    <div class="ec-field ec-full">
+                        <label for="other_attachment">
+                            Replace other attachment
+                            <span class="ec-muted">(Optional)</span>
+                        </label>
+
+                        <div class="ec-file-box">
+
+                            <p class="ec-hint">
+                                Current:
+
+                                {% if candidate.other_attachment_path %}
+                                <a class="ec-file-link"
+                                   href="{{ url_for('candidate.candidate_file', candidate_id=candidate.id, file_type='attachment') }}"
+                                   target="_blank"
+                                   rel="noopener">
+                                    Current attachment
+                                </a>
+                                {% else %}
+                                    No attachment uploaded
+                                {% endif %}.
+                            </p>
+                            <input id="other_attachment"
+                                   name="other_attachment"
+                                   type="file"
+                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                            <p style="font-size: 11px;">Note: To upload a new attachment, click "Choose File" above. (Maximum 10 MB)</p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="ec-form-actions">
+
+                    <a href="{{ url_for('candidate.view_candidates') }}"
+                       class="ec-btn ec-btn-light">
+                        ← Cancel
+                    </a>
+
+                    <button class="ec-btn ec-btn-primary"
+                            type="submit">
+                        Save Changes →
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+    </section>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const branchSelect = document.getElementById("branch_id");
+    const departmentSelect = document.getElementById("department_id");
+    const phoneInput = document.getElementById("phone");
+
+    // ------------------------------------------
+    // Branch + Department filtering
+    // ------------------------------------------
+    if (branchSelect && departmentSelect) {
+
+        const allDepartmentOptions = Array.from(
+            departmentSelect.querySelectorAll("option[data-branch-id]")
+        );
+
+        function filterDepartments(resetSelection = false) {
+
+            const selectedBranch = branchSelect.value;
+            const previousDepartment = departmentSelect.value;
+
+            departmentSelect.innerHTML = "";
+
+            const placeholder = document.createElement("option");
+
+            placeholder.value = "";
+            placeholder.textContent = selectedBranch
+                ? "Select department"
+                : "Select branch first";
+
+            departmentSelect.appendChild(placeholder);
+
+            let departmentExists = false;
+
+            allDepartmentOptions.forEach(function (option) {
+
+                if (option.dataset.branchId === selectedBranch) {
+
+                    const clonedOption = option.cloneNode(true);
+
+                    if (
+                        !resetSelection &&
+                        clonedOption.value === previousDepartment
+                    ) {
+                        clonedOption.selected = true;
+                        departmentExists = true;
+                    }
+
+                    departmentSelect.appendChild(clonedOption);
+                }
+            });
+
+            if (!departmentExists) {
+                departmentSelect.value = "";
+            }
+
+            departmentSelect.disabled = !selectedBranch;
+        }
+
+        // Initial load
+        filterDepartments(false);
+
+        // Branch change
+        branchSelect.addEventListener("change", function () {
+            filterDepartments(true);
+        });
+    }
+
+    // ------------------------------------------
+    // Phone validation
+    // ------------------------------------------
+    if (phoneInput) {
+
+        phoneInput.addEventListener("input", function () {
+
+            const digits = this.value.replace(/\D/g, '').length;
+
+            this.setCustomValidity(
+                digits >= 7 && digits <= 15
+                    ? ''
+                    : 'Phone number must contain 7–15 digits.'
+            );
+        });
+    }
+
+});
+
+function closePermissionModal(event) {
+    if (event.target.id === "permissionModal") {
+        returnToPreviousPage();
+    }
+}
+
+function returnToPreviousPage() {
+
+    const fallbackUrl = "{{ url_for('candidate.view_candidates') }}";
+
+    if (document.referrer) {
+
+        try {
+
+            const previousUrl = new URL(document.referrer);
+
+            if (previousUrl.origin === window.location.origin) {
+                window.history.back();
+                return;
+            }
+
+        } catch (error) {
+            console.error("Previous page URL error:", error);
+        }
+    }
+
+    window.location.href = fallbackUrl;
+}
+</script>
+
+{% endif %}
+
+{% endblock %}

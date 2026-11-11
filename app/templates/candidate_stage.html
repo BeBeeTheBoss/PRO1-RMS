@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% block title %}{{ stage_title }} | Recruitment System{% endblock %}
+{% block page_heading %}{{ stage_title }} Candidates{% endblock %}
+{% block page_subtitle %}
+Viewing all candidates currently in the {{ stage_title | lower }} stage.
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stage-card {
+        background: white;
+        border: 1px solid #e9ebf3;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 8px 25px rgba(30, 50, 90, .04);
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #6658e8;
+        font-weight: 600;
+        font-size: 13px;
+        text-decoration: none;
+        margin-bottom: 20px;
+        transition: transform 0.2s;
+    }
+
+    .back-link:hover {
+        transform: translateX(-3px);
+    }
+
+    .table-wrap {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        white-space: nowrap;
+    }
+
+    thead {
+        background: #f8f9fc;
+    }
+
+    th {
+        padding: 14px 20px;
+        text-align: left;
+        color: #858ba2;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .5px;
+        text-transform: uppercase;
+    }
+
+    td {
+        padding: 16px 20px;
+        border-top: 1px solid #f0f1f6;
+        font-size: 13px;
+    }
+
+    tbody tr {
+        transition: background 0.2s;
+    }
+
+    tbody tr:hover {
+        background: #fbfbff;
+    }
+
+    .candidate {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .candidate-avatar {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #6658e8, #877cf7);
+        color: white;
+        font-weight: 700;
+        font-size: 13px;
+        box-shadow: 0 4px 10px rgba(102, 88, 232, 0.2);
+    }
+
+    .candidate-name {
+        font-weight: 700;
+        color: #252a41;
+    }
+
+    .candidate-email {
+        font-size: 11px;
+        color: #858ba2;
+        margin-top: 3px;
+    }
+
+    .status {
+        display: inline-block;
+        border-radius: 20px;
+        padding: 6px 12px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .status-applied {
+        background: #e9f3ff;
+        color: #317bc5;
+    }
+
+    .status-screening {
+        background: #efedff;
+        color: #6658e8;
+    }
+
+    .status-interview {
+        background: #fff2df;
+        color: #b8751d;
+    }
+
+    .status-offered {
+        background: #f9e9fc;
+        color: #a14bb1;
+    }
+
+    .status-hired {
+        background: #e3f8ed;
+        color: #168755;
+    }
+
+    .status-rejected {
+        background: #fdebec;
+        color: #c0394b;
+    }
+
+    .empty-state {
+        padding: 40px;
+        text-align: center;
+        color: #858ba2;
+        font-size: 13px;
+    }
+
+    .table-footer {
+        padding: 18px 22px;
+        border-top: 1px solid #e9ebf3;
+        color: #858ba2;
+        font-size: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .pagination {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn {
+        height: 38px;
+        border: 0;
+        border-radius: 8px;
+        padding: 0 16px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        background: #f3f4f9;
+        color: #454b62;
+        transition: background 0.2s;
+    }
+
+    .btn:hover {
+        background: #e5e7ef;
+    }
+
+    .btn.disabled {
+        opacity: .45;
+        pointer-events: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<a class="back-link" href="{{ url_for('main.dashboard') }}">
+    ← Back to Dashboard
+</a>
+
+<section class="stage-card">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Applied Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for candidate in candidates %}
+                <tr>
+                    <td>
+                        <div class="candidate">
+                            <div class="candidate-avatar">
+                                {{ (candidate.name or '?')[:2] | upper }}
+                            </div>
+
+                            <div>
+                                <div class="candidate-name">
+                                    {{ candidate.name }}
+                                </div>
+                                <div class="candidate-email">
+                                    ID: {{ candidate.id }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td>{{ candidate.phone or '—' }}</td>
+                    <td>{{ candidate.email or '—' }}</td>
+                    <td>{{ candidate.department_name or '—' }}</td>
+
+                    <td>
+                        {% if candidate.created_at %}
+                            {{ candidate.created_at.strftime('%Y-%m-%d') }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <span class="status {{ candidate.status_class }}">
+                            {{ candidate.status_label }}
+                        </span>
+                    </td>
+                </tr>
+
+                {% else %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            No candidates found in this stage.
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-footer">
+        <span>
+            Total Records: <strong>{{ total }}</strong>
+        </span>
+
+        {% if total_pages > 1 %}
+        <div class="pagination">
+            <a
+                class="btn {% if page <= 1 %}disabled{% endif %}"
+                href="{{ url_for('main.dashboard_stage', stage=stage, page=page-1) }}"
+                {% if page <= 1 %}aria-disabled="true" tabindex="-1"{% endif %}
+            >
+                Previous
+            </a>
+
+            <span>Page {{ page }} of {{ total_pages }}</span>
+
+            <a
+                class="btn {% if page >= total_pages %}disabled{% endif %}"
+                href="{{ url_for('main.dashboard_stage', stage=stage, page=page+1) }}"
+                {% if page >= total_pages %}aria-disabled="true" tabindex="-1"{% endif %}
+            >
+                Next
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

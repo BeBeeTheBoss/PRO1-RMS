@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+
+{% block title %}Add Department{% endblock %}
+{% block page_heading %}Add Department{% endblock %}
+{% block page_subtitle %}Create a new department record{% endblock %}
+
+{% block extra_css %}
+<style>
+    .add-dept-page,
+    .add-dept-page * {
+        box-sizing: border-box;
+    }
+
+    .add-dept-page {
+        width: 100%;
+        max-width: 760px;
+        margin: 0 auto;
+        color: #1e293b;
+        font-family: 'Poppins';
+    }
+
+    .add-dept-page .page-intro {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .add-dept-page .intro-text h2 {
+        margin: 0 0 7px;
+        font-size: 24px;
+        font-weight: 750;
+        letter-spacing: -0.6px;
+        color: #172033;
+    }
+
+    .add-dept-page .intro-text p {
+        margin: 0;
+        color: #718096;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .add-dept-page .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #fff;
+        color: #475569;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 650;
+        transition: .2s ease;
+    }
+
+    .add-dept-page .back-link:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+    }
+
+    .add-dept-page .panel {
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #edf0f5;
+        border-radius: 16px;
+        box-shadow: 0 4px 18px rgba(15, 23, 42, .035);
+    }
+
+    .add-dept-page .panel-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 21px 24px;
+        border-bottom: 1px solid #edf0f5;
+    }
+
+    .add-dept-page .panel-header-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+        border-radius: 11px;
+        background: #eeecff;
+        color: #6254dc;
+        font-size: 17px;
+    }
+
+    .add-dept-page .panel-header h3 {
+        margin: 0 0 5px;
+        color: #172033;
+        font-size: 15px;
+        font-weight: 750;
+    }
+
+    .add-dept-page .panel-header p {
+        margin: 0;
+        color: #8490a2;
+        font-size: 12px;
+    }
+
+    .add-dept-page .panel-body {
+        padding: 24px;
+    }
+
+    .add-dept-page .form-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, .65fr);
+        gap: 16px;
+    }
+
+    .add-dept-page .field label {
+        display: block;
+        margin-bottom: 8px;
+        color: #475569;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .add-dept-page input,
+    select {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        height: 42px;
+        padding: 0 12px;
+        border: 1px solid #dfe5ee;
+        border-radius: 9px;
+        outline: none;
+        background: #fff;
+        color: #243047;
+        font: inherit;
+        font-size: 13px;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .add-dept-page input:focus {
+        border-color: #8175e8;
+        box-shadow: 0 0 0 3px rgba(99, 85, 220, .11);
+    }
+
+    .add-dept-page input::placeholder {
+        color: #a0a9b8;
+    }
+
+    .add-dept-page .form-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid #edf0f5;
+    }
+
+    .add-dept-page .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        min-height: 42px;
+        padding: 10px 18px;
+        border: 1px solid transparent;
+        border-radius: 9px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.2;
+        white-space: nowrap;
+        text-decoration: none;
+        transition: background .2s, transform .2s, box-shadow .2s;
+    }
+
+    .add-dept-page .btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .add-dept-page .btn-primary {
+        background: #6254dc;
+        color: #fff;
+        box-shadow: 0 3px 8px rgba(98, 84, 220, .16);
+    }
+
+    .add-dept-page .btn-primary:hover {
+        background: #5144c6;
+    }
+
+    .add-dept-page .btn-secondary {
+        background: #f1f5f9;
+        color: #475569;
+        border-color: #e2e8f0;
+    }
+
+    .add-dept-page .btn-secondary:hover {
+        background: #e2e8f0;
+    }
+
+    .add-dept-page .flash-message {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 13px 16px;
+        margin-bottom: 16px;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        font-size: 13px;
+    }
+
+    .add-dept-page .flash-message.success {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
+
+    .add-dept-page .flash-message.error {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+    }
+
+    @media (max-width: 600px) {
+        .add-dept-page .intro-text h2 {
+            font-size: 21px;
+        }
+
+        .add-dept-page .panel-header,
+        .add-dept-page .panel-body {
+            padding: 17px;
+        }
+
+        .add-dept-page .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .add-dept-page .form-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .add-dept-page .form-actions .btn {
+            width: 100%;
+        }
+    }
+
+    .field .required {
+        color: red;
+        font-weight: 800;
+    }
+
+    .add-dept-page input,
+    .add-dept-page select {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        height: 42px;
+        padding: 0 12px;
+        border: 1px solid #dfe5ee;
+        border-radius: 9px;
+        outline: none;
+        background: #fff;
+        color: #243047;
+        font: inherit;
+        font-size: 13px;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .add-dept-page input:focus,
+    .add-dept-page select:focus {
+        border-color: #8175e8;
+        box-shadow: 0 0 0 3px rgba(99, 85, 220, .11);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="add-dept-page">
+
+    <div class="page-intro">
+        <div class="intro-text">
+            <h2>Add New Department</h2>
+            <p>Create a department and assign its short name.</p>
+        </div>
+    </div>
+
+    <section class="panel">
+        <div class="panel-header">
+            <div class="panel-header-icon">
+                <i class="fa-solid fa-building"></i>
+            </div>
+            <div>
+                <h3>Department Information</h3>
+                <p>Enter the full department name and a short name.</p>
+            </div>
+        </div>
+
+        <div class="panel-body">
+            <form method="POST" action="{{ url_for('main.add_department') }}">
+                <input type="hidden" name="action" value="add">
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="department-branch">
+                            Branch <span class="required">*</span>
+                        </label>
+
+                        <select id="department-branch" name="branch_id" required>
+
+                            <option value="">Select Branch</option>
+
+                            {% for branch in branches %}
+                            <option value="{{ branch.id }}">
+                                {{ branch.name }}
+                            </option>
+                            {% endfor %}
+
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="department-name">Department Name <span class="required">*</span></label>
+                        <input id="department-name" name="name" maxlength="100" required
+                            placeholder="e.g. Human Resources">
+                    </div>
+
+                    <div class="field">
+                        <label for="department-short-name">Short Name <span class="required">*</span></label>
+                        <input id="department-short-name" name="short_name" maxlength="20" required
+                            placeholder="e.g. HR">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fa-solid fa-plus"></i>
+                        Add Department
+                    </button>
+
+                    <button class="btn btn-secondary" type="reset">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

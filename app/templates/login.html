@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | Recruitment System</title>
+
+    <style>
+        /* ===== Global Styles ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6c63ff;
+            --primary-dark: #5548e8;
+            --background: #0b1020;
+            --text: #20243a;
+            --muted: #7b8197;
+            --border: #e3e6ef;
+            --danger: #dc3545;
+        }
+
+        body {
+            font-family: "Segoe UI",'Poppins', Arial, sans-serif;
+            min-height: 100vh;
+            background: var(--background);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            overflow-x: hidden;
+        }
+
+        /* ===== Background Decoration ===== */
+        .background-glow {
+            position: fixed;
+            width: 420px;
+            height: 420px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.25;
+            pointer-events: none;
+        }
+
+        .glow-one {
+            background: #6c63ff;
+            top: -150px;
+            left: -100px;
+        }
+
+        .glow-two {
+            background: #00c2ff;
+            bottom: -180px;
+            right: -100px;
+        }
+
+        /* ===== Main Layout ===== */
+        .login-container {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+            max-width: 960px;
+            min-height: 580px;
+            background: #ffffff;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.35);
+        }
+
+        /* ===== Left Panel ===== */
+        .welcome-panel {
+            background: linear-gradient(145deg, #24204e, #11182f);
+            color: white;
+            padding: 55px 42px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-panel::before {
+            content: "";
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 50%;
+            top: 140px;
+            left: -100px;
+        }
+
+        .welcome-panel::after {
+            content: "";
+            position: absolute;
+            width: 230px;
+            height: 230px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            bottom: -80px;
+            right: -80px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-icon .logo {
+            width: 100px;
+            height: 60px;
+            border-radius: 13px;
+            background: white;
+            /* background: linear-gradient(135deg, #8b80ff, #5d4df0); */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 23px;
+            font-weight: bold;
+            border: 1px solid black;
+        }
+
+        .brand-name {
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .brand-subtitle {
+            color: #b7bad2;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .welcome-content {
+            position: relative;
+            z-index: 1;
+            margin: 55px 0;
+        }
+
+        .welcome-tag {
+            display: inline-block;
+            color: #c9c5ff;
+            background: rgba(108, 99, 255, 0.18);
+            border: 1px solid rgba(160, 153, 255, 0.25);
+            border-radius: 30px;
+            padding: 8px 13px;
+            font-size: 11px;
+            letter-spacing: 1px;
+            margin-bottom: 24px;
+        }
+
+        .welcome-content h1 {
+            font-size: clamp(28px, 3vw, 39px);
+            line-height: 1.25;
+            margin-bottom: 20px;
+        }
+
+        .welcome-content h1 span {
+            color: #9188ff;
+        }
+
+        .welcome-content p {
+            color: #b7bad2;
+            font-size: 14px;
+            line-height: 1.9;
+            max-width: 330px;
+        }
+
+        .welcome-footer {
+            position: relative;
+            z-index: 1;
+            color: #8f95b2;
+            font-size: 12px;
+        }
+
+        /* ===== Right Login Panel ===== */
+        .login-panel {
+            padding: 55px 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .mobile-brand {
+            display: none;
+        }
+
+        .login-heading {
+            margin-bottom: 32px;
+        }
+
+        .login-heading h2 {
+            font-size: 29px;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        .login-heading p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* ===== Form Fields ===== */
+        .form-group {
+            margin-bottom: 23px;
+        }
+
+        .form-label {
+            display: block;
+            color: #33384d;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #969bb0;
+            width: 19px;
+            height: 19px;
+            pointer-events: none;
+        }
+
+        .form-input {
+            width: 100%;
+            height: 51px;
+            padding: 0 45px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+            background: #fbfcff;
+            color: var(--text);
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-input::placeholder {
+            color: #a8adbd;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.1);
+        }
+
+        .form-input.invalid {
+            border-color: var(--danger);
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            color: #858ba1;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-password:hover {
+            color: var(--primary);
+        }
+
+        .field-error {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 7px;
+            display: none;
+        }
+
+        .field-error.show {
+            display: block;
+        }
+
+        /* ===== Remember Me ===== */
+        .form-options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 2px 0 27px;
+        }
+
+        .remember-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666c82;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .remember-label input {
+            width: 15px;
+            height: 15px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .security-note {
+            color: #8b90a3;
+            font-size: 11px;
+        }
+
+        /* ===== Login Button ===== */
+        .login-button {
+            width: 100%;
+            height: 52px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #7770ff, #594be8);
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(108, 99, 255, 0.24);
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(108, 99, 255, 0.32);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none;
+        }
+
+        .button-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .spinner {
+            width: 17px;
+            height: 17px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ===== Server Message ===== */
+        .server-message {
+            display: none;
+            padding: 12px 14px;
+            margin-bottom: 20px;
+            border-radius: 9px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .server-message.error {
+            display: block;
+            background: #fff0f0;
+            color: #b42332;
+            border: 1px solid #ffd6d9;
+        }
+
+        .server-message.success {
+            display: block;
+            background: #edfff4;
+            color: #187744;
+            border: 1px solid #c8f3d9;
+        }
+
+        .login-bottom {
+            margin-top: 30px;
+            text-align: center;
+            color: #989db0;
+            font-size: 11px;
+            line-height: 1.8;
+        }
+
+        .login-bottom strong {
+            color: #6c63ff;
+            font-weight: 600;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 760px) {
+            body {
+                padding: 18px;
+            }
+
+            .login-container {
+                grid-template-columns: 1fr;
+                max-width: 460px;
+                min-height: auto;
+                border-radius: 20px;
+            }
+
+            .welcome-panel {
+                display: none;
+            }
+
+            .login-panel {
+                padding: 38px 28px;
+            }
+
+            .mobile-brand {
+                display: flex;
+                align-items: center;
+                gap: 11px;
+                margin-bottom: 36px;
+            }
+
+            .mobile-brand .brand-name {
+                color: var(--text);
+            }
+
+            .mobile-brand .brand-subtitle {
+                color: var(--muted);
+            }
+
+            .login-heading h2 {
+                font-size: 26px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .login-panel {
+                padding: 28px 20px;
+            }
+
+            .form-options {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .security-note {
+                padding-left: 23px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="background-glow glow-one"></div>
+    <div class="background-glow glow-two"></div>
+
+    <main class="login-container">
+
+        <!-- Left Welcome Panel -->
+        <section class="welcome-panel">
+
+            <div class="brand">
+                <div class="brand-icon"><img class="logo" src="https://portal.sdpghc.net/assets/img/finallogo.png" alt=""></div>
+                <div>
+                    <div class="brand-name">Pro1 Global Home Center</div>
+                    <div class="brand-subtitle">RECRUITMENT CANDIDATE TRACKING SYSTEM</div>
+                </div>
+            </div>
+
+            <div class="welcome-content">
+                <span class="welcome-tag">YOUR TEAM. YOUR TALENT.</span>
+
+                <h1>
+                    Find the right people.<br>
+                    Build the <span>right future.</span>
+                </h1>
+
+                <p>
+                    Manage candidates, organize interviews, and
+                    simplify your recruitment process from one
+                    secure workspace.
+                </p>
+            </div>
+
+            <div class="welcome-footer">
+                &copy; <span id="currentYear"></span>
+                RecruitFlow. All rights reserved.
+            </div>
+
+        </section>
+
+        <!-- Right Login Panel -->
+        <section class="login-panel">
+
+            <div class="mobile-brand">
+                <div class="brand-icon"><img class="logo" src="https://portal.sdpghc.net/assets/img/finallogo.png" alt=""></div>
+                <div>
+                    <div class="brand-name">Pro1 Global Home Center</div>
+                    <div class="brand-subtitle">RECRUITMENT CANDIDATE TRACKING SYSTEM</div>
+                </div>
+            </div>
+
+            <div class="login-heading">
+                <h2>Welcome back</h2>
+                <p>Enter your employee credentials to access your account.</p>
+            </div>
+
+            <!-- Flask backend error message -->
+            <div id="serverMessage" class="server-message {% if error %}error{% endif %}" role="alert"
+                aria-live="polite">{% if error %}{{ error }}{% endif %}</div>
+
+            <!--
+                Flask route should handle POST /login.
+                Do not validate passwords in JavaScript.
+            -->
+            <form id="loginForm" action="{{ url_for('main.login') }}" method="POST" autocomplete="on" novalidate>
+
+                <!-- Employee Code -->
+                <div class="form-group">
+                    <label class="form-label" for="employee_code">
+                        Employee Code
+                    </label>
+
+                    <div class="input-wrapper">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            aria-hidden="true">
+                            <rect x="3" y="5" width="18" height="14" rx="3"></rect>
+                            <circle cx="9" cy="11" r="2"></circle>
+                            <path d="M6 16c.7-2 5.3-2 6 0M14 10h4M14 14h4"></path>
+                        </svg>
+
+                        <input type="text" id="employee_code" name="employee_code" class="form-input"
+                            placeholder="e.g. EMP001" autocomplete="username" maxlength="30" required autofocus
+                            aria-describedby="employeeError">
+                    </div>
+
+                    <div id="employeeError" class="field-error">
+                        Please enter your employee code.
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label class="form-label" for="password">
+                        Password
+                    </label>
+
+                    <div class="input-wrapper">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            aria-hidden="true">
+                            <rect x="4" y="10" width="16" height="11" rx="2"></rect>
+                            <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+                            <path d="M12 14v3"></path>
+                        </svg>
+
+                        <input type="password" id="password" name="password" class="form-input"
+                            placeholder="Enter your password" autocomplete="current-password" maxlength="256" required
+                            aria-describedby="passwordError">
+
+                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Show password"
+                            aria-pressed="false">
+                            <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div id="passwordError" class="field-error">
+                        Please enter your password.
+                    </div>
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" class="login-button" id="loginButton">
+                    <span class="button-content">
+                        <span class="spinner" id="spinner"></span>
+                        <span id="buttonText">Sign In</span>
+                        <!-- <span id="buttonArrow" aria-hidden="true">→</span> -->
+                    </span>
+                </button>
+
+            </form>
+
+            <div class="login-bottom">
+                Authorized adminstrator only.<br>
+                Need access? Contact your <strong>Human Resources</strong>.
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        "use strict";
+
+        // ===== Current Year =====
+        document.getElementById("currentYear").textContent =
+            new Date().getFullYear();
+
+        // ===== Elements =====
+        const loginForm = document.getElementById("loginForm");
+        const employeeInput = document.getElementById("employee_code");
+        const passwordInput = document.getElementById("password");
+
+        const employeeError = document.getElementById("employeeError");
+        const passwordError = document.getElementById("passwordError");
+
+        const loginButton = document.getElementById("loginButton");
+        const buttonText = document.getElementById("buttonText");
+        const buttonArrow = document.getElementById("buttonArrow");
+        const spinner = document.getElementById("spinner");
+
+        const togglePassword = document.getElementById("togglePassword");
+        const serverMessage = document.getElementById("serverMessage");
+
+        // ===== Clear Error =====
+        function clearFieldError(input, errorElement) {
+            input.classList.remove("invalid");
+            errorElement.classList.remove("show");
+            input.removeAttribute("aria-invalid");
+        }
+
+        // ===== Validate Required Fields =====
+        function validateEmployeeCode() {
+            if (!employeeInput.value.trim()) {
+                employeeInput.classList.add("invalid");
+                employeeInput.setAttribute("aria-invalid", "true");
+                employeeError.classList.add("show");
+                employeeError.textContent = "Please enter your employee code.";
+                return false;
+            }
+
+            clearFieldError(employeeInput, employeeError);
+            return true;
+        }
+
+        function validatePassword() {
+            if (!passwordInput.value) {
+                passwordInput.classList.add("invalid");
+                passwordInput.setAttribute("aria-invalid", "true");
+                passwordError.classList.add("show");
+                passwordError.textContent = "Please enter your password.";
+                return false;
+            }
+
+            clearFieldError(passwordInput, passwordError);
+            return true;
+        }
+
+        employeeInput.addEventListener("input", function () {
+            clearFieldError(employeeInput, employeeError);
+
+            if (serverMessage.classList.contains("error")) {
+                serverMessage.className = "server-message";
+                serverMessage.textContent = "";
+            }
+        });
+
+        passwordInput.addEventListener("input", function () {
+            clearFieldError(passwordInput, passwordError);
+
+            if (serverMessage.classList.contains("error")) {
+                serverMessage.className = "server-message";
+                serverMessage.textContent = "";
+            }
+        });
+
+        // ===== Show / Hide Password =====
+        togglePassword.addEventListener("click", function () {
+            const isPasswordHidden = passwordInput.type === "password";
+
+            passwordInput.type = isPasswordHidden ? "text" : "password";
+
+            togglePassword.setAttribute(
+                "aria-label",
+                isPasswordHidden ? "Hide password" : "Show password"
+            );
+
+            togglePassword.setAttribute(
+                "aria-pressed",
+                String(isPasswordHidden)
+            );
+
+            document.getElementById("eyeIcon").innerHTML =
+                isPasswordHidden
+                    ? '<path d="M3 3l18 18"></path>' +
+                    '<path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path>' +
+                    '<path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c6.5 0 10 7 10 7a15 15 0 0 1-3 3.9"></path>' +
+                    '<path d="M6.2 6.2C3.5 8 2 12 2 12s3.5 7 10 7c1.2 0 2.3-.2 3.3-.6"></path>'
+                    : '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>' +
+                    '<circle cx="12" cy="12" r="3"></circle>';
+        });
+
+        // ===== Submit Form =====
+        loginForm.addEventListener("submit", function (event) {
+            const employeeValid = validateEmployeeCode();
+            const passwordValid = validatePassword();
+
+            if (!employeeValid || !passwordValid) {
+                event.preventDefault();
+
+                if (!employeeValid) {
+                    employeeInput.focus();
+                } else {
+                    passwordInput.focus();
+                }
+
+                return;
+            }
+
+            // Allow the real POST request to Flask.
+            loginButton.disabled = true;
+            buttonText.textContent = "Signing in...";
+            buttonArrow.style.display = "none";
+            spinner.style.display = "inline-block";
+        });
+    </script>
+
+</body>
+
+</html>

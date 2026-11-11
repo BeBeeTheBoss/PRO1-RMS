@@ -1,0 +1,1062 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Department Head{% endblock %}
+{% block page_heading %}Edit Department Head{% endblock %}
+{% block page_subtitle %}
+Review and update the department head account
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .edit-dh-page,
+    .edit-dh-page * {
+        box-sizing: border-box;
+    }
+
+    .edit-dh-page {
+        --primary: #5145cd;
+        --primary-dark: #4338b8;
+        --primary-soft: #eef2ff;
+        --text: #1e293b;
+        --muted: #64748b;
+        --border: #e8edf4;
+        --success: #059669;
+        --danger: #dc2626;
+
+        width: 100%;
+        max-width: 860px;
+        min-width: 0;
+        margin: 0 auto;
+        color: var(--text);
+        font-family: inherit, 'Poppins';
+        font-size: 14px;
+    }
+
+    /* =========================================================
+       HEADER
+    ========================================================= */
+    .edit-dh-page .eh-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 18px;
+        margin-bottom: 26px;
+        padding-bottom: 22px;
+        border-bottom: 1px solid #e9edf5;
+    }
+
+    .edit-dh-page .eh-topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        min-width: 0;
+    }
+
+    .edit-dh-page .eh-avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
+        flex: 0 0 60px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #5145cd, #8175f4);
+        color: #fff;
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        box-shadow: 0 8px 20px rgba(81, 69, 205, .30);
+    }
+
+    .edit-dh-page .eh-breadcrumb {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 6px;
+        color: #8b95a7;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .edit-dh-page .eh-breadcrumb i {
+        font-size: 9px;
+    }
+
+    .edit-dh-page .eh-topbar h2 {
+        margin: 0 0 4px;
+        color: #172033;
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -.4px;
+    }
+
+    .edit-dh-page .eh-topbar p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12.5px;
+        line-height: 1.6;
+    }
+
+    /* =========================================================
+       EDITOR (full width, no summary panel)
+    ========================================================= */
+    .edit-dh-page .eh-editor {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .edit-dh-page .eh-section {
+        padding: 24px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 4px 18px rgba(15, 23, 42, .04);
+    }
+
+    .edit-dh-page .eh-section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eef1f6;
+    }
+
+    .edit-dh-page .eh-section-num {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        flex: 0 0 30px;
+        border-radius: 9px;
+        background: var(--primary-soft);
+        color: var(--primary);
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .edit-dh-page .eh-section-title {
+        margin: 0;
+        color: #1e293b;
+        font-size: 15px;
+        font-weight: 750;
+        line-height: 1.3;
+    }
+
+    .edit-dh-page .eh-section-sub {
+        margin: 2px 0 0;
+        color: var(--muted);
+        font-size: 11.5px;
+        line-height: 1.5;
+    }
+
+    /* Fields */
+    .edit-dh-page .eh-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    @media (max-width: 650px) {
+        .edit-dh-page .eh-grid-2 {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .edit-dh-page .eh-field {
+        min-width: 0;
+    }
+
+    .edit-dh-page .eh-field-full {
+        grid-column: 1 / -1;
+    }
+
+    .edit-dh-page .eh-field label {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 7px;
+        color: #475569;
+        font-size: 11.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+    }
+
+    .edit-dh-page .eh-field label .required {
+        color: var(--danger);
+        font-size: 13px;
+    }
+
+    .edit-dh-page .eh-field input,
+    .edit-dh-page .eh-field select {
+        width: 100%;
+        height: 43px;
+        padding: 0 12px;
+        border: 1px solid #dce3ed;
+        border-radius: 9px;
+        outline: none;
+        background: #fff;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 13px;
+        transition: all .2s ease;
+    }
+
+    .edit-dh-page .eh-field input:focus,
+    .edit-dh-page .eh-field select:focus {
+        border-color: #8980f4;
+        box-shadow: 0 0 0 3px rgba(81, 69, 205, .10);
+    }
+
+    .edit-dh-page .eh-field input::placeholder {
+        color: #a0a9b8;
+    }
+
+    .edit-dh-page .eh-field input.invalid {
+        border-color: var(--danger);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, .08);
+    }
+
+    .edit-dh-page .eh-hint {
+        margin: 6px 0 0;
+        color: #94a0b2;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+    .edit-dh-page .eh-password-wrap {
+        position: relative;
+    }
+
+    .edit-dh-page .eh-password-wrap input {
+        padding-right: 46px;
+    }
+
+    .edit-dh-page .eh-password-toggle {
+        position: absolute;
+        top: 50%;
+        right: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        transform: translateY(-50%);
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: #64748b;
+        cursor: pointer;
+    }
+
+    .edit-dh-page .eh-password-toggle:hover {
+        background: #eef2ff;
+        color: var(--primary);
+    }
+
+    .edit-dh-page .eh-password-error {
+        display: none;
+        margin-top: 6px;
+        color: var(--danger);
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .edit-dh-page .eh-password-error.show {
+        display: block;
+    }
+
+    /* =========================================================
+       DEPARTMENT EDITOR
+    ========================================================= */
+    .edit-dh-page .eh-dept-area {
+        padding: 14px;
+        border: 1px solid #e8edf4;
+        border-radius: 12px;
+        background: #fbfcff;
+    }
+
+    .edit-dh-page .eh-dept-area-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+        border-bottom: 1px dashed #e3e7f1;
+    }
+
+    .edit-dh-page .eh-dept-area-name {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--primary);
+        font-size: 13px;
+        font-weight: 750;
+    }
+
+    .edit-dh-page .eh-dept-area-name i {
+        font-size: 12px;
+    }
+
+    .edit-dh-page .eh-dept-count {
+        padding: 3px 9px;
+        border-radius: 20px;
+        background: var(--primary-soft);
+        color: var(--primary);
+        font-size: 10.5px;
+        font-weight: 750;
+    }
+
+    .edit-dh-page .eh-dept-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 10px;
+        margin-bottom: 6px;
+        border: 1px solid #eceff6;
+        border-radius: 10px;
+        background: #fff;
+        transition: all .2s ease;
+    }
+
+    .edit-dh-page .eh-dept-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .edit-dh-page .eh-dept-row:hover {
+        border-color: #c7c2ff;
+        background: #fdfcff;
+    }
+
+    .edit-dh-page .eh-dept-row.selected {
+        border-color: #c7c2ff;
+        background: #f8f6ff;
+        box-shadow: 0 2px 8px rgba(81, 69, 205, .08);
+    }
+
+    .edit-dh-page .eh-dept-check {
+        position: relative;
+        flex: 0 0 18px;
+        margin-top: 3px;
+    }
+
+    .edit-dh-page .eh-dept-check input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        pointer-events: none;
+    }
+
+    .edit-dh-page .eh-dept-check .box {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border: 1.7px solid #cbd0dc;
+        border-radius: 5px;
+        background: #fff;
+        cursor: pointer;
+        transition: all .18s ease;
+    }
+
+    .edit-dh-page .eh-dept-check input:checked + .box {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .edit-dh-page .eh-dept-check input:checked + .box::after {
+        content: "";
+        width: 5px;
+        height: 9px;
+        border: solid #fff;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+        margin-top: -2px;
+    }
+
+    .edit-dh-page .eh-dept-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .edit-dh-page .eh-dept-name {
+        display: block;
+        color: #334155;
+        font-size: 13px;
+        font-weight: 650;
+        cursor: pointer;
+        margin-bottom: 2px;
+    }
+
+    .edit-dh-page .eh-dept-name:hover {
+        color: var(--primary);
+    }
+
+    .edit-dh-page .eh-dept-code {
+        color: #94a0b2;
+        font-size: 10.5px;
+        font-weight: 600;
+        letter-spacing: .3px;
+    }
+
+    .edit-dh-page .eh-perms {
+        display: none;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px dashed #eef1f6;
+    }
+
+    .edit-dh-page .eh-dept-row.selected .eh-perms {
+        display: flex;
+    }
+
+    .edit-dh-page .eh-perm-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 9px;
+        border: 1px solid #e0e5ee;
+        border-radius: 20px;
+        background: #fff;
+        color: #64748b;
+        font-size: 10.5px;
+        font-weight: 700;
+        cursor: pointer;
+        user-select: none;
+        transition: all .18s ease;
+    }
+
+    .edit-dh-page .eh-perm-chip input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .edit-dh-page .eh-perm-chip:hover {
+        border-color: #c7c2ff;
+        color: var(--primary);
+    }
+
+    .edit-dh-page .eh-perm-chip:has(input:checked) {
+        border-color: #86efac;
+        background: #f0fdf4;
+        color: #15803d;
+    }
+
+    .edit-dh-page .eh-perm-chip input:disabled + span {
+        opacity: .45;
+        cursor: not-allowed;
+    }
+
+    .edit-dh-page .eh-perm-chip.all {
+        border-color: #c7c2ff;
+        background: var(--primary-soft);
+        color: var(--primary);
+        font-weight: 800;
+    }
+
+    .edit-dh-page .eh-perm-chip.all:has(input:checked) {
+        border-color: #5145cd;
+        background: #5145cd;
+        color: #fff;
+    }
+
+    /* Empty state */
+    .edit-dh-page .eh-empty {
+        padding: 22px;
+        border: 1px dashed #d8ddeb;
+        border-radius: 10px;
+        background: #fafbff;
+        color: #94a0b2;
+        font-size: 12px;
+        text-align: center;
+    }
+
+    .edit-dh-page .eh-empty i {
+        display: block;
+        margin-bottom: 8px;
+        color: #c4cadd;
+        font-size: 22px;
+    }
+
+    /* =========================================================
+       ACTION BAR
+    ========================================================= */
+    .edit-dh-page .eh-action-bar {
+        position: sticky;
+        bottom: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 16px 22px;
+        margin-top: 4px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, .96);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 -4px 18px rgba(15, 23, 42, .06);
+        z-index: 5;
+    }
+
+    .edit-dh-page .eh-action-info {
+        color: var(--muted);
+        font-size: 12px;
+    }
+
+    .edit-dh-page .eh-action-info strong {
+        color: var(--primary);
+    }
+
+    .edit-dh-page .eh-action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .edit-dh-page .eh-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 42px;
+        padding: 10px 18px;
+        border: 1px solid transparent;
+        border-radius: 9px;
+        cursor: pointer;
+        text-decoration: none;
+        font-family: inherit;
+        font-size: 12.5px;
+        font-weight: 700;
+        transition: all .2s ease;
+    }
+
+    .edit-dh-page .eh-btn:active {
+        transform: translateY(1px);
+    }
+
+    .edit-dh-page .eh-btn-secondary {
+        border-color: #e2e8f0;
+        background: #fff;
+        color: #475569;
+    }
+
+    .edit-dh-page .eh-btn-secondary:hover {
+        background: #f8fafc;
+    }
+
+    .edit-dh-page .eh-btn-primary {
+        background: linear-gradient(135deg, #5145cd, #6f63e6);
+        color: #fff;
+        box-shadow: 0 5px 14px rgba(81, 69, 205, .25);
+    }
+
+    .edit-dh-page .eh-btn-primary:hover {
+        background: linear-gradient(135deg, #4338b8, #5d51dd);
+    }
+
+    @media (max-width: 650px) {
+        .edit-dh-page .eh-section {
+            padding: 18px;
+        }
+
+        .edit-dh-page .eh-action-buttons {
+            width: 100%;
+            flex-direction: column-reverse;
+        }
+
+        .edit-dh-page .eh-action-buttons .eh-btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-dh-page">
+
+    <!-- Top Bar -->
+    <div class="eh-topbar">
+        <div class="eh-topbar-left">
+            <div class="eh-avatar">
+                {{ department_head[1][0]|upper }}
+            </div>
+            <div>
+                <div class="eh-breadcrumb">
+                    <span>Administration</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                    <span>Department Head</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                    <span>Edit #{{ department_head[0] }}</span>
+                </div>
+                <h2>Edit Information >> {{ department_head[1] }}</h2>
+                <p>Update the account details and department assignments below.</p>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST"
+          action="{{ url_for('main.edit_department_head', user_id=department_head[0]) }}"
+          id="editDepartmentHeadForm">
+
+        <div class="eh-editor">
+
+            <!-- Section 1: Account -->
+            <section class="eh-section">
+                <div class="eh-section-header">
+                    <div class="eh-section-num">1</div>
+                    <div>
+                        <h3 class="eh-section-title">Account Details</h3>
+                        <p class="eh-section-sub">
+                            Basic identity and login information
+                        </p>
+                    </div>
+                </div>
+
+                <div class="eh-grid-2">
+                    <div class="eh-field">
+                        <label for="name">
+                            Full Name <span class="required">*</span>
+                        </label>
+                        <input type="text" id="name" name="name"
+                               value="{{ department_head[1] }}"
+                               maxlength="150" required>
+                    </div>
+
+                    <div class="eh-field">
+                        <label for="employee_code">
+                            Employee Code <span class="required">*</span>
+                        </label>
+                        <input type="text" id="employee_code"
+                               name="employee_code"
+                               value="{{ department_head[2] }}"
+                               maxlength="30" required>
+                    </div>
+
+                    <div class="eh-field">
+                        <label for="password">New Password</label>
+                        <div class="eh-password-wrap">
+                            <input type="password" id="password"
+                                   name="password" minlength="8"
+                                   autocomplete="new-password"
+                                   placeholder="Leave blank to keep current">
+                            <button type="button"
+                                    class="eh-password-toggle"
+                                    data-password-target="password"
+                                    aria-label="Show password">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                        <p class="eh-hint">Minimum 8 characters if changing</p>
+                    </div>
+
+                    <div class="eh-field">
+                        <label for="confirm_password">
+                            Confirm New Password
+                        </label>
+                        <div class="eh-password-wrap">
+                            <input type="password" id="confirm_password"
+                                   name="confirm_password" minlength="8"
+                                   autocomplete="new-password"
+                                   placeholder="Re-enter new password">
+                            <button type="button"
+                                    class="eh-password-toggle"
+                                    data-password-target="confirm_password"
+                                    aria-label="Show confirm password">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                        <p class="eh-password-error" id="passwordMatchError">
+                            Passwords do not match.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: Branch + Departments -->
+            <section class="eh-section">
+                <div class="eh-section-header">
+                    <div class="eh-section-num">2</div>
+                    <div>
+                        <h3 class="eh-section-title">
+                            Branch &amp; Department Assignments
+                        </h3>
+                        <p class="eh-section-sub">
+                            Select a branch, then choose departments within it
+                        </p>
+                    </div>
+                </div>
+
+                {% if branches %}
+
+                    {# Determine initially selected branch #}
+                    {% set ns = namespace(initial_branch=None) %}
+                    {% for d in departments %}
+                        {% if d[0] in (department_head[3] or []) and ns.initial_branch is none %}
+                            {% set ns.initial_branch = d[3] %}
+                        {% endif %}
+                    {% endfor %}
+                    {% if ns.initial_branch is none %}
+                        {% set ns.initial_branch = branches[0][0] %}
+                    {% endif %}
+
+                    <div class="eh-field eh-field-full" style="margin-bottom:18px;">
+                        <label for="branch_id">
+                            Branch <span class="required">*</span>
+                        </label>
+                        <select id="branch_id" name="branch_id" required>
+                            <option value="">Select Branch</option>
+                            {% for b in branches %}
+                                <option value="{{ b[0] }}"
+                                    {% if ns.initial_branch == b[0] %}selected{% endif %}>
+                                    {{ b[1] }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <p class="eh-hint">
+                            Changing the branch will reset the department selection
+                        </p>
+                    </div>
+
+                    <div class="eh-dept-area" id="deptArea">
+                        <div class="eh-dept-area-title">
+                            <div class="eh-dept-area-name">
+                                <i class="fa-solid fa-building"></i>
+                                <span id="deptAreaBranchName">Departments</span>
+                            </div>
+                            <span class="eh-dept-count" id="deptAreaCount">
+                                0 depts
+                            </span>
+                        </div>
+
+                        <div id="deptList">
+
+                            {% for d in departments %}
+
+                                {% set perm = permissions.get(d[0], {}) %}
+                                {% set is_selected = d[0] in (department_head[3] or []) %}
+
+                                <div class="eh-dept-row {% if is_selected %}selected{% endif %}"
+                                     data-dept-row
+                                     data-branch-id="{{ d[3] }}"
+                                     style="display:none;">
+
+                                    <label class="eh-dept-check">
+                                        <input type="checkbox"
+                                               name="department_ids"
+                                               value="{{ d[0] }}"
+                                               class="eh-dept-input"
+                                               {% if is_selected %}checked{% endif %}>
+                                        <span class="box"></span>
+                                    </label>
+
+                                    <div class="eh-dept-body">
+                                        <label class="eh-dept-name">{{ d[1] }}</label>
+                                        {% if d[2] %}
+                                            <span class="eh-dept-code">{{ d[2] }}</span>
+                                        {% endif %}
+
+                                        <div class="eh-perms">
+
+                                            <label class="eh-perm-chip all">
+                                                <input type="checkbox"
+                                                       class="eh-perm-all"
+                                                       disabled>
+                                                <span>All</span>
+                                            </label>
+
+                                            <label class="eh-perm-chip">
+                                                <input type="checkbox"
+                                                       name="permission_{{ d[0] }}_view"
+                                                       value="on"
+                                                       class="eh-perm"
+                                                       {% if perm.get('view') %}checked{% endif %}
+                                                       disabled>
+                                                <span>View</span>
+                                            </label>
+
+                                            <label class="eh-perm-chip">
+                                                <input type="checkbox"
+                                                       name="permission_{{ d[0] }}_add"
+                                                       value="on"
+                                                       class="eh-perm"
+                                                       {% if perm.get('add') %}checked{% endif %}
+                                                       disabled>
+                                                <span>Add</span>
+                                            </label>
+
+                                            <label class="eh-perm-chip">
+                                                <input type="checkbox"
+                                                       name="permission_{{ d[0] }}_edit"
+                                                       value="on"
+                                                       class="eh-perm"
+                                                       {% if perm.get('edit') %}checked{% endif %}
+                                                       disabled>
+                                                <span>Edit</span>
+                                            </label>
+
+                                            <label class="eh-perm-chip">
+                                                <input type="checkbox"
+                                                       name="permission_{{ d[0] }}_delete"
+                                                       value="on"
+                                                       class="eh-perm"
+                                                       {% if perm.get('delete') %}checked{% endif %}
+                                                       disabled>
+                                                <span>Delete</span>
+                                            </label>
+
+                                            <label class="eh-perm-chip">
+                                                <input type="checkbox"
+                                                       name="permission_{{ d[0] }}_export"
+                                                       value="on"
+                                                       class="eh-perm"
+                                                       {% if perm.get('export') %}checked{% endif %}
+                                                       disabled>
+                                                <span>Export</span>
+                                            </label>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            {% endfor %}
+
+                            <div class="eh-empty" id="deptEmpty" style="display:none;">
+                                <i class="fa-solid fa-building-circle-xmark"></i>
+                                No active departments in this branch.
+                            </div>
+
+                        </div>
+                    </div>
+
+                {% else %}
+
+                    <div class="eh-empty">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        No active branches available.
+                    </div>
+
+                {% endif %}
+            </section>
+
+            <!-- Action bar -->
+            <div class="eh-action-bar">
+                <div class="eh-action-info">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Changes are saved when you click <strong>Save Changes</strong>.
+                </div>
+
+                <div class="eh-action-buttons">
+                    <a href="{{ url_for('main.manage_department_heads') }}"
+                       class="eh-btn eh-btn-secondary">
+                        <i class="fa-solid fa-xmark"></i>
+                        Cancel
+                    </a>
+
+                    <button type="submit" class="eh-btn eh-btn-primary">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+<!-- ============================================================
+     JS: Branch filter + department selection + permission chips
+============================================================ -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const branchSelect = document.getElementById("branch_id");
+    const deptArea = document.getElementById("deptArea");
+    const deptList = document.getElementById("deptList");
+    const deptEmpty = document.getElementById("deptEmpty");
+    const deptAreaBranchName = document.getElementById("deptAreaBranchName");
+    const deptAreaCount = document.getElementById("deptAreaCount");
+
+    if (!branchSelect || !deptList) return;
+
+    const allRows = Array.from(deptList.querySelectorAll("[data-dept-row]"));
+
+    function updateRowState(row) {
+        const input = row.querySelector(".eh-dept-input");
+        const perms = row.querySelectorAll(".eh-perm");
+        const allChip = row.querySelector(".eh-perm-all");
+
+        const selected = input.checked;
+        row.classList.toggle("selected", selected);
+
+        perms.forEach(p => p.disabled = !selected);
+        if (allChip) {
+            allChip.disabled = !selected;
+            if (!selected) {
+                allChip.checked = false;
+                allChip.indeterminate = false;
+            }
+        }
+
+        if (allChip && selected) {
+            const total = perms.length;
+            const checked = Array.from(perms).filter(p => p.checked).length;
+            allChip.checked = total > 0 && checked === total;
+            allChip.indeterminate = checked > 0 && checked < total;
+        }
+    }
+
+    function filterByBranch() {
+        const branchId = branchSelect.value;
+        const branchName = branchSelect.options[branchSelect.selectedIndex]?.text || "Departments";
+
+        deptAreaBranchName.textContent = branchName || "Departments";
+
+        let visibleCount = 0;
+
+        allRows.forEach(row => {
+            const matches = row.dataset.branchId === branchId;
+            row.style.display = matches ? "" : "none";
+
+            if (matches) {
+                visibleCount++;
+                updateRowState(row);
+            } else {
+                const input = row.querySelector(".eh-dept-input");
+                if (input.checked) {
+                    input.checked = false;
+
+                    row.querySelectorAll(".eh-perm").forEach(p => {
+                        p.checked = false;
+                        p.disabled = true;
+                    });
+                    const allChip = row.querySelector(".eh-perm-all");
+                    if (allChip) {
+                        allChip.checked = false;
+                        allChip.indeterminate = false;
+                        allChip.disabled = true;
+                    }
+                    row.classList.remove("selected");
+                }
+            }
+        });
+
+        deptEmpty.style.display = visibleCount === 0 ? "" : "none";
+        deptAreaCount.textContent = visibleCount + " dept" + (visibleCount === 1 ? "" : "s");
+    }
+
+    allRows.forEach(row => {
+        const input = row.querySelector(".eh-dept-input");
+        const perms = row.querySelectorAll(".eh-perm");
+        const allChip = row.querySelector(".eh-perm-all");
+
+        input.addEventListener("change", () => updateRowState(row));
+
+        perms.forEach(p => {
+            p.addEventListener("change", () => {
+                const total = perms.length;
+                const checked = Array.from(perms).filter(x => x.checked).length;
+                allChip.checked = total > 0 && checked === total;
+                allChip.indeterminate = checked > 0 && checked < total;
+            });
+        });
+
+        if (allChip) {
+            allChip.addEventListener("change", () => {
+                perms.forEach(p => {
+                    if (!p.disabled) p.checked = allChip.checked;
+                });
+                allChip.indeterminate = false;
+            });
+        }
+    });
+
+    branchSelect.addEventListener("change", filterByBranch);
+
+    filterByBranch();
+});
+</script>
+
+<!-- ============================================================
+     JS: Password validation + show/hide
+============================================================ -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.querySelectorAll(
+        ".eh-password-toggle[data-password-target]"
+    ).forEach(function (button) {
+        button.addEventListener("click", function () {
+            const input = document.getElementById(button.dataset.passwordTarget);
+            const icon = button.querySelector("i");
+            if (!input || !icon) return;
+            const show = input.type === "password";
+            input.type = show ? "text" : "password";
+            icon.classList.toggle("fa-eye", !show);
+            icon.classList.toggle("fa-eye-slash", show);
+        });
+    });
+
+    const password = document.getElementById("password");
+    const confirmPassword = document.getElementById("confirm_password");
+    const errorEl = document.getElementById("passwordMatchError");
+    const form = document.getElementById("editDepartmentHeadForm");
+
+    function validatePasswords() {
+        if (!password || !confirmPassword || !errorEl) return true;
+
+        errorEl.classList.remove("show");
+        password.classList.remove("invalid");
+        confirmPassword.classList.remove("invalid");
+
+        if (password.value === "" && confirmPassword.value === "") return true;
+
+        if (password.value.length > 0 && password.value.length < 8) {
+            password.classList.add("invalid");
+            errorEl.textContent = "New password must contain at least 8 characters.";
+            errorEl.classList.add("show");
+            return false;
+        }
+
+        if (password.value !== confirmPassword.value) {
+            password.classList.add("invalid");
+            confirmPassword.classList.add("invalid");
+            errorEl.textContent = "Passwords do not match.";
+            errorEl.classList.add("show");
+            return false;
+        }
+
+        return true;
+    }
+
+    password?.addEventListener("input", validatePasswords);
+    confirmPassword?.addEventListener("input", validatePasswords);
+
+    form?.addEventListener("submit", function (event) {
+        const anyChecked = document.querySelector(".eh-dept-input:checked");
+        if (!anyChecked) {
+            event.preventDefault();
+            alert("Please select at least one department.");
+            return;
+        }
+        if (!validatePasswords()) {
+            event.preventDefault();
+            confirmPassword.focus();
+        }
+    });
+});
+</script>
+{% endblock %}

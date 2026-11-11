@@ -1,0 +1,1431 @@
+
+{% extends "base.html" %}
+
+{% block title %}View Department{% endblock %}
+{% block page_heading %}View Department{% endblock %}
+{% block page_subtitle %}Manage department records and organizational structure{% endblock %}
+
+{% block extra_css %}
+<style>
+    .department-page,
+    .department-page * {
+        box-sizing: border-box;
+    }
+
+    .department-page {
+        width: 100%;
+        max-width: 1500px;
+        margin: 0 auto;
+        color: #1e293b;
+        font-family: 'Poppins';
+    }
+
+    /* PAGE INTRO */
+    .department-page .page-intro {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .department-page .intro-text h2 {
+        margin: 0 0 7px;
+        font-size: 24px;
+        font-weight: 750;
+        letter-spacing: -.6px;
+        color: #172033;
+    }
+
+    .department-page .intro-text p {
+        margin: 0;
+        color: #718096;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .department-page .intro-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: nowrap;
+    }
+
+    .department-page .back-link,
+    .department-page .add-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #fff;
+        color: #475569;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 650;
+        white-space: nowrap;
+        transition: background .2s ease,
+            border-color .2s ease,
+            transform .2s ease,
+            box-shadow .2s ease;
+    }
+
+    .department-page .back-link:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+    }
+
+    .department-page .add-link {
+        background: linear-gradient(135deg, #6d5dfc, #5144c6);
+        border-color: #6254dc;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(98, 84, 220, .20);
+    }
+
+    .department-page .add-link:hover {
+        background: linear-gradient(135deg, #5b4bea, #4336b4);
+        border-color: #5144c6;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(98, 84, 220, .25);
+    }
+
+    /* OVERVIEW CARDS */
+    .department-page .overview-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .department-page .overview-card {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        min-width: 0;
+        padding: 23px;
+        overflow: hidden;
+        background: linear-gradient(135deg, #8174ff 0%, #5845d8 100%);
+        border: 1px solid rgba(255, 255, 255, .18);
+        border-radius: 17px;
+        box-shadow: 0 8px 22px rgba(88, 69, 216, .22);
+        transition: transform .25s ease, box-shadow .25s ease;
+        isolation: isolate;
+    }
+
+    .department-page .overview-card::before {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        width: 155px;
+        height: 155px;
+        top: -75px;
+        right: -35px;
+        border: 1px solid rgba(255, 255, 255, .18);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, .07);
+        pointer-events: none;
+    }
+
+    .department-page .overview-card::after {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        width: 100px;
+        height: 100px;
+        right: 35px;
+        bottom: -70px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, .08);
+        pointer-events: none;
+    }
+
+    .department-page .overview-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 13px 28px rgba(37, 51, 92, .18);
+    }
+
+    .department-page .overview-card[data-department-filter] {
+        cursor: pointer;
+        font-family: inherit;
+        text-align: left;
+    }
+
+    .department-page .overview-card[data-department-filter]:focus-visible,
+    .department-page .department-head-link:focus-visible {
+        outline: 3px solid #c4baff;
+        outline-offset: 4px;
+    }
+
+    .department-page a.department-head-link {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .department-page .overview-card:nth-child(1) {
+        background: linear-gradient(135deg, #8879ff 0%, #6652e8 52%, #5140c5 100%);
+        border-color: rgba(255, 255, 255, .18);
+        box-shadow: 0 8px 22px rgba(102, 82, 232, .24);
+    }
+
+    .department-page .overview-card:nth-child(2) {
+        background: linear-gradient(135deg, #36d6a0 0%, #1dbb87 50%, #10956f 100%);
+        border-color: rgba(255, 255, 255, .18);
+        box-shadow: 0 8px 22px rgba(29, 187, 135, .22);
+    }
+
+    .department-page .overview-card:nth-child(3) {
+        background: linear-gradient(135deg, #51c9f5 0%, #329eea 50%, #2563cb 100%);
+        border-color: rgba(255, 255, 255, .18);
+        box-shadow: 0 8px 22px rgba(50, 158, 234, .22);
+    }
+
+    .department-page .overview-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 53px;
+        height: 53px;
+        border: 1px solid rgba(255, 255, 255, .27);
+        border-radius: 15px;
+        background: rgba(255, 255, 255, .19);
+        color: #fff;
+        font-size: 21px;
+        box-shadow: 0 4px 12px rgba(29, 41, 86, .08);
+        backdrop-filter: blur(5px);
+    }
+
+    .department-page .overview-label {
+        margin-bottom: 6px;
+        color: rgba(255, 255, 255, .88);
+        font-size: 12px;
+        font-weight: 650;
+        letter-spacing: .2px;
+    }
+
+    .department-page .overview-value {
+        color: #fff;
+        font-size: 29px;
+        font-weight: 800;
+        line-height: 1.2;
+        letter-spacing: -.7px;
+        text-shadow: 0 2px 5px rgba(24, 32, 70, .10);
+    }
+
+    /* DIRECTORY PANEL */
+    .department-page .panel {
+        margin-bottom: 24px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #e7eaf2;
+        border-radius: 17px;
+        box-shadow: 0 6px 24px rgba(37, 51, 92, .045);
+    }
+
+    /* FLASH MESSAGES */
+    .department-page .flash-message {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 13px 16px;
+        margin-bottom: 16px;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        font-size: 13px;
+    }
+
+    .department-page .flash-message.success {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
+
+    .department-page .flash-message.error {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+    }
+
+    /* DIRECTORY HEADER */
+    .department-page .list-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 15px;
+        padding: 21px 24px;
+        background: linear-gradient(110deg, #ffffff 0%, #f6f7ff 100%);
+        border-bottom: 1px solid #e9edf5;
+    }
+
+    .department-page .list-heading h3 {
+        margin: 0 0 5px;
+        color: #172033;
+        font-size: 15px;
+        font-weight: 750;
+    }
+
+    .department-page .list-heading p {
+        margin: 0;
+        color: #8490a2;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    .department-page .count-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 28px;
+        padding: 0 9px;
+        border: 1px solid #dedcff;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #eeecff, #e2e7ff);
+        color: #5144c6;
+        font-size: 12px;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    /* SEARCH AREA */
+    .department-page .directory-search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 510px;
+        max-width: 100%;
+    }
+
+    .department-page .search-input-wrap {
+        position: relative;
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .department-page .search-input-wrap i {
+        position: absolute;
+        top: 50%;
+        left: 12px;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 13px;
+        pointer-events: none;
+    }
+
+    .department-page .directory-search input {
+        width: 100%;
+        height: 40px;
+        padding: 0 12px 0 36px;
+        border: 1px solid #dfe5ee;
+        border-radius: 9px;
+        background: #fff;
+        color: #243047;
+        font-family: inherit;
+        font-size: 12px;
+        outline: none;
+    }
+
+    .department-page .directory-search input:focus {
+        border-color: #8175e8;
+        box-shadow: 0 0 0 3px rgba(99, 85, 220, .11);
+    }
+
+    .department-page .search-btn,
+    .department-page .reset-search-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        height: 40px;
+        padding: 0 15px;
+        border-radius: 9px;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: .2s ease;
+    }
+
+    .department-page .search-btn {
+        border: 1px solid #6254dc;
+        background: linear-gradient(135deg, #6d5dfc, #5144c6);
+        color: #fff;
+        box-shadow: 0 3px 8px rgba(98, 84, 220, .16);
+    }
+
+    .department-page .search-btn:hover {
+        background: linear-gradient(135deg, #5b4bea, #4336b4);
+        transform: translateY(-1px);
+    }
+
+    .department-page .reset-search-btn {
+        border: 1px solid #dfe5ee;
+        background: #fff;
+        color: #64748b;
+    }
+
+    .department-page .reset-search-btn:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        color: #334155;
+        transform: translateY(-1px);
+    }
+
+    /* TABLE */
+    .department-page .table-wrap {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .department-page table {
+        width: 100%;
+        min-width: 950px;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .department-page th {
+        padding: 14px 16px;
+        background: #f8faff;
+        border-bottom: 1px solid #edf0f7;
+        color: #718096;
+        text-align: left;
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: .35px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .department-page td {
+        padding: 15px 16px;
+        border-bottom: 1px solid #f0f2f6;
+        color: #475569;
+        text-align: left;
+        vertical-align: middle;
+        font-size: 12px;
+    }
+
+    .department-page tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .department-page tbody tr {
+        transition: background .15s ease;
+    }
+
+    .department-page tbody tr:hover {
+        background: #f9faff;
+    }
+
+    .department-page .department-id {
+        color: #8b95a7;
+        font-weight: 650;
+    }
+
+    .department-page .department-name-cell {
+        min-width: 210px;
+    }
+
+    .department-page .department-name-cell input {
+        min-width: 190px;
+        font-weight: 600;
+    }
+
+    .department-page .short-name-cell {
+        min-width: 125px;
+    }
+
+    .department-page .short-name-cell input {
+        min-width: 100px;
+        max-width: 130px;
+    }
+
+    .department-page input,
+    .department-page select {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        height: 38px;
+        padding: 0 10px;
+        border: 1px solid #dfe5ee;
+        border-radius: 8px;
+        outline: none;
+        background: #fff;
+        color: #243047;
+        font: inherit;
+        font-size: 12px;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .department-page input:focus,
+    .department-page select:focus {
+        border-color: #8175e8;
+        box-shadow: 0 0 0 3px rgba(99, 85, 220, .11);
+    }
+
+    .department-page .branch-cell {
+        min-width: 170px;
+    }
+
+    .department-page .branch-cell select {
+        min-width: 150px;
+    }
+
+    /* DEPARTMENT HEAD COUNT */
+    .department-page .head-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 30px;
+        height: 28px;
+        padding: 0 8px;
+        border: 1px solid #e5eaf1;
+        border-radius: 8px;
+        background: #f4f7fb;
+        color: #475569;
+        font-weight: 700;
+    }
+
+    /* STATUS BADGES */
+    .department-page .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .department-page .status::before {
+        content: "";
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .department-page .status.active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .department-page .status.inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* ACTION BUTTONS */
+    .department-page .actions-cell {
+        min-width: 220px;
+    }
+
+    .department-page .action-buttons {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 8px;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+    }
+
+    .department-page .action-buttons form {
+        display: flex;
+        flex: 0 0 auto;
+        margin: 0;
+    }
+
+    .department-page .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 37px;
+        padding: 9px 11px;
+        border: 1px solid transparent;
+        border-radius: 9px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.2;
+        white-space: nowrap;
+        transition: background .2s ease,
+            transform .2s ease,
+            box-shadow .2s ease;
+    }
+
+    .department-page .btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .department-page .btn-primary {
+        background: linear-gradient(135deg, #6d5dfc, #5144c6);
+        color: #fff;
+        box-shadow: 0 3px 8px rgba(98, 84, 220, .16);
+    }
+
+    .department-page .btn-primary:hover {
+        background: linear-gradient(135deg, #5b4bea, #4336b4);
+        box-shadow: 0 5px 12px rgba(98, 84, 220, .2);
+    }
+
+    .department-page .btn-secondary {
+        background: #eeecff;
+        border-color: #e0ddff;
+        color: #5144c6;
+    }
+
+    .department-page .btn-secondary:hover {
+        background: #e2dfff;
+    }
+
+    .department-page .btn-danger {
+        background: #fff0f0;
+        border-color: #fee2e2;
+        color: #c53030;
+    }
+
+    .department-page .btn-danger:hover {
+        background: #fee2e2;
+    }
+
+    /* EMPTY STATE */
+    .department-page .empty-state {
+        padding: 45px 20px;
+        text-align: center;
+        color: #8490a2;
+    }
+
+    .department-page .empty-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        margin: 0 auto 14px;
+        border-radius: 15px;
+        background: #f1f5f9;
+        color: #94a3b8;
+        font-size: 22px;
+    }
+
+    .department-page .empty-state strong {
+        display: block;
+        margin-bottom: 6px;
+        color: #334155;
+        font-size: 14px;
+    }
+
+    .department-page .empty-state p {
+        margin: 0;
+        font-size: 12px;
+    }
+
+    /* SEARCH EMPTY STATE */
+    .department-page .search-empty-row td {
+        padding: 0;
+        border-bottom: 0;
+    }
+
+    /* PAGINATION */
+    .department-page .department-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 14px;
+        padding: 17px 22px;
+        border-top: 1px solid #edf0f7;
+        background: linear-gradient(110deg, #ffffff, #f8f9ff);
+    }
+
+    .department-page .pagination-info {
+        color: #7b879b;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .department-page .pagination-controls {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .department-page .page-numbers {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .department-page .page-btn,
+    .department-page .page-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-width: 34px;
+        height: 34px;
+        padding: 0 10px;
+        border: 1px solid #e2e7f0;
+        border-radius: 9px;
+        background: #fff;
+        color: #536079;
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 650;
+        cursor: pointer;
+        transition: all .2s ease;
+    }
+
+    .department-page .page-number {
+        padding: 0;
+    }
+
+    .department-page .page-btn:hover:not(:disabled),
+    .department-page .page-number:hover {
+        background: #f0edff;
+        border-color: #c8c0ff;
+        color: #5144c6;
+    }
+
+    .department-page .page-number.active {
+        background: linear-gradient(135deg, #7667ff, #5144c6);
+        border-color: #6254dc;
+        color: #fff;
+        box-shadow: 0 3px 9px rgba(98, 84, 220, .20);
+    }
+
+    .department-page .page-btn:disabled {
+        opacity: .4;
+        cursor: not-allowed;
+    }
+
+    /* TABLET */
+    @media (max-width: 900px) {
+        .department-page .overview-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    /* MOBILE */
+    @media (max-width: 600px) {
+        .department-page .page-intro {
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .department-page .intro-text {
+            width: 100%;
+        }
+
+        .department-page .intro-text h2 {
+            font-size: 21px;
+        }
+
+        .department-page .intro-actions {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: stretch;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .department-page .intro-actions a {
+            display: inline-flex;
+            flex: 1 1 0;
+            min-width: 0;
+            min-height: 40px;
+            padding: 9px 5px;
+            gap: 5px;
+            font-size: 11px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .department-page .intro-actions a i {
+            flex-shrink: 0;
+            font-size: 11px;
+        }
+
+        .department-page .overview-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .department-page .overview-card {
+            padding: 17px;
+            border-radius: 14px;
+        }
+
+        .department-page .overview-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            font-size: 19px;
+        }
+
+        .department-page .overview-value {
+            font-size: 25px;
+        }
+
+        .department-page .list-heading {
+            padding: 17px;
+        }
+
+        .department-page .directory-search {
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .department-page .search-input-wrap {
+            flex: 1 1 100%;
+        }
+
+        .department-page .search-btn,
+        .department-page .reset-search-btn {
+            flex: 1;
+        }
+
+        .department-page .actions-cell {
+            min-width: 220px;
+        }
+
+        .department-page .action-buttons {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .department-page .action-buttons form {
+            display: flex;
+            flex: 0 0 auto;
+            margin: 0;
+        }
+
+        .department-page .action-buttons .btn {
+            min-height: 36px;
+            padding: 9px 10px;
+            gap: 5px;
+            font-size: 11px;
+        }
+
+        .department-page .department-pagination {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 15px;
+        }
+
+        .department-page .pagination-controls {
+            justify-content: flex-start;
+            width: 100%;
+            gap: 5px;
+        }
+
+        .department-page .page-btn {
+            min-width: 32px;
+            padding: 0 8px;
+            font-size: 10px;
+        }
+
+        .department-page .page-numbers {
+            gap: 4px;
+        }
+
+        .department-page .page-number {
+            min-width: 30px;
+            height: 32px;
+        }
+    }
+
+    /* EXTRA SMALL MOBILE */
+    @media (max-width: 360px) {
+        .department-page .intro-actions {
+            gap: 6px;
+        }
+
+        .department-page .intro-actions a {
+            padding: 9px 3px;
+            gap: 4px;
+            font-size: 10px;
+        }
+
+        .department-page .intro-actions a i {
+            font-size: 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="department-page">
+
+    <!-- PAGE INTRO -->
+    <div class="page-intro">
+        <div class="intro-text">
+            <h2>Department Overview</h2>
+            <p>Organize departments, manage short names, and control department status.</p>
+        </div>
+    </div>
+
+    <!-- OVERVIEW CARDS -->
+    <div class="overview-grid">
+
+        <!-- TOTAL DEPARTMENTS -->
+        <div class="overview-card" role="button" tabindex="0"
+            data-department-filter="all" title="Show all departments">
+
+            <div class="overview-icon">
+                <i class="fa-solid fa-building"></i>
+            </div>
+
+            <div>
+                <div class="overview-label">Total Departments</div>
+                <div class="overview-value">{{ departments|length }}</div>
+            </div>
+        </div>
+
+        <!-- ACTIVE DEPARTMENTS -->
+        <div class="overview-card" role="button" tabindex="0"
+            data-department-filter="active" title="Show active departments">
+
+            <div class="overview-icon">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+
+            <div>
+                <div class="overview-label">Active Departments</div>
+                <div class="overview-value">
+                    {% set ns = namespace(active_count=0) %}
+                    {% for dept in departments %}
+                    {% if dept[3] %}
+                    {% set ns.active_count = ns.active_count + 1 %}
+                    {% endif %}
+                    {% endfor %}
+                    {{ ns.active_count }}
+                </div>
+            </div>
+        </div>
+
+        <!-- DEPARTMENT HEADS -->
+        <a class="overview-card department-head-link"
+            href="{{ url_for('main.manage_department_heads') }}"
+            title="View department heads">
+
+            <div class="overview-icon">
+                <i class="fa-solid fa-user-tie"></i>
+            </div>
+
+            <div>
+                <div class="overview-label">Department Heads</div>
+                <div class="overview-value">
+                    {{ original_head_count }}
+                </div>
+            </div>
+        </a>
+
+    </div>
+
+    <!-- DEPARTMENT DIRECTORY -->
+    <section class="panel">
+
+        <div class="list-heading">
+            <div>
+                <h3>Department Directory</h3>
+                <p>View, edit, activate, or deactivate department records.</p>
+            </div>
+
+            <!-- DEPARTMENT SEARCH -->
+            <div class="directory-search">
+
+                <div class="search-input-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                    <input
+                        type="search"
+                        id="departmentSearch"
+                        placeholder="Branch, department name, short name..."
+                        aria-label="Search departments"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <button
+                    type="button"
+                    id="searchDepartmentBtn"
+                    class="search-btn">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    Search
+                </button>
+
+                <button
+                    type="button"
+                    id="resetDepartmentSearch"
+                    class="reset-search-btn">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    Reset
+                </button>
+
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Branch</th>
+                        <th>Department Name</th>
+                        <th>Short Name</th>
+                        <th>Department Heads</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for d in departments %}
+                    <tr>
+                        <td class="department-id">{{ d[0] }}</td>
+
+                        <td class="branch-cell">
+                            <select form="edit-department-{{ d[0] }}"
+                                name="branch_id" required>
+
+                                {% for branch in branches %}
+                                <option value="{{ branch.id }}"
+                                    {% if d[7] == branch.id %}selected{% endif %}
+                                    {% if not branch.is_active %}disabled{% endif %}>
+                                    {{ branch.name }}
+                                    {% if not branch.is_active %}(Inactive){% endif %}
+                                </option>
+                                {% endfor %}
+
+                            </select>
+                        </td>
+
+                        <td class="department-name-cell">
+                            <input
+                                form="edit-department-{{ d[0] }}"
+                                name="name"
+                                value="{{ d[1] }}"
+                                maxlength="100"
+                                required>
+                        </td>
+
+                        <td class="short-name-cell">
+                            <input
+                                form="edit-department-{{ d[0] }}"
+                                name="short_name"
+                                value="{{ d[2] }}"
+                                maxlength="20"
+                                required>
+                        </td>
+
+                        <td>
+                            <span class="head-count">{{ d[6] }}</span>
+                        </td>
+
+                        <td>
+                            {% if d[3] %}
+                            <span class="status active">Active</span>
+                            {% else %}
+                            <span class="status inactive">Inactive</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if d[4] %}
+                            {{ d[4].strftime('%Y-%m-%d') }}
+                            {% endif %}
+                        </td>
+
+                        <td class="actions-cell">
+                            <div class="action-buttons">
+
+                                <!-- EDIT DEPARTMENT -->
+                                <form method="POST"
+                                    id="edit-department-{{ d[0] }}"
+                                    action="{{ url_for('main.manage_departments') }}">
+
+                                    <input type="hidden" name="action" value="edit">
+                                    <input type="hidden" name="department_id" value="{{ d[0] }}">
+
+                                    <button class="btn btn-secondary" type="submit">
+                                        <i class="fa-solid fa-floppy-disk"></i>
+                                        Save
+                                    </button>
+                                </form>
+
+                                <!-- ACTIVATE / DEACTIVATE -->
+                                <form method="POST"
+                                    action="{{ url_for('main.manage_departments') }}">
+
+                                    <input type="hidden" name="action" value="toggle">
+                                    <input type="hidden" name="department_id" value="{{ d[0] }}">
+
+                                    <button class="btn {{ 'btn-danger' if d[3] else 'btn-primary' }}"
+                                        type="submit">
+
+                                        <i class="fa-solid {{ 'fa-ban' if d[3] else 'fa-check' }}"></i>
+                                        {{ 'Deactivate' if d[3] else 'Activate' }}
+
+                                    </button>
+                                </form>
+
+                            </div>
+                        </td>
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="fa-solid fa-building"></i>
+                                </div>
+                                <strong>No departments found</strong>
+                                <p>Add your first department using the "Add Department" button above.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    <!-- SEARCH NO RESULTS -->
+                    <tr id="departmentSearchEmptyRow" class="search-empty-row" style="display:none;">
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </div>
+                                <strong>No matching departments found</strong>
+                                <p>Try another branch, department name, or short name.</p>
+                            </div>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <!-- TABLE PAGINATION -->
+        <div class="department-pagination" id="department-pagination">
+
+            <div class="pagination-info" id="pagination-info">
+                Showing 0–0 of 0 departments
+            </div>
+
+            <div class="pagination-controls">
+
+                <button type="button" class="page-btn" id="prev-page">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    Previous
+                </button>
+
+                <div class="page-numbers" id="page-numbers"></div>
+
+                <button type="button" class="page-btn" id="next-page">
+                    Next
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </div>
+        </div>
+
+    </section>
+</div>
+
+<!-- CLIENT-SIDE SEARCH AND PAGINATION -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const page = document.querySelector(".department-page");
+
+    if (!page) return;
+
+    const tbody = page.querySelector("table tbody");
+    const pagination = page.querySelector("#department-pagination");
+    const info = page.querySelector("#pagination-info");
+    const pageNumbers = page.querySelector("#page-numbers");
+    const prevButton = page.querySelector("#prev-page");
+    const nextButton = page.querySelector("#next-page");
+
+    const searchInput = page.querySelector("#departmentSearch");
+    const searchButton = page.querySelector("#searchDepartmentBtn");
+    const resetButton = page.querySelector("#resetDepartmentSearch");
+    const emptyRow = page.querySelector("#departmentSearchEmptyRow");
+
+    if (!tbody || !pagination || !info ||
+        !pageNumbers || !prevButton || !nextButton) {
+        return;
+    }
+
+    const allRows = Array.from(tbody.querySelectorAll("tr"));
+
+    const allDepartments = allRows.filter(function (row) {
+        return row.querySelector(".actions-cell") !== null;
+    });
+
+    const cards = page.querySelectorAll("[data-department-filter]");
+
+    const rowsPerPage = 7;
+
+    let filteredDepartments = allDepartments.slice();
+    let currentPage = 1;
+    let currentFilter = "all";
+    let searchTerm = "";
+
+    /* NORMALIZE TEXT FOR CASE-INSENSITIVE SEARCH */
+    function normalizeText(value) {
+        return (value || "")
+            .toString()
+            .trim()
+            .toLowerCase();
+    }
+
+    /* GET SEARCHABLE VALUES */
+    function matchesSearch(row) {
+
+        if (!searchTerm) return true;
+
+        // Branch name from the selected option
+        const branchSelect = row.querySelector(".branch-cell select");
+
+        const branchName = branchSelect
+            ? branchSelect.options[branchSelect.selectedIndex]?.textContent || ""
+            : "";
+
+        // Department name
+        const departmentName =
+            row.querySelector(".department-name-cell input")?.value || "";
+
+        // Short name
+        const shortName =
+            row.querySelector(".short-name-cell input")?.value || "";
+
+        return (
+            normalizeText(branchName).includes(searchTerm) ||
+            normalizeText(departmentName).includes(searchTerm) ||
+            normalizeText(shortName).includes(searchTerm)
+        );
+    }
+
+    /* RENDER PAGINATION */
+    function renderPage() {
+
+        const totalRows = filteredDepartments.length;
+        const totalPages = Math.ceil(totalRows / rowsPerPage);
+
+        allDepartments.forEach(function (row) {
+            row.style.display = "none";
+        });
+
+        if (emptyRow) {
+            emptyRow.style.display = totalRows === 0 ? "" : "none";
+        }
+
+        if (totalRows === 0) {
+
+            info.textContent = "Showing 0–0 of 0 departments";
+            pageNumbers.innerHTML = "";
+
+            prevButton.disabled = true;
+            nextButton.disabled = true;
+
+            pagination.style.display = "none";
+
+            return;
+        }
+
+        pagination.style.display = "flex";
+
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = Math.min(startIndex + rowsPerPage, totalRows);
+
+        filteredDepartments.forEach(function (row, index) {
+
+            row.style.display =
+                index >= startIndex && index < endIndex ? "" : "none";
+
+        });
+
+        info.textContent =
+            "Showing " + (startIndex + 1) +
+            "–" + endIndex +
+            " of " + totalRows + " departments";
+
+        prevButton.disabled = currentPage === 1;
+        nextButton.disabled = currentPage === totalPages;
+
+        pageNumbers.innerHTML = "";
+
+        for (let number = 1; number <= totalPages; number++) {
+
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.className = "page-number";
+            button.textContent = number;
+            button.setAttribute("aria-label", "Page " + number);
+
+            if (number === currentPage) {
+                button.classList.add("active");
+                button.setAttribute("aria-current", "page");
+            }
+
+            button.addEventListener("click", function () {
+                currentPage = number;
+                renderPage();
+            });
+
+            pageNumbers.appendChild(button);
+        }
+    }
+
+    /* FILTER DEPARTMENTS */
+    function applyDepartmentFilter(filter) {
+
+        currentFilter = filter;
+
+        updateFilteredDepartments();
+    }
+
+    /* APPLY SEARCH AND STATUS FILTER TOGETHER */
+    function updateFilteredDepartments() {
+
+        filteredDepartments = allDepartments.filter(function (row) {
+
+            const matchesStatus =
+                currentFilter !== "active" ||
+                row.querySelector(".status.active") !== null;
+
+            const searchMatches = matchesSearch(row);
+
+            return matchesStatus && searchMatches;
+        });
+
+        currentPage = 1;
+
+        renderPage();
+    }
+
+    /* SEARCH BUTTON */
+    function performSearch() {
+
+        searchTerm = normalizeText(searchInput ? searchInput.value : "");
+
+        updateFilteredDepartments();
+    }
+
+    if (searchButton) {
+        searchButton.addEventListener("click", performSearch);
+    }
+
+    /* ENTER KEY SEARCH */
+    if (searchInput) {
+
+        searchInput.addEventListener("keydown", function (event) {
+
+            if (event.key === "Enter") {
+                event.preventDefault();
+                performSearch();
+            }
+
+        });
+    }
+
+    /* RESET BUTTON */
+    if (resetButton) {
+
+        resetButton.addEventListener("click", function () {
+
+            if (searchInput) {
+                searchInput.value = "";
+            }
+
+            searchTerm = "";
+            currentFilter = "all";
+
+            updateFilteredDepartments();
+
+            if (searchInput) {
+                searchInput.focus();
+            }
+
+        });
+    }
+
+    /* OVERVIEW CARD FILTERS */
+    cards.forEach(function (card) {
+
+        function activateCard() {
+            applyDepartmentFilter(card.dataset.departmentFilter);
+        }
+
+        card.addEventListener("click", activateCard);
+
+        card.addEventListener("keydown", function (event) {
+
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                activateCard();
+            }
+
+        });
+    });
+
+    /* PREVIOUS PAGE */
+    prevButton.addEventListener("click", function () {
+
+        if (currentPage > 1) {
+            currentPage--;
+            renderPage();
+        }
+
+    });
+
+    /* NEXT PAGE */
+    nextButton.addEventListener("click", function () {
+
+        const totalPages = Math.ceil(
+            filteredDepartments.length / rowsPerPage
+        );
+
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderPage();
+        }
+
+    });
+
+    /* INITIAL RENDER */
+    renderPage();
+
+});
+</script>
+
+{% endblock %}

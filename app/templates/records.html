@@ -1,0 +1,2728 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate Records{% endblock %}
+{% block page_heading %}Candidate Records{% endblock %}
+
+{% block page_subtitle %}
+Quickly view and retrieve candidate information whenever needed.
+{% endblock %}
+{% block content %}
+
+<style>
+    /* ==========================================
+       CANDIDATE RECORDS PAGE
+    ========================================== */
+
+    .records-page {
+        --records-text: #182230;
+        --records-muted: #788497;
+        --records-border: #e8edf4;
+        --records-surface: #ffffff;
+        --records-bg: #f5f7fb;
+
+        width: 100%;
+        min-width: 0;
+        padding: 26px;
+        color: var(--records-text);
+        box-sizing: border-box;
+        font-family: 'Poppins';
+    }
+
+    .records-page *,
+    .records-page *::before,
+    .records-page *::after {
+        box-sizing: border-box;
+    }
+
+    /* PAGE HEADER */
+
+    .records-page .records-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 27px;
+    }
+
+    .records-page .records-eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 9px;
+        color: #758196;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1.7px;
+    }
+
+    .records-page .eyebrow-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #6478f5;
+        box-shadow: 0 0 0 4px rgba(100, 120, 245, 0.12);
+    }
+
+    .records-page .records-header h1 {
+        margin: 0;
+        color: #182230;
+        font-size: clamp(25px, 2.2vw, 32px);
+        line-height: 1.2;
+        font-weight: 800;
+        letter-spacing: -0.9px;
+    }
+
+    .records-page .records-header p {
+        margin: 9px 0 0;
+        color: #7c8798;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    /* SUMMARY CARDS */
+
+
+    /* ==========================================
+   RESPONSIVE SUMMARY CARDS
+========================================== */
+
+    .records-page .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 17px;
+        margin-bottom: 25px;
+        width: 100%;
+    }
+
+    .records-page .summary-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 170px;
+        overflow: hidden;
+        padding: 21px 21px 17px;
+        border: 1px solid transparent;
+        border-radius: 17px;
+        color: #fff;
+        text-decoration: none;
+        cursor: pointer;
+        isolation: isolate;
+        box-shadow: 0 7px 20px rgba(35, 51, 80, 0.08);
+        transition:
+            transform .22s ease,
+            box-shadow .22s ease,
+            filter .22s ease;
+    }
+
+    .records-page .summary-card:hover {
+        color: #fff;
+        text-decoration: none;
+        transform: translateY(-4px);
+        box-shadow: 0 14px 29px rgba(35, 51, 80, 0.16);
+        filter: saturate(1.05);
+    }
+
+    .records-page .summary-card-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .records-page .summary-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 42px;
+        width: 42px;
+        height: 42px;
+        border: 1px solid rgba(255, 255, 255, .28);
+        border-radius: 13px;
+        background: rgba(255, 255, 255, .17);
+        color: #fff;
+        backdrop-filter: blur(5px);
+    }
+
+    .records-page .summary-icon svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .records-page .summary-label {
+        min-width: 0;
+        color: rgba(255, 255, 255, .91);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 1.05px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .records-page .summary-number {
+        margin-top: 17px;
+        color: #fff;
+        font-size: clamp(27px, 2.5vw, 37px);
+        line-height: 1.1;
+        font-weight: 850;
+        letter-spacing: -1px;
+        font-variant-numeric: tabular-nums;
+        overflow-wrap: anywhere;
+    }
+
+    .records-page .summary-card-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: auto;
+        padding-top: 14px;
+        color: rgba(255, 255, 255, .88);
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .records-page .summary-card-bottom>span:first-child {
+        min-width: 0;
+        line-height: 1.5;
+    }
+
+    .records-page .summary-arrow {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 25px;
+        width: 25px;
+        height: 25px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, .19);
+        color: #fff;
+        font-size: 17px;
+        transition: transform .2s ease, background .2s ease;
+    }
+
+    .records-page .summary-card:hover .summary-arrow {
+        transform: translate(2px, -2px);
+        background: rgba(255, 255, 255, .3);
+    }
+
+    /* Keep the existing card colors */
+    .records-page .summary-total {
+        background: linear-gradient(135deg, #ff8a72 0%, #f45f6e 100%);
+    }
+
+    .records-page .summary-progress {
+        background: linear-gradient(135deg, #29c8d5 0%, #179bbd 100%);
+    }
+
+    .records-page .summary-joined {
+        background: linear-gradient(135deg, #f779a4 0%, #e94d83 100%);
+    }
+
+    .records-page .summary-rejected {
+        background: linear-gradient(135deg, #ffbd62 0%, #f39436 100%);
+    }
+
+    /* Tablet: 2 cards per row */
+    @media (max-width: 1024px) {
+        .records-page .summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+        }
+
+        .records-page .summary-card {
+            min-height: 155px;
+            padding: 19px;
+        }
+
+        .records-page .summary-number {
+            font-size: clamp(28px, 4vw, 35px);
+        }
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+        .records-page .summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .records-page .summary-card {
+            min-height: 145px;
+            padding: 13px 12px;
+            border-radius: 13px;
+        }
+
+        .records-page .summary-card-top {
+            align-items: center;
+            gap: 8px;
+        }
+
+        .records-page .summary-icon {
+            flex-basis: 34px;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+        }
+
+        .records-page .summary-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .records-page .summary-label {
+            font-size: 9px;
+            letter-spacing: .45px;
+            line-height: 1.4;
+        }
+
+        .records-page .summary-number {
+            margin-top: 15px;
+            font-size: clamp(23px, 6vw, 30px);
+            letter-spacing: -.6px;
+        }
+
+        .records-page .summary-card-bottom {
+            gap: 5px;
+            padding-top: 10px;
+            font-size: 9px;
+        }
+
+        .records-page .summary-arrow {
+            flex-basis: 22px;
+            width: 22px;
+            height: 22px;
+            font-size: 14px;
+        }
+    }
+
+    /* Very narrow mobile screens */
+    @media (max-width: 360px) {
+        .records-page .summary-grid {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 10px;
+        }
+
+        .records-page .summary-card {
+            min-height: 135px;
+            padding: 16px;
+        }
+
+        .records-page .summary-label {
+            font-size: 11px;
+            letter-spacing: .7px;
+        }
+
+        .records-page .summary-number {
+            font-size: 30px;
+        }
+
+        .records-page .summary-card-bottom {
+            font-size: 10px;
+        }
+    }
+
+
+    .records-page .summary-card::before {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        width: 145px;
+        height: 145px;
+        top: -64px;
+        right: -36px;
+        border: 1px solid rgba(255, 255, 255, .17);
+        border-radius: 50%;
+        box-shadow: 0 0 0 18px rgba(255, 255, 255, .045), 0 0 0 37px rgba(255, 255, 255, .035);
+        pointer-events: none;
+    }
+
+    .records-page .summary-card::after {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        right: -23px;
+        bottom: -64px;
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, .07);
+        pointer-events: none;
+    }
+
+    .records-page .summary-card:hover {
+        color: #fff;
+        text-decoration: none;
+        transform: translateY(-5px);
+        box-shadow: 0 14px 29px rgba(35, 51, 80, 0.16);
+        filter: saturate(1.05);
+    }
+
+    .records-page .summary-card-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .records-page .summary-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 42px;
+        width: 42px;
+        height: 42px;
+        border: 1px solid rgba(255, 255, 255, .28);
+        border-radius: 13px;
+        background: rgba(255, 255, 255, .17);
+        color: #fff;
+        backdrop-filter: blur(5px);
+    }
+
+    .records-page .summary-icon svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .records-page .summary-label {
+        color: rgba(255, 255, 255, .91);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 1.05px;
+        line-height: 1.5;
+    }
+
+    .records-page .summary-number {
+        margin-top: 17px;
+        color: #fff;
+        font-size: clamp(29px, 3vw, 37px);
+        line-height: 1;
+        font-weight: 850;
+        letter-spacing: -1px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .records-page .summary-card-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: auto;
+        padding-top: 14px;
+        color: rgba(255, 255, 255, .88);
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .records-page .summary-arrow {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 25px;
+        width: 25px;
+        height: 25px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, .19);
+        color: #fff;
+        font-size: 17px;
+        transition: transform .2s ease, background .2s ease;
+    }
+
+    .records-page .summary-card:hover .summary-arrow {
+        transform: translate(2px, -2px);
+        background: rgba(255, 255, 255, .3);
+    }
+
+    /* ACTIVE FILTER BANNER */
+
+    .records-page .active-filter-banner {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 9px;
+        margin: -5px 0 19px;
+        padding: 13px 16px;
+        border: 1px solid #e5eaf5;
+        border-radius: 11px;
+        background: #fff;
+        color: #69768a;
+        font-size: 12px;
+    }
+
+    .records-page .active-filter-banner strong {
+        color: #26344b;
+    }
+
+    .records-page .active-filter-banner a {
+        margin-left: auto;
+        color: #5269e9;
+        text-decoration: none;
+        font-weight: 750;
+    }
+
+    .records-page .active-filter-banner a:hover {
+        text-decoration: underline;
+    }
+
+    .records-page .active-filter-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .records-page .progress-dot {
+        background: #19adbf;
+    }
+
+    .records-page .rejected-dot {
+        background: #f39a36;
+    }
+
+    .records-page .joined-dot {
+        background: #e84f84;
+    }
+
+    .records-page .skipped-dot {
+        background: #9333ea;
+    }
+
+    /* MAIN PANEL */
+
+    .records-page .records-panel {
+        overflow: hidden;
+        border: 1px solid #e8edf4;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 5px 22px rgba(31, 46, 75, 0.035);
+    }
+
+    .records-page .panel-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 23px 24px 20px;
+    }
+
+    .records-page .panel-heading h2 {
+        margin: 0;
+        color: #1d2939;
+        font-size: 17px;
+        font-weight: 800;
+        letter-spacing: -.3px;
+    }
+
+    .records-page .panel-heading p {
+        margin: 6px 0 0;
+        color: #8993a4;
+        font-size: 12px;
+    }
+
+    /* EXPORT BUTTON */
+
+    .records-page .export-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 9px 14px;
+        border: 1px solid #d8e0ff;
+        border-radius: 9px;
+        background: linear-gradient(135deg, #eef2ff, #e3e9ff);
+        color: #4055d6;
+        font-family: inherit;
+        font-size: 11.5px;
+        font-weight: 800;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background .18s ease, border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+    }
+
+    .records-page .export-btn:hover {
+        background: linear-gradient(135deg, #e3e9ff, #d7dfff);
+        border-color: #c2cdff;
+        color: #2f43c4;
+        transform: translateY(-1px);
+        box-shadow: 0 5px 14px rgba(79, 98, 225, 0.18);
+    }
+
+    .records-page .export-btn svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    /* FILTER FORM */
+
+    .records-page .records-filter-form {
+        display: grid;
+        grid-template-columns: minmax(200px, 1.6fr) minmax(160px, 1fr) minmax(160px, 1fr) auto;
+        align-items: end;
+        gap: 13px;
+        padding: 0 24px 22px;
+        border-bottom: 1px solid #edf0f5;
+    }
+
+    .records-page .filter-field {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        gap: 8px;
+    }
+
+    .records-page .filter-field label {
+        color: #566276;
+        font-size: 11px;
+        font-weight: 750;
+    }
+
+    .records-page .filter-field input,
+    .records-page .filter-field select {
+        width: 100%;
+        height: 42px;
+        min-width: 0;
+        padding: 0 12px;
+        border: 1px solid #e1e7f0;
+        border-radius: 9px;
+        outline: none;
+        background: #fff;
+        color: #344054;
+        font-family: inherit;
+        font-size: 12px;
+        transition: border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .records-page .filter-field input:focus,
+    .records-page .filter-field select:focus {
+        border-color: #7586f4;
+        box-shadow: 0 0 0 3px rgba(99, 120, 245, .11);
+    }
+
+    .records-page .input-with-icon {
+        position: relative;
+    }
+
+    .records-page .input-with-icon>svg {
+        position: absolute;
+        top: 50%;
+        left: 12px;
+        width: 16px;
+        height: 16px;
+        color: #8995a7;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .records-page .input-with-icon input {
+        padding-left: 36px;
+    }
+
+    .records-page .filter-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .records-page .filter-submit,
+    .records-page .filter-reset {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        height: 42px;
+        padding: 0 14px;
+        border-radius: 9px;
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 750;
+        white-space: nowrap;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background .18s ease, transform .18s ease;
+    }
+
+    .records-page .filter-submit {
+        border: 1px solid #586de7;
+        background: #5d72ed;
+        color: #fff;
+    }
+
+    .records-page .filter-submit:hover {
+        background: #485edb;
+        transform: translateY(-1px);
+    }
+
+    .records-page .filter-submit svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    .records-page .filter-reset {
+        border: 1px solid #e3e8f0;
+        background: #fff;
+        color: #68758a;
+    }
+
+    .records-page .filter-reset:hover {
+        background: #f5f7fb;
+        color: #344054;
+    }
+
+    /* TABLE */
+
+    .records-page .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .records-page .records-table {
+        width: 100%;
+        min-width: 950px;
+        border-collapse: separate;
+        border-spacing: 0;
+        text-align: left;
+    }
+
+    .records-page .records-table thead th {
+        padding: 14px 16px;
+        border-bottom: 1px solid #e9edf4;
+        background: #f8f9fc;
+        color: #8993a4;
+        font-size: 9px;
+        font-weight: 850;
+        letter-spacing: .85px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .records-page .records-table thead th:first-child,
+    .records-page .records-table tbody td:first-child {
+        padding-left: 24px;
+    }
+
+    .records-page .records-table tbody td {
+        padding: 15px 16px;
+        border-bottom: 1px solid #edf0f5;
+        color: #475467;
+        font-size: 12px;
+        vertical-align: middle;
+    }
+
+    .records-page .records-table tbody tr.record-row {
+        position: relative;
+        cursor: pointer;
+        transition: background .16s ease;
+    }
+
+    .records-page .records-table tbody tr.record-row:hover {
+        background: #f7f9ff;
+    }
+
+    .records-page .records-table tbody tr.record-row.active {
+        background: #eef2ff;
+    }
+
+    .records-page .records-table tbody tr.record-row.active td {
+        border-bottom-color: #dde5ff;
+    }
+
+    .records-page .records-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .records-page .candidate-id {
+        color: #758198 !important;
+        font-size: 11px !important;
+        font-weight: 750;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .records-page .candidate-cell {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        min-width: 170px;
+    }
+
+    .records-page .candidate-avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 37px;
+        width: 37px;
+        height: 37px;
+        border: 1px solid #dfe5ff;
+        border-radius: 12px;
+        background: linear-gradient(145deg, #edf0ff, #e3e8ff);
+        color: #586de5;
+        font-size: 14px;
+        font-weight: 850;
+    }
+
+    .records-page .candidate-info {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        min-width: 0;
+    }
+
+    .records-page .candidate-name {
+        max-width: 210px;
+        overflow: hidden;
+        color: #263349;
+        text-decoration: none;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .records-page .candidate-name:hover {
+        color: #5369e9;
+    }
+
+    .records-page .candidate-subtext {
+        color: #a0a9b7;
+        font-size: 10px;
+    }
+
+    .records-page .contact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        max-width: 220px;
+    }
+
+    .records-page .contact-line {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-width: 0;
+        color: #69768a;
+        font-size: 11px;
+    }
+
+    .records-page .contact-line svg {
+        flex: 0 0 14px;
+        width: 14px;
+        height: 14px;
+        color: #a0aaba;
+    }
+
+    .records-page .contact-line span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .records-page .muted-text {
+        color: #a0a9b7;
+        font-size: 11px;
+    }
+
+    .records-page .department-name {
+        display: inline-block;
+        max-width: 150px;
+        overflow: hidden;
+        color: #667286;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 11px;
+        font-weight: 650;
+    }
+
+    .records-page .date-value {
+        color: #69768a;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    /* STATUS BADGES */
+
+    .records-page .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        max-width: 175px;
+        padding: 7px 9px;
+        border: 1px solid transparent;
+        border-radius: 7px;
+        font-size: 10px;
+        font-weight: 750;
+        line-height: 1.3;
+    }
+
+    .records-page .status-dot {
+        flex: 0 0 6px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    .records-page .status-applied {
+        border-color: #dbe5ff;
+        background: #edf2ff;
+        color: #5270d9;
+    }
+
+    .records-page .status-requested {
+        border-color: #d2f0f6;
+        background: #e8f9fc;
+        color: #168ba4;
+    }
+
+    .records-page .status-first {
+        border-color: #e4dafa;
+        background: #f4efff;
+        color: #8059c9;
+    }
+
+    .records-page .status-second {
+        border-color: #d8dcff;
+        background: #eef0ff;
+        color: #5e64c9;
+    }
+
+    .records-page .status-offer {
+        border-color: #f7e2b9;
+        background: #fff6e4;
+        color: #b77a18;
+    }
+
+    .records-page .status-joined {
+        border-color: #c9eddb;
+        background: #e8f8ef;
+        color: #218454;
+    }
+
+    .records-page .status-rejected {
+        border-color: #f8d6d8;
+        background: #fff0f0;
+        color: #c44e58;
+    }
+
+    .records-page .status-skipped {
+        border-color: #e9d5ff;
+        background: #f3e8ff;
+        color: #7e22ce;
+    }
+
+    .records-page .status-resign {
+        border-color: #d8d2f8;
+        background: #f1efff;
+        color: #6952b8;
+    }
+
+    .records-page .status-default {
+        border-color: #e3e7ee;
+        background: #f3f5f8;
+        color: #667085;
+    }
+
+    /* ACTION BUTTONS */
+
+    .records-page .action-buttons {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .records-page .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 30px;
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border: 1px solid #e8edf4;
+        border-radius: 8px;
+        background: #fff;
+        color: #778398;
+        text-decoration: none;
+        cursor: pointer;
+        transition: color .16s ease, background .16s ease, border-color .16s ease, transform .16s ease;
+    }
+
+    .records-page .action-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .records-page .action-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .records-page .action-history:hover {
+        border-color: #d8eafa;
+        background: #edf7ff;
+        color: #3184b7;
+    }
+
+    /* EMPTY STATE */
+
+    .records-page .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 55px 20px;
+        text-align: center;
+    }
+
+    .records-page .empty-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px;
+        height: 56px;
+        margin-bottom: 16px;
+        border: 1px solid #e5eaff;
+        border-radius: 17px;
+        background: #f1f4ff;
+        color: #7182e9;
+    }
+
+    .records-page .empty-icon svg {
+        width: 25px;
+        height: 25px;
+    }
+
+    .records-page .empty-state h3 {
+        margin: 0;
+        color: #344054;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .records-page .empty-state p {
+        max-width: 380px;
+        margin: 9px 0 18px;
+        color: #8a95a6;
+        font-size: 12px;
+        line-height: 1.7;
+    }
+
+    .records-page .empty-reset {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        padding: 0 14px;
+        border-radius: 9px;
+        background: #edf1ff;
+        color: #5369e9;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 750;
+    }
+
+    /* PAGINATION */
+
+    .records-page .pagination-area {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 17px 24px;
+        border-top: 1px solid #edf0f5;
+    }
+
+    .records-page .pagination-info {
+        color: #8792a4;
+        font-size: 11px;
+    }
+
+    .records-page .pagination-info strong {
+        color: #465368;
+        font-weight: 800;
+    }
+
+    .records-page .pagination {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .records-page .page-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 31px;
+        height: 31px;
+        padding: 0 8px;
+        border: 1px solid #e7ebf3;
+        border-radius: 8px;
+        background: #fff;
+        color: #68758a;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 750;
+        transition: background .16s ease, border-color .16s ease;
+    }
+
+    .records-page a.page-btn:hover {
+        border-color: #ccd5ff;
+        background: #f1f3ff;
+        color: #5369e9;
+    }
+
+    .records-page .page-btn.active {
+        border-color: #5c70e9;
+        background: #5c70e9;
+        color: #fff;
+        box-shadow: 0 3px 8px rgba(92, 112, 233, .2);
+    }
+
+    .records-page .page-btn.disabled {
+        background: #f8f9fb;
+        color: #c0c7d2;
+        cursor: not-allowed;
+    }
+
+    .records-page .page-ellipsis {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        color: #9aa3b2;
+        font-size: 12px;
+    }
+
+    /* ==========================================
+       EXPORT CONFIRM MODAL
+    ========================================== */
+
+    .records-page .export-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(15, 23, 42, .48);
+        backdrop-filter: blur(5px);
+    }
+
+    .records-page .export-modal-backdrop.open {
+        display: flex;
+    }
+
+    .records-page .export-modal {
+        width: min(460px, 100%);
+        padding: 28px;
+        border: 1px solid #e8edf4;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 28px 80px rgba(15, 23, 42, .20);
+        animation: exportModalIn .18s ease-out;
+    }
+
+    @keyframes exportModalIn {
+        from {
+            opacity: 0;
+            transform: translateY(8px) scale(.98);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .records-page .export-modal-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 54px;
+        height: 54px;
+        margin-bottom: 17px;
+        border-radius: 16px;
+        background: #eef2ff;
+        color: #4f5fe0;
+    }
+
+    .records-page .export-modal h3 {
+        margin: 0 0 9px;
+        color: #1e293b;
+        font-size: 19px;
+        font-weight: 800;
+        letter-spacing: -.3px;
+    }
+
+    .records-page .export-modal p {
+        margin: 0;
+        color: #64748b;
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+    .records-page .export-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 24px;
+    }
+
+    .records-page .export-modal-actions button {
+        min-width: 105px;
+        min-height: 42px;
+        padding: 0 16px;
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 750;
+        cursor: pointer;
+        transition: background .18s ease, transform .18s ease;
+    }
+
+    .records-page .export-cancel {
+        border: 1px solid #e3e8f0;
+        background: #fff;
+        color: #68758a;
+    }
+
+    .records-page .export-confirm {
+        border: 1px solid #4f5fe0;
+        background: #4f5fe0;
+        color: #fff;
+    }
+
+    .records-page .export-confirm:hover {
+        background: #3f4fd0;
+        transform: translateY(-1px);
+    }
+
+    /* ==========================================
+       MODERN STAGE HISTORY MODAL
+       - Fixed width, no scrollbar
+       - Light warm backdrop
+       - Top-aligned (8% from top)
+       - Single curved SVG timeline
+       - Skip badge above skipped stage
+       - Distinct colors per stage state
+    ========================================== */
+
+    .records-page .stage-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 9998;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 8vh 24px 24px;
+        background: rgba(15, 23, 42, .18);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity .22s ease, visibility .22s;
+    }
+
+    .records-page .stage-modal-backdrop.open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    .records-page .stage-modal {
+        width: 780px;
+        max-width: calc(100vw - 48px);
+        max-height: calc(100vh - 80px);
+        overflow: hidden;
+        padding: 28px 32px 24px;
+        border: 1px solid #edf0f6;
+        border-radius: 22px;
+        background: #ffffff;
+        box-shadow:
+            0 24px 60px rgba(15, 23, 42, .18),
+            0 0 0 1px rgba(255, 255, 255, .5),
+            inset 0 1px 0 rgba(255, 255, 255, .9);
+        transform: translateY(-12px) scale(.97);
+        opacity: 0;
+        transition: transform .26s cubic-bezier(.2, .9, .3, 1.1), opacity .2s ease;
+        position: relative;
+    }
+
+    .records-page .stage-modal-backdrop.open .stage-modal {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+
+    /* Subtle gradient wash */
+    .records-page .stage-modal::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 22px;
+        background:
+            radial-gradient(ellipse at top left, rgba(251, 191, 36, .06), transparent 55%),
+            radial-gradient(ellipse at bottom right, rgba(52, 211, 153, .05), transparent 55%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .records-page .stage-modal>* {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Close button */
+    .records-page .stage-modal-close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border: 1px solid #eef1f7;
+        border-radius: 10px;
+        background: #fff;
+        color: #94a3b8;
+        cursor: pointer;
+        transition: background .16s ease, color .16s ease, transform .16s ease;
+        z-index: 3;
+    }
+
+    .records-page .stage-modal-close:hover {
+        background: #fef2f2;
+        color: #ef4444;
+        border-color: #fecaca;
+        transform: rotate(90deg);
+    }
+
+    .records-page .stage-modal-close svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    /* Header */
+    .records-page .stage-modal-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 14px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #fef3c7;
+        color: #92400e;
+        font-size: 9.5px;
+        font-weight: 850;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+    }
+
+    .records-page .stage-modal-eyebrow-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #f59e0b;
+        box-shadow: 0 0 0 2px rgba(245, 158, 11, .25);
+    }
+
+    .records-page .stage-modal-title {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 4px;
+    }
+
+    .records-page .stage-modal-avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: linear-gradient(145deg, #fef3c7, #fde68a);
+        border: 1px solid #fcd34d;
+        color: #92400e;
+        font-size: 18px;
+        font-weight: 850;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, .18);
+    }
+
+    .records-page .stage-modal-name {
+        margin: 0;
+        color: #0f172a;
+        font-size: 20px;
+        font-weight: 850;
+        letter-spacing: -.4px;
+        line-height: 1.2;
+    }
+
+    .records-page .stage-modal-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 11px;
+    }
+
+    .records-page .stage-modal-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 9px;
+        border-radius: 6px;
+        background: #f1f5f9;
+        color: #475569;
+        font-size: 10.5px;
+        font-weight: 700;
+    }
+
+    .records-page .stage-modal-chip-id {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .records-page .stage-modal-divider {
+        height: 1px;
+        margin: 20px 0 8px;
+        background: linear-gradient(90deg, transparent, #e2e8f0 20%, #e2e8f0 80%, transparent);
+    }
+
+    /* ==========================================
+       PREMIUM HORIZONTAL SIX-STAGE TIMELINE
+    ========================================== */
+
+    .records-page .stage-line-wrap {
+        position: relative;
+        width: 100%;
+        height: 156px;
+        margin-top: 8px;
+    }
+
+    .records-page .stage-line-track {
+        position: absolute;
+        left: 8.3333%;
+        right: 8.3333%;
+        top: 42px;
+        height: 4px;
+        border-radius: 999px;
+        background: #edf0f7;
+        overflow: hidden;
+    }
+
+    .records-page .stage-line-progress {
+        position: absolute;
+        left: 8.3333%;
+        top: 42px;
+        width: 0;
+        height: 4px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #1081e3 100%);
+        box-shadow: 0 0 12px rgba(16, 185, 129, .24);
+        transition: width .5s cubic-bezier(.2, .8, .2, 1);
+        z-index: 1;
+    }
+
+    .records-page .stage-line-nodes {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 28px 0 0;
+        z-index: 2;
+    }
+
+    .records-page .stage-line-node {
+        position: relative;
+        display: flex;
+        flex: 1 1 0;
+        min-width: 0;
+        flex-direction: column;
+        align-items: center;
+        gap: 13px;
+    }
+
+    .records-page .stage-skip-badge {
+        position: absolute;
+        top: -28px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 7px;
+        border: 1px solid #d8b4fe;
+        border-radius: 999px;
+        background: #f3e8ff;
+        color: #7e22ce;
+        font-size: 8px;
+        font-weight: 850;
+        letter-spacing: .35px;
+        text-transform: uppercase;
+        white-space: nowrap;
+        box-shadow: 0 2px 6px rgba(168, 85, 247, .12);
+    }
+
+    .records-page .stage-line-dot {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 30px;
+        width: 30px;
+        height: 30px;
+        border: 3px solid #dfe5ef;
+        border-radius: 50%;
+        background: #fff;
+        color: #fff;
+        box-shadow: 0 0 0 5px #fff;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .records-page .stage-line-dot svg {
+        width: 13px;
+        height: 13px;
+    }
+
+    .records-page .stage-line-node.is-done .stage-line-dot {
+        border-color: #54dbb0;
+        background: linear-gradient(145deg, #10b981, #059669);
+        box-shadow: 0 0 0 5px #fff, 0 4px 12px rgba(16, 185, 129, .25);
+    }
+
+    .records-page .stage-line-node.is-current .stage-line-dot {
+        border-color: #f59e0b;
+        background: #fff;
+        box-shadow: 0 0 0 5px #fff, 0 0 0 9px rgba(245, 158, 11, .14);
+        animation: stageLinePulse 2s ease-in-out infinite;
+    }
+
+    .records-page .stage-line-node.is-current .stage-line-dot::after {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: linear-gradient(145deg, #f59e0b, #d97706);
+    }
+
+    .records-page .stage-line-node.is-rejected .stage-line-dot {
+        border-color: #ef4444;
+        background: #fff1f2;
+        box-shadow: 0 0 0 5px #fff, 0 0 0 9px rgba(239, 68, 68, .12);
+    }
+
+    .records-page .stage-line-node.is-rejected .stage-line-dot::after {
+        content: "×";
+        color: #dc2626;
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .records-page .stage-line-node.is-skipped .stage-line-dot {
+        border-color: #a855f7;
+        background: #faf5ff;
+        box-shadow: 0 0 0 5px #fff, 0 0 0 9px rgba(168, 85, 247, .12);
+    }
+
+    .records-page .stage-line-node.is-skipped .stage-line-dot::after {
+        content: "↷";
+        color: #9333ea;
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .records-page .stage-line-node.is-pending .stage-line-dot {
+        border-color: #e2e8f0;
+        background: #fff;
+    }
+
+    .records-page .stage-line-label {
+        width: 100%;
+        max-width: 105px;
+        min-height: 28px;
+        color: #94a3b8;
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.35;
+        text-align: center;
+        overflow-wrap: anywhere;
+    }
+
+    .records-page .stage-line-node.is-done .stage-line-label {
+        color: #047857;
+    }
+
+    .records-page .stage-line-node.is-current .stage-line-label {
+        color: #b45309;
+        font-weight: 850;
+    }
+
+    .records-page .stage-line-node.is-rejected .stage-line-label {
+        color: #b91c1c;
+        font-weight: 850;
+    }
+
+    .records-page .stage-line-node.is-skipped .stage-line-label {
+        color: #7e22ce;
+        font-weight: 850;
+    }
+
+    /* Footer summary */
+    .records-page .stage-modal-foot {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+        padding: 12px 16px;
+        border-radius: 12px;
+        background: #fafbfd;
+        border: 1px solid #eef1f7;
+        color: #475569;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+    .records-page .stage-flag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 9px;
+        border-radius: 6px;
+        font-size: 9.5px;
+        font-weight: 850;
+        letter-spacing: .4px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .records-page .stage-flag.flag-skipped {
+        background: #f3e8ff;
+        color: #7e22ce;
+    }
+
+    .records-page .stage-flag.flag-rejected {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .records-page .stage-flag.flag-complete {
+        background: #d1fae5;
+        color: #047857;
+    }
+
+    .records-page .stage-flag.flag-progress {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    @keyframes stageLinePulse {
+
+        0%,
+        100% {
+            box-shadow: 0 0 0 5px #fff, 0 0 0 9px rgba(245, 158, 11, .14);
+        }
+
+        50% {
+            box-shadow: 0 0 0 5px #fff, 0 0 0 12px rgba(245, 158, 11, .06);
+        }
+    }
+
+    /* Mobile */
+    @media (max-width: 700px) {
+        .records-page {
+            padding: 16px 12px;
+        }
+
+        .records-page .summary-grid {
+            gap: 11px;
+        }
+
+        .records-page .summary-card {
+            min-height: 155px;
+            padding: 15px;
+            border-radius: 13px;
+        }
+
+        .records-page .panel-heading {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 19px 16px;
+        }
+
+        .records-page .records-filter-form {
+            grid-template-columns: minmax(0, 1fr);
+            padding: 0 16px 18px;
+        }
+
+        .records-page .filter-actions {
+            width: 100%;
+        }
+
+        .records-page .filter-submit,
+        .records-page .filter-reset {
+            flex: 1;
+        }
+
+        .records-page .pagination-area {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 16px;
+        }
+
+        .records-page .pagination {
+            flex-wrap: wrap;
+        }
+
+        .records-page .stage-modal {
+            width: calc(100vw - 24px);
+            max-width: calc(100vw - 24px);
+            padding: 22px 18px 18px;
+            border-radius: 18px;
+        }
+
+        .records-page .stage-modal-name {
+            font-size: 17px;
+        }
+
+        .records-page .stage-modal-avatar {
+            flex-basis: 40px;
+            width: 40px;
+            height: 40px;
+            font-size: 15px;
+        }
+
+        .records-page .stage-line-wrap {
+            height: 145px;
+        }
+
+        .records-page .stage-line-label {
+            font-size: 8.5px;
+            max-width: 60px;
+        }
+
+        .records-page .stage-line-dot {
+            width: 24px;
+            height: 24px;
+        }
+
+        .records-page .stage-line-dot svg {
+            width: 10px;
+            height: 10px;
+        }
+
+        .records-page .stage-skip-badge {
+            top: -30px;
+            font-size: 7.5px;
+            padding: 2px 6px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+        .records-page *,
+        .records-page *::before,
+        .records-page *::after {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: .01ms !important;
+        }
+    }
+
+    #records-table-section {
+        scroll-margin-top: 25px;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+    
+/* ==========================================
+   RESPONSIVE RECORDS FILTER FORM
+========================================== */
+
+.records-page .records-filter-form {
+    display: grid;
+    grid-template-columns:
+        minmax(150px, 1.35fr)
+        minmax(125px, 0.85fr)
+        minmax(125px, 0.85fr)
+        minmax(125px, 0.85fr)
+        auto;
+    align-items: end;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+    padding: 0 24px 22px;
+    border-bottom: 1px solid #edf0f5;
+}
+
+/* All filter fields */
+.records-page .filter-field {
+    min-width: 0;
+    width: 100%;
+}
+
+/* Search input */
+.records-page .search-field {
+    min-width: 0;
+}
+
+.records-page .filter-field input,
+.records-page .filter-field select {
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+    font-size: 11.5px;
+}
+
+/* Search and Reset buttons */
+.records-page .filter-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+    min-width: 0;
+    width: auto;
+    flex-wrap: nowrap;
+}
+
+.records-page .filter-submit,
+.records-page .filter-reset {
+    flex: 0 0 auto;
+    min-width: 65px;
+    height: 42px;
+    padding: 0 12px;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+/* Super Admin: Search + Branch + Department + Status + Buttons */
+.records-page .records-filter-form:has(#branch-filter) {
+    grid-template-columns:
+        minmax(135px, 1.3fr)
+        minmax(110px, 0.85fr)
+        minmax(110px, 0.85fr)
+        minmax(115px, 0.9fr)
+        auto;
+}
+
+/* Laptop and smaller desktop */
+@media (min-width: 701px) and (max-width: 1250px) {
+    .records-page .records-filter-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 13px;
+    }
+
+    .records-page .records-filter-form:has(#branch-filter) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .records-page .filter-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+        width: 100%;
+    }
+
+    .records-page .filter-submit,
+    .records-page .filter-reset {
+        min-width: 100px;
+    }
+}
+
+/* Tablet and mobile */
+@media (max-width: 700px) {
+    .records-page .records-filter-form,
+    .records-page .records-filter-form:has(#branch-filter) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+        padding: 0 16px 18px;
+    }
+
+    .records-page .filter-actions {
+        grid-column: auto;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        width: 100%;
+    }
+
+    .records-page .filter-submit,
+    .records-page .filter-reset {
+        width: 100%;
+        min-width: 0;
+        height: 43px;
+    }
+}
+
+/* Very small mobile */
+@media (max-width: 360px) {
+    .records-page .filter-actions {
+        gap: 7px;
+    }
+
+    .records-page .filter-submit,
+    .records-page .filter-reset {
+        padding: 0 8px;
+        font-size: 10px;
+    }
+}
+
+.records-page .filter-field select:disabled {
+    background: #f3f5f9;
+    color: #a0a9b7;
+    cursor: not-allowed;
+}
+
+
+.records-page .filter-field select:disabled {
+    background: #f3f5f9;
+    color: #a0a9b7;
+    cursor: not-allowed;
+}
+</style>
+
+<div class="records-page">
+
+    <!-- PAGE HEADER -->
+    <div class="records-header">
+        <div>
+            <div class="records-eyebrow">
+                <span class="eyebrow-dot"></span>
+                RECRUITMENT MANAGEMENT
+            </div>
+            <h1>Candidate Records</h1>
+            <p>Manage, search and review all recruitment candidate records.</p>
+        </div>
+    </div>
+
+    <!-- SUMMARY CARDS -->
+    <div class="summary-grid">
+
+        <a href="{{ url_for('candidate.records') }}#records-table-section" class="summary-card summary-total"
+            aria-label="View all candidate records">
+            <div class="summary-card-top">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="10" cy="7" r="4" />
+                        <path d="M20 8v6M23 11h-6" />
+                    </svg>
+                </div>
+                <span class="summary-label">TOTAL RECORDS</span>
+            </div>
+            <div class="summary-number">{{ summary_total|default(0) }}</div>
+            <div class="summary-card-bottom">
+                <span>All candidate records</span>
+                <span class="summary-arrow">↗</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('candidate.records', status_group='in_progress') }}#records-table-section"
+            class="summary-card summary-progress" aria-label="View candidates in progress">
+            <div class="summary-card-top">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3 2" />
+                    </svg>
+                </div>
+                <span class="summary-label">IN PROGRESS</span>
+            </div>
+            <div class="summary-number">{{ in_progress|default(0) }}</div>
+            <div class="summary-card-bottom">
+                <span>Active recruitment stages</span>
+                <span class="summary-arrow">↗</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('candidate.records', status='joined') }}#records-table-section"
+            class="summary-card summary-joined" aria-label="View joined candidates">
+            <div class="summary-card-top">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="m5 12 4 4L19 6" />
+                        <circle cx="12" cy="12" r="10" />
+                    </svg>
+                </div>
+                <span class="summary-label">JOINED</span>
+            </div>
+            <div class="summary-number">{{ joined|default(0) }}</div>
+            <div class="summary-card-bottom">
+                <span>Successfully joined</span>
+                <span class="summary-arrow">↗</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('candidate.records', status_group='rejected_cancel') }}#records-table-section"
+            class="summary-card summary-rejected" aria-label="View rejected and cancelled candidates">
+            <div class="summary-card-top">
+                <div class="summary-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="m9 9 6 6M15 9l-6 6" />
+                    </svg>
+                </div>
+                <span class="summary-label">REJECTED</span>
+            </div>
+            <div class="summary-number">{{ rejected|default(0) }}</div>
+            <div class="summary-card-bottom">
+                <span>Rejected and cancelled</span>
+                <span class="summary-arrow">↗</span>
+            </div>
+        </a>
+
+    </div>
+
+    <!-- CURRENT FILTER INDICATOR -->
+    {% if request.args.get('status_group') == 'in_progress' %}
+    <div class="active-filter-banner">
+        <span class="active-filter-dot progress-dot"></span>
+        Showing: <strong>In Progress Candidates</strong>
+        <a href="{{ url_for('candidate.records') }}">View all records</a>
+    </div>
+    {% elif request.args.get('status_group') == 'rejected_cancel' %}
+    <div class="active-filter-banner">
+        <span class="active-filter-dot rejected-dot"></span>
+        Showing: <strong>Rejected / Cancelled Candidates</strong>
+        <a href="{{ url_for('candidate.records') }}">View all records</a>
+    </div>
+    {% elif status_filter == 'skipped' %}
+    <div class="active-filter-banner">
+        <span class="active-filter-dot skipped-dot"></span>
+        Showing: <strong>Skipped Candidates</strong>
+        <a href="{{ url_for('candidate.records') }}">View all records</a>
+    </div>
+    {% elif status_filter == 'joined' %}
+    <div class="active-filter-banner">
+        <span class="active-filter-dot joined-dot"></span>
+        Showing: <strong>Joined Candidates</strong>
+        <a href="{{ url_for('candidate.records') }}">View all records</a>
+    </div>
+    {% endif %}
+
+    <!-- SEARCH AND FILTERS -->
+    <section class="records-panel" id="records-table-section">
+
+        <div class="panel-heading">
+            <div>
+                <h2>All Candidates</h2>
+                <p>Search and filter candidate information. Click any row to view the stage history.</p>
+            </div>
+            
+            {% if can_export_records %}
+<button type="button" class="export-btn" id="exportRecordsBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <path d="m7 10 5 5 5-5" />
+        <path d="M12 15V3" />
+    </svg>
+    Export Records
+</button>
+{% endif %}
+        </div>
+
+        <form method="GET" action="{{ url_for('candidate.records') }}#records-table-section"
+    class="records-filter-form">
+
+    <div class="filter-field search-field">
+        <label for="record-search">Search candidates</label>
+        <div class="input-with-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m16 16 4 4" />
+            </svg>
+            <input type="search" id="record-search" name="search"
+                value="{{ search|default('') }}"
+                placeholder="Name, phone, email or branch...">
+        </div>
+    </div>
+
+    {% if session.get('role') == 'super_admin' %}
+
+    <!-- BRANCH FILTER: SUPER ADMIN -->
+    <div class="filter-field">
+        <label for="branch-filter">Branch</label>
+        <select id="branch-filter" name="branch_id">
+            <option value="">All Branches</option>
+
+            {% for branch in branches %}
+            <option value="{{ branch.id }}"
+                {% if branch_filter|string == branch.id|string %}selected{% endif %}>
+                {{ branch.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- DEPARTMENT FILTER: DEPENDS ON BRANCH -->
+    <div class="filter-field">
+        <label for="department-filter">Department</label>
+
+        <select id="department-filter" name="department_id"
+            {% if not branch_filter %}disabled{% endif %}>
+
+            {% if not branch_filter %}
+            <option value="">Select Branch First</option>
+
+            {% elif not departments %}
+            <option value="">No Departments Available</option>
+
+            {% else %}
+            <option value="">All Departments</option>
+
+            {% for department in departments %}
+            <option value="{{ department.id }}"
+                {% if department_filter|string == department.id|string %}selected{% endif %}>
+                {{ department.name }}
+            </option>
+            {% endfor %}
+            {% endif %}
+
+        </select>
+    </div>
+
+    {% elif session.get('role') == 'department_head' and departments|length > 1 %}
+
+    <!-- DEPARTMENT HEAD: KEEP EXISTING PERMISSION FILTER -->
+    <div class="filter-field">
+        <label for="department-filter">Department</label>
+        <select id="department-filter" name="department_id">
+            <option value="">All Departments</option>
+
+            {% for department in departments %}
+            <option value="{{ department.id }}"
+                {% if department_filter|string == department.id|string %}selected{% endif %}>
+                {{ department.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    {% endif %}
+
+    <!-- STATUS FILTER -->
+    <div class="filter-field">
+        <label for="status-filter">Candidate Status</label>
+        <select id="status-filter" name="status">
+            <option value="">All Statuses</option>
+
+            {% for status in valid_statuses %}
+            <option value="{{ status }}"
+                {% if status_filter == status %}selected{% endif %}>
+                {{ status.replace('_', ' ')|title }}
+            </option>
+            {% endfor %}
+
+            <option value="skipped"
+                {% if status_filter == 'skipped' %}selected{% endif %}>
+                Skipped
+            </option>
+        </select>
+    </div>
+
+    {% if status_group %}
+    <input type="hidden" name="status_group" value="{{ status_group }}">
+    {% endif %}
+
+    <div class="filter-actions">
+        <button type="submit" class="filter-submit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m16 16 4 4" />
+            </svg>
+            Search
+        </button>
+
+        <a href="{{ url_for('candidate.records') }}#records-table-section"
+            class="filter-reset">
+            Reset
+        </a>
+    </div>
+
+</form>
+
+        <!-- TABLE -->
+        <div class="table-wrapper">
+            <table class="records-table" id="recordsTable">
+                <thead>
+                    <tr>
+                        <th class="col-id">ID</th>
+                        <th>Candidate</th>
+                        <th>Contact Information</th>
+                        <th>Branch</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th>Applied Date</th>
+                        <th class="col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for candidate in candidates %}
+                    {% set tl = candidate.stage_timeline|default(none) %}
+                    {% if tl %}
+                    {% set timeline_stages = tl.stages %}
+                    {% set timeline_skipped = tl.skipped %}
+                    {% set timeline_rejected = tl.rejected %}
+                    {% set timeline_current = tl.current %}
+                    {% else %}
+                    {% set timeline_stages = [
+                    {'key': 'applied', 'label': 'Applied', 'state': 'current', 'skipped': false},
+                    {'key': 'interview_requested', 'label': 'Interview Requested', 'state': 'pending', 'skipped':
+                    false},
+                    {'key': 'first_interview', 'label': '1st Interview', 'state': 'pending', 'skipped': false},
+                    {'key': 'second_interview', 'label': '2nd Interview', 'state': 'pending', 'skipped': false},
+                    {'key': 'offer', 'label': 'Offer', 'state': 'pending', 'skipped': false},
+                    {'key': 'joined', 'label': 'Joined', 'state': 'pending', 'skipped': false}
+                    ] %}
+                    {% set timeline_skipped = false %}
+                    {% set timeline_rejected = false %}
+                    {% set timeline_current = 'applied' %}
+                    {% endif %}
+                    <tr class="record-row" data-candidate-id="{{ candidate.id }}"
+                        data-candidate-name="{{ candidate.name }}"
+                        data-skipped="{{ 'true' if timeline_skipped else 'false' }}"
+                        data-rejected="{{ 'true' if timeline_rejected else 'false' }}"
+                        data-department="{{ candidate.department_name or 'N/A' }}"
+                        data-status="{{ candidate.status or '' }}" data-stages='{{ timeline_stages|tojson }}'>
+                        <td class="candidate-id">#{{ candidate.id }}</td>
+
+                        <td>
+                            <div class="candidate-cell">
+                                <div class="candidate-avatar">{{ (candidate.name or '?')[:1]|upper }}</div>
+                                <div class="candidate-info">
+                                    <a class="candidate-name"
+                                        href="{{ url_for('candidate.view_candidate', candidate_id=candidate.id, return_to='records') }}">
+                                        {{ candidate.name }}
+                                    </a>
+                                    <span class="candidate-subtext">Candidate #{{ candidate.id }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="contact-info">
+                                {% if candidate.email %}
+                                <span class="contact-line">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="5" width="18" height="14" rx="2" />
+                                        <path d="m3 7 9 6 9-6" />
+                                    </svg>
+                                    <span>{{ candidate.email }}</span>
+                                </span>
+                                {% endif %}
+                                {% if candidate.phone %}
+                                <span class="contact-line">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <path
+                                            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3 a2 2 0 0 1 2 1.72 c.12.96.35 1.9.7 2.8 a2 2 0 0 1-.45 2.11L8.1 9.9 a16 16 0 0 0 6 6l1.27-1.27 a2 2 0 0 1 2.11-.45 c.9.35 1.84.58 2.8.7 A2 2 0 0 1 22 16.92z" />
+                                    </svg>
+                                    <span>{{ candidate.phone }}</span>
+                                </span>
+                                {% endif %}
+                                {% if not candidate.email and not candidate.phone %}
+                                <span class="muted-text">No contact information</span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="department-name">{{ candidate.branch_name or 'N/A' }}</span>
+                        </td>
+
+                        <td>
+                            <span class="department-name">{{ candidate.department_name or 'N/A' }}</span>
+                        </td>
+
+                        <td>
+                            {% set status = candidate.status or '' %}
+                            {% set rejected_statuses = [
+                            'candidate_reject',
+                            'interview_request_reject',
+                            'interview_request_cancel',
+                            'first_interview_reject',
+                            'first_interview_cancel',
+                            'second_interview_reject',
+                            'second_interview_cancel',
+                            'offer_reject',
+                            'offer_cancel'
+                            ] %}
+
+                            {% if status == 'resign' %}
+                            <span class="status-badge status-resign"><span class="status-dot"></span>Resign</span>
+                            {% elif status == 'joined' %}
+                            <span class="status-badge status-joined"><span class="status-dot"></span>Joined</span>
+                            {% elif status in rejected_statuses %}
+                            <span class="status-badge status-rejected"><span class="status-dot"></span>{{
+                                status.replace('_', ' ')|title }}</span>
+                            {% elif status == 'offer' %}
+                            <span class="status-badge status-offer"><span class="status-dot"></span>Offer</span>
+                            {% elif status == 'second_interview' %}
+                            <span class="status-badge status-second"><span class="status-dot"></span>Second
+                                Interview</span>
+                            {% elif status == 'first_interview' %}
+                            <span class="status-badge status-first"><span class="status-dot"></span>First
+                                Interview</span>
+                            {% elif status == 'interview_requested' %}
+                            <span class="status-badge status-requested"><span class="status-dot"></span>Interview
+                                Requested</span>
+                            {% elif status == 'applied' %}
+                            <span class="status-badge status-applied"><span class="status-dot"></span>Applied</span>
+                            {% else %}
+                            <span class="status-badge status-default"><span class="status-dot"></span>{{
+                                status.replace('_', ' ')|title }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <span class="date-value">
+                                {% if candidate.created_at %}{{ candidate.created_at.strftime('%d %b %Y') }}{% else
+                                %}—{% endif %}
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="action-buttons">
+                                {% if session.get('role') == 'super_admin' or candidate.can_view %}
+                                <a href="{{ url_for('candidate.candidate_history', candidate_id=candidate.id, return_to='records') }}"
+                                    class="action-btn action-history" title="Status history" aria-label="Status history"
+                                    onclick="event.stopPropagation();">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="11" cy="11" r="7" />
+                                        <path d="m16 16 4 4" />
+                                        <path d="M8 11h6" />
+                                    </svg>
+                                </div>
+                                <h3>No candidates found</h3>
+                                <p>No records match your current search or filters. Try changing the filters or view all
+                                    records.</p>
+                                <a href="{{ url_for('candidate.records') }}" class="empty-reset">View All Records</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PAGINATION -->
+        {% if total_pages > 1 %}
+        <div class="pagination-area">
+            <div class="pagination-info">
+                Showing <strong>{{ offset + 1 if total_count > 0 else 0 }}</strong>
+                to <strong>{{ [offset + per_page, total_count]|min }}</strong>
+                of <strong>{{ total_count }}</strong> records
+            </div>
+
+            <nav class="pagination" aria-label="Candidate records pagination">
+                {% if page > 1 %}
+                <a class="page-btn page-prev"
+                    href="{{ url_for('candidate.records', page=page - 1, search=search, status=status_filter, branch_id=branch_filter, department_id=department_filter, status_group=request.args.get('status_group', '')) }}"
+                    aria-label="Previous page">‹</a>
+                {% else %}
+                <span class="page-btn page-prev disabled" aria-disabled="true">‹</span>
+                {% endif %}
+
+                {% for p in page_numbers %}
+                {% if p is none %}
+                <span class="page-ellipsis">…</span>
+                {% elif p == page %}
+                <span class="page-btn active" aria-current="page">{{ p }}</span>
+                {% else %}
+                <a class="page-btn"
+                    href="{{ url_for('candidate.records', page=p, search=search, status=status_filter, branch_id=branch_filter, department_id=department_filter, status_group=request.args.get('status_group', '')) }}">{{
+                    p }}</a>
+                {% endif %}
+                {% endfor %}
+
+                {% if page < total_pages %} <a class="page-btn page-next"
+                    href="{{ url_for('candidate.records', page=page + 1, search=search, status=status_filter, branch_id=branch_filter, department_id=department_filter, status_group=request.args.get('status_group', '')) }}"
+                    aria-label="Next page">›</a>
+                    {% else %}
+                    <span class="page-btn page-next disabled" aria-disabled="true">›</span>
+                    {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+
+    </section>
+
+</div>
+
+<!-- ==========================================
+     EXPORT CONFIRM MODAL
+========================================== -->
+<div class="records-page">
+    <div class="export-modal-backdrop" id="exportModal" role="dialog" aria-modal="true"
+        aria-labelledby="exportModalTitle" aria-describedby="exportModalDescription">
+        <div class="export-modal">
+            <div class="export-modal-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <path d="m7 10 5 5 5-5" />
+                    <path d="M12 15V3" />
+                </svg>
+            </div>
+            <h3 id="exportModalTitle">Export candidate records?</h3>
+            <p id="exportModalDescription">
+                <strong>{{ total_count }} matching candidate record(s)</strong>
+                will be exported as a CSV file. This applies the current search and filters, and includes all pages.
+            </p>
+            <div class="export-modal-actions">
+                <button type="button" class="export-cancel" id="exportCancelBtn">Cancel</button>
+                <button type="button" class="export-confirm" id="exportConfirmBtn">Yes, Export</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     STAGE HISTORY MODAL (single curved timeline)
+========================================== -->
+<div class="records-page">
+    <div class="stage-modal-backdrop" id="stageModal" role="dialog" aria-modal="true" aria-labelledby="stageModalName"
+        aria-hidden="true">
+
+        <div class="stage-modal">
+            <button type="button" class="stage-modal-close" id="stageModalClose" aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div class="stage-modal-eyebrow">
+                <span class="stage-modal-eyebrow-dot"></span>
+                Stage History
+            </div>
+
+            <div class="stage-modal-title">
+                <div class="stage-modal-avatar" id="stageModalAvatar">?</div>
+                <div>
+                    <h2 class="stage-modal-name" id="stageModalName">Candidate</h2>
+                    <div class="stage-modal-meta">
+                        <span class="stage-modal-chip stage-modal-chip-id" id="stageModalId">#—</span>
+                        <span class="stage-modal-chip" id="stageModalDept">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stage-modal-divider"></div>
+
+            <!-- Horizontal timeline: one straight track and six stage nodes -->
+            <div class="stage-line-wrap">
+                <div class="stage-line-track" aria-hidden="true"></div>
+                <div class="stage-line-progress" id="stageLineProgress" aria-hidden="true"></div>
+                <div class="stage-line-nodes" id="stageLineNodes">
+                    <!-- nodes injected by JS -->
+                </div>
+            </div>
+
+            <div class="stage-modal-foot" id="stageModalFoot" style="display:none;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const tableSection = document.getElementById("records-table-section");
+        if (!tableSection) return;
+        if (window.location.hash === "#records-table-section") {
+            requestAnimationFrame(() => {
+                tableSection.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+        }
+    });
+
+    // ==========================================
+    // EXPORT RECORDS
+    // ==========================================
+    (function () {
+        const exportBtn = document.getElementById("exportRecordsBtn");
+        const modal = document.getElementById("exportModal");
+        const cancelBtn = document.getElementById("exportCancelBtn");
+        const confirmBtn = document.getElementById("exportConfirmBtn");
+        if (!exportBtn || !modal || !cancelBtn || !confirmBtn) return;
+
+        let lastFocusedElement = null;
+
+        function buildExportUrl() {
+            const params = new URLSearchParams(window.location.search);
+            params.delete("page");
+            const query = params.toString();
+            const base = "{{ url_for('candidate.export_records') }}";
+            return query ? (base + "?" + query) : base;
+        }
+
+        function openModal() {
+            lastFocusedElement = document.activeElement;
+            modal.classList.add("open");
+            cancelBtn.focus();
+        }
+
+        function closeModal() {
+            modal.classList.remove("open");
+            if (lastFocusedElement) lastFocusedElement.focus();
+        }
+
+        exportBtn.addEventListener("click", openModal);
+        cancelBtn.addEventListener("click", closeModal);
+        modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && modal.classList.contains("open")) closeModal();
+        });
+        confirmBtn.addEventListener("click", () => {
+            closeModal();
+            const link = document.createElement("a");
+            link.href = buildExportUrl();
+            link.style.display = "none";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    })();
+
+    // ==========================================
+    // STAGE HISTORY MODAL — single curved timeline
+    // ==========================================
+    (function () {
+        const backdrop = document.getElementById("stageModal");
+        const closeBtn = document.getElementById("stageModalClose");
+        const nameEl = document.getElementById("stageModalName");
+        const idEl = document.getElementById("stageModalId");
+        const deptEl = document.getElementById("stageModalDept");
+        const avatarEl = document.getElementById("stageModalAvatar");
+        const footEl = document.getElementById("stageModalFoot");
+        const nodesWrap = document.getElementById("stageLineNodes");
+        const progressBar = document.getElementById("stageLineProgress");
+
+        if (!backdrop || !nodesWrap || !progressBar) return;
+
+        const LABELS = [
+            "Applied",
+            "Interview Requested",
+            "1st Interview",
+            "2nd Interview",
+            "Offer",
+            "Joined",
+            "Resign"
+        ];
+        const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>';
+
+        let activeRow = null;
+        let lastFocusedElement = null;
+
+        function renderTimeline(row) {
+            let stages = [];
+            try { stages = JSON.parse(row.dataset.stages || "[]"); } catch (e) { stages = []; }
+
+            const skipped = row.dataset.skipped === "true";
+            const rejected = row.dataset.rejected === "true";
+            const name = row.dataset.candidateName || "Candidate";
+            const cid = row.dataset.candidateId || "";
+            const dept = row.dataset.department || "N/A";
+
+            nameEl.textContent = name;
+            idEl.textContent = "#" + cid;
+            deptEl.textContent = dept;
+            avatarEl.textContent = (name || "?").trim().charAt(0).toUpperCase();
+
+            nodesWrap.innerHTML = "";
+
+            let currentIdx = -1;
+            let rejectedIdx = -1;
+            let doneCount = 0;
+            let skippedIdx = -1;
+
+            // Build nodes
+            stages.forEach((s, i) => {
+                const node = document.createElement("div");
+                node.className = "stage-line-node";
+
+                let isSkippedStage = !!s.skipped;
+
+                if (s.state === "done" && !isSkippedStage) {
+                    node.classList.add("is-done");
+                    doneCount++;
+                } else if (s.state === "current" && !isSkippedStage) {
+                    node.classList.add("is-current");
+                    currentIdx = i;
+                } else if (s.state === "rejected" && !isSkippedStage) {
+                    node.classList.add("is-rejected");
+                    rejectedIdx = i;
+                } else if (isSkippedStage || s.state === "skipped") {
+                    node.classList.add("is-skipped");
+                    skippedIdx = i;
+                    isSkippedStage = true;
+                } else {
+                    node.classList.add("is-pending");
+                }
+
+                // SKIPPED badge above skipped node
+                if (isSkippedStage) {
+                    const badge = document.createElement("span");
+                    badge.className = "stage-skip-badge";
+                    badge.textContent = "Skipped";
+                    node.appendChild(badge);
+                }
+
+                const dot = document.createElement("div");
+                dot.className = "stage-line-dot";
+                if (s.state === "done" && !isSkippedStage) dot.innerHTML = CHECK_SVG;
+
+                const label = document.createElement("div");
+                label.className = "stage-line-label";
+                label.textContent = s.label || LABELS[i] || s.key;
+
+                node.appendChild(dot);
+                node.appendChild(label);
+                nodesWrap.appendChild(node);
+            });
+
+            // Furthest progress index
+            const furthestIdx = Math.max(
+                doneCount - 1,
+                currentIdx,
+                rejectedIdx,
+                skippedIdx
+            );
+
+            // Fill the single straight track up to the furthest reached stage.
+            // The track runs from the center of the first node to the center of the last node.
+            const totalNodes = stages.length || 7;
+
+            // 83.3333% ဆိုတာက Track ရဲ့အလျား (Left 8.3333% မှ Right 8.3333% အထိ) ဖြစ်ပါတယ်။
+            // ဒါကြောင့် အဆင့်တွေကြားက အကွာအဝေးကို 100% မဟုတ်ဘဲ 83.3333% နဲ့ တွက်ရပါမယ်။
+            const progressAmount = furthestIdx < 0 || totalNodes < 2
+                ? 0
+                : (furthestIdx / (totalNodes - 1)) * 83.3333;
+
+            progressBar.style.width = progressAmount + "%";
+
+            // Footer
+            footEl.innerHTML = "";
+            const flag = document.createElement("span");
+            const text = document.createElement("span");
+
+            if (rejected) {
+                flag.className = "stage-flag flag-rejected";
+                flag.textContent = "Rejected";
+                text.textContent = "ဤအဆင့်တွင် ရပ်ဆိုင်းခဲ့သည်။";
+            }
+            else if (
+                currentIdx === stages.length - 1 &&
+                currentIdx >= 0 &&
+                stages[currentIdx].key === "resign"
+            ) {
+                flag.className = "stage-flag flag-complete";
+                flag.textContent = "Resign";
+                text.textContent = "Candidate သည် အလုပ်မှ နုတ်ထွက်ထားပါသည်။";
+            } else if (currentIdx === stages.length - 1 && currentIdx >= 0) {
+                flag.className = "stage-flag flag-complete";
+                flag.textContent = "Completed";
+                text.textContent = "အဆင့်အားလုံး ပြီးစီးပါပြီ။";
+            } else if (currentIdx >= 0) {
+                flag.className = "stage-flag flag-progress";
+                flag.textContent = "In Progress";
+                text.textContent = "လက်ရှိ: " + (stages[currentIdx].label || LABELS[currentIdx]);
+            }
+
+            if (flag.className) {
+                footEl.appendChild(flag);
+                footEl.appendChild(text);
+                footEl.style.display = "flex";
+            } else {
+                footEl.style.display = "none";
+            }
+        }
+
+        function openModal(row) {
+            lastFocusedElement = document.activeElement;
+            activeRow = row;
+            if (activeRow) activeRow.classList.add("active");
+            renderTimeline(row);
+            backdrop.classList.add("open");
+            backdrop.setAttribute("aria-hidden", "false");
+            closeBtn.focus();
+        }
+
+        function closeModal() {
+            backdrop.classList.remove("open");
+            backdrop.setAttribute("aria-hidden", "true");
+            if (activeRow) activeRow.classList.remove("active");
+            activeRow = null;
+            if (lastFocusedElement) lastFocusedElement.focus();
+        }
+
+        document.querySelectorAll(".records-table tbody").forEach(tbody => {
+            tbody.addEventListener("click", (e) => {
+                const row = e.target.closest("tr.record-row");
+                if (!row) return;
+                if (e.target.closest("a, button")) return;
+                openModal(row);
+            });
+            tbody.addEventListener("keydown", (e) => {
+                if (e.key !== "Enter" && e.key !== " ") return;
+                const row = e.target.closest("tr.record-row");
+                if (!row) return;
+                e.preventDefault();
+                openModal(row);
+            });
+        });
+
+        closeBtn.addEventListener("click", closeModal);
+        backdrop.addEventListener("click", (e) => { if (e.target === backdrop) closeModal(); });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && backdrop.classList.contains("open")) closeModal();
+        });
+    })();
+
+    document.addEventListener("DOMContentLoaded", function () {
+    const branchFilter = document.getElementById("branch-filter");
+    const departmentFilter = document.getElementById("department-filter");
+
+    if (!branchFilter || !departmentFilter) {
+        return;
+    }
+
+    branchFilter.addEventListener("change", function () {
+        departmentFilter.value = "";
+
+        // Reload with the selected branch.
+        // Other search and status filters remain in the form.
+        branchFilter.form.submit();
+    });
+});
+</script>
+{% endblock %}

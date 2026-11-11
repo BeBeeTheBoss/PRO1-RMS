@@ -1,0 +1,2907 @@
+{% extends "base.html" %}
+
+{% block title %}Add Candidate | Recruitment System{% endblock %}
+{% block page_heading %}Add New Candidate{% endblock %}
+{% block page_subtitle %}Fill in candidate details to register a new applicant in the recruitment pipeline.{% endblock
+%}
+
+{% block extra_css %}
+<style>
+    :root {
+        --add-primary: #4f46e5;
+        --add-primary-dark: #4338ca;
+        --add-primary-soft: #eef2ff;
+        --add-text: #172033;
+        --add-secondary: #475467;
+        --add-muted: #667085;
+        --add-border: #e4e7ec;
+        --add-bg: #f7f8fc;
+        --add-card: #fff;
+        --add-danger: #ef4444;
+        --add-radius: 18px
+    }
+
+    .add-candidate-page {
+        width: 100%;
+        min-width: 0;
+        color: var(--add-text);
+        font: 14px Inter, 'Poppins', "Segoe UI", Arial, sans-serif
+    }
+
+    .add-candidate-page *,
+    .add-candidate-page *::before,
+    .add-candidate-page *::after {
+        box-sizing: border-box
+    }
+
+    .add-candidate-page main {
+        width: 100%;
+        max-width: 1600px;
+        min-width: 0;
+        margin: 0 auto;
+        padding: 0 0 40px
+    }
+
+    .add-candidate-page .gradient-card {
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 22px;
+        border: 1px solid var(--add-border);
+        border-radius: var(--add-radius);
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(16, 24, 40, .03), 0 12px 35px rgba(16, 24, 40, .07)
+    }
+
+    .add-candidate-page .panel-head {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        padding: 24px 28px;
+        border-bottom: 1px solid var(--add-border);
+        background: linear-gradient(135deg, #fff, #f8faff)
+    }
+
+    .add-candidate-page .panel-head h2 {
+        margin: 0 0 7px;
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -.4px
+    }
+
+    .add-candidate-page .small-note {
+        color: var(--add-muted);
+        font-size: 12px;
+        line-height: 1.7
+    }
+
+    .add-candidate-page .mode-tabs {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px;
+        border: 1px solid var(--add-border);
+        border-radius: 12px;
+        background: #f4f5fb
+    }
+
+    .add-candidate-page .mode-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 16px;
+        border: 0;
+        border-radius: 9px;
+        background: transparent;
+        color: var(--add-secondary);
+        cursor: pointer;
+        font: 750 12.5px Inter, "Segoe UI", Arial, sans-serif
+    }
+
+    .add-candidate-page .mode-tab.active {
+        background: #fff;
+        color: var(--add-primary-dark);
+        box-shadow: 0 4px 10px rgba(79, 70, 229, .12)
+    }
+
+    .add-candidate-page .mode-panel {
+        position: relative;
+        z-index: 1;
+        padding: 24px 28px;
+        border-bottom: 1px solid var(--add-border);
+        background: #fff
+    }
+
+    .add-candidate-page .mode-panel[hidden],
+    .add-candidate-page [hidden] {
+        display: none !important
+    }
+
+    .add-candidate-page .auto-panel {
+        background: linear-gradient(135deg, #fafbff, #f4f6ff)
+    }
+
+    .add-candidate-page .auto-drop {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 16px;
+        border: 1px dashed #c7d2fe;
+        border-radius: 14px;
+        background: #fff
+    }
+
+    .add-candidate-page .auto-drop input[type=file] {
+        flex: 1 1 260px;
+        min-height: auto;
+        padding: 6px;
+        border: 0;
+        background: transparent;
+        box-shadow: none
+    }
+
+    .add-candidate-page .status {
+        display: none;
+        align-items: flex-start;
+        gap: 10px;
+        margin-top: 14px;
+        padding: 11px 14px;
+        border-radius: 10px;
+        font-size: 12.5px;
+        line-height: 1.6
+    }
+
+    .add-candidate-page .status.is-visible {
+        display: flex
+    }
+
+    .add-candidate-page .status.loading {
+        background: #eef2ff;
+        border: 1px solid #c7d2fe;
+        color: var(--add-primary-dark)
+    }
+
+    .add-candidate-page .status.success {
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        color: #065f46
+    }
+
+    .add-candidate-page .status.error {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b
+    }
+
+    .add-candidate-page .status.info {
+        background: #f8fafc;
+        border: 1px solid var(--add-border);
+        color: var(--add-secondary)
+    }
+
+    .add-candidate-page .spinner {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        margin-top: 2px;
+        border: 2px solid #c7d2fe;
+        border-top-color: var(--add-primary);
+        border-radius: 50%;
+        animation: add-spin .8s linear infinite;
+        flex: 0 0 auto
+    }
+
+    .add-candidate-page .spinner[hidden] {
+        display: none
+    }
+
+    @keyframes add-spin {
+        to {
+            transform: rotate(360deg)
+        }
+    }
+
+    .add-candidate-page .form-body {
+        position: relative;
+        z-index: 1;
+        padding: 28px;
+        background: #fff
+    }
+
+    .add-candidate-page .form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px
+    }
+
+    .add-candidate-page .field {
+        min-width: 0
+    }
+
+    .add-candidate-page .field.full {
+        grid-column: 1/-1
+    }
+
+    .add-candidate-page label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--add-secondary);
+        font-size: 12px;
+        font-weight: 750
+    }
+
+    .add-candidate-page .required {
+        color: var(--add-danger);
+        font-weight: 800
+    }
+
+    .add-candidate-page .hint {
+        margin: 7px 0 0;
+        color: var(--add-muted);
+        font-size: 11px;
+        line-height: 1.6;
+        overflow-wrap: anywhere
+    }
+
+    .add-candidate-page input,
+    .add-candidate-page select,
+    .add-candidate-page textarea {
+        width: 100%;
+        min-height: 44px;
+        border: 1px solid var(--add-border);
+        border-radius: 11px;
+        outline: none;
+        background: #fff;
+        padding: 11px 13px;
+        color: var(--add-text);
+        font: 13px Inter, "Segoe UI", Arial, sans-serif;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, .03);
+        transition: border-color .2s, box-shadow .2s
+    }
+
+    .add-candidate-page input::placeholder,
+    .add-candidate-page textarea::placeholder {
+        color: #98a2b3
+    }
+
+    .add-candidate-page input:hover,
+    .add-candidate-page select:hover,
+    .add-candidate-page textarea:hover {
+        border-color: #c7d2fe
+    }
+
+    .add-candidate-page input:focus,
+    .add-candidate-page select:focus,
+    .add-candidate-page textarea:focus {
+        border-color: var(--add-primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, .1)
+    }
+
+    .add-candidate-page textarea {
+        min-height: 105px;
+        resize: vertical;
+        line-height: 1.6
+    }
+
+    .add-candidate-page .field.autofilled input,
+    .add-candidate-page .field.autofilled textarea {
+        border-color: #a5b4fc;
+        background: #fafaff
+    }
+
+    .add-candidate-page .field.autofilled label::after {
+        content: " · auto-filled";
+        color: var(--add-primary-dark);
+        font-size: 10px
+    }
+
+    .add-candidate-page .field.low-confidence input,
+    .add-candidate-page .field.low-confidence textarea {
+        border-color: #fbbf24;
+        background: #fffbeb
+    }
+
+    .add-candidate-page .file-wrap {
+        position: relative;
+        padding: 12px;
+        border: 1px dashed #cfd4dc;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #fafbff, #f8faff)
+    }
+
+    .add-candidate-page .file-wrap input {
+        min-height: auto;
+        padding: 5px;
+        border: 0;
+        background: transparent;
+        box-shadow: none
+    }
+
+    .add-candidate-page input[type=file]::file-selector-button {
+        margin-right: 10px;
+        padding: 9px 14px;
+        border: 0;
+        border-radius: 9px;
+        background: var(--add-primary-soft);
+        color: var(--add-primary-dark);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 750
+    }
+
+    .add-candidate-page .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 28px;
+        padding-top: 22px;
+        border-top: 1px solid var(--add-border)
+    }
+
+    .add-candidate-page .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        min-height: 42px;
+        padding: 10px 18px;
+        border: 0;
+        border-radius: 10px;
+        cursor: pointer;
+        text-decoration: none;
+        font: 750 12px Inter, "Segoe UI", Arial, sans-serif;
+        transition: background .18s, transform .18s, box-shadow .18s
+    }
+
+    .add-candidate-page .btn-submit {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: #fff;
+        box-shadow: 0 5px 14px rgba(79, 70, 229, .2)
+    }
+
+    .add-candidate-page .btn-extract {
+        background: linear-gradient(135deg, #0ea5e9, #4f46e5);
+        color: #fff;
+        box-shadow: 0 5px 14px rgba(79, 70, 229, .18)
+    }
+
+    .add-candidate-page .btn-light {
+        border: 1px solid var(--add-border);
+        background: #fff;
+        color: var(--add-secondary)
+    }
+
+    .add-candidate-page .btn:disabled {
+        opacity: .55;
+        cursor: not-allowed
+    }
+
+    .add-candidate-page .btn:focus-visible,
+    .add-candidate-page .mode-tab:focus-visible {
+        outline: 3px solid rgba(79, 70, 229, .2);
+        outline-offset: 2px
+    }
+
+    /* Form validation errors */
+    .add-candidate-page .form-errors {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 22px;
+        padding: 13px 15px;
+        border: 1px solid #fecaca;
+        border-radius: 11px;
+        background: #fef2f2;
+        color: #991b1b;
+        font-size: 12.5px;
+        line-height: 1.7;
+    }
+
+    /* Required Field Error Highlight */
+    .add-candidate-page .field.has-error input,
+    .add-candidate-page .field.has-error select,
+    .add-candidate-page .field.has-error textarea {
+        border: 1px solid #ef4444 !important;
+        background-color: #fffafa !important;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.10) !important;
+    }
+
+    .add-candidate-page .field.has-error .file-wrap {
+        border: 1px solid #ef4444 !important;
+        background-color: #fffafa !important;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.10) !important;
+    }
+
+    .add-candidate-page .field.has-error label {
+        color: #dc2626 !important;
+    }
+
+    .add-candidate-page .field-error-message {
+        display: block;
+        margin-top: 6px;
+        color: #dc2626;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+    .add-candidate-page .field.has-error input:focus,
+    .add-candidate-page .field.has-error select:focus,
+    .add-candidate-page .field.has-error textarea:focus {
+        border-color: #dc2626 !important;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.13) !important;
+    }
+
+    .add-candidate-page .form-errors ul {
+        margin: 0;
+        padding-left: 18px;
+    }
+
+    /* Duplicate candidate modal */
+    .add-candidate-page .duplicate-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 100000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(15, 23, 42, .58);
+        backdrop-filter: blur(6px);
+        pointer-events: none;
+    }
+
+    .add-candidate-page .duplicate-modal.show {
+        display: flex;
+        pointer-events: auto;
+        animation: permissionFadeIn .2s ease;
+    }
+
+    .add-candidate-page .duplicate-modal-dialog {
+        width: 100%;
+        max-width: 900px;
+        max-height: 85vh;
+        overflow: hidden;
+        border: 1px solid #e4e7ec;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 25px 70px rgba(15, 23, 42, .25);
+        animation: permissionSlideIn .25s ease;
+    }
+
+    .add-candidate-page .duplicate-modal-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 24px 28px;
+        border-bottom: 1px solid var(--add-border);
+        background: linear-gradient(135deg, #fff, #fff8f7);
+    }
+
+    .add-candidate-page .duplicate-modal-heading {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 0;
+    }
+
+    .add-candidate-page .duplicate-modal-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        flex: 0 0 48px;
+        border-radius: 14px;
+        background: #fff1f0;
+        color: #dc2626;
+        font-size: 20px;
+    }
+
+    .add-candidate-page .duplicate-modal-header h2 {
+        margin: 0 0 6px;
+        color: #b42318;
+        font-size: 19px;
+        font-weight: 800;
+    }
+
+    .add-candidate-page .duplicate-modal-header p {
+        margin: 0;
+        color: var(--add-muted);
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    .add-candidate-page .duplicate-modal-close {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px;
+        border: 1px solid var(--add-border);
+        border-radius: 10px;
+        background: #fff;
+        color: var(--add-secondary);
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .add-candidate-page .duplicate-modal-close:hover {
+        background: #f8fafc;
+        color: #dc2626;
+    }
+
+    .add-candidate-page .duplicate-modal-body {
+        max-height: calc(85vh - 160px);
+        overflow: auto;
+        padding: 22px 28px;
+    }
+
+    .add-candidate-page .duplicate-table-wrap {
+        width: 100%;
+        overflow-x: auto;
+        border: 1px solid var(--add-border);
+        border-radius: 13px;
+    }
+
+    .add-candidate-page .duplicate-table {
+        width: 100%;
+        min-width: 690px;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: #fff;
+    }
+
+    .add-candidate-page .duplicate-table th {
+        padding: 13px 15px;
+        background: #f8f9fc;
+        color: #667085;
+        text-align: left;
+        white-space: nowrap;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .55px;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--add-border);
+    }
+
+    .add-candidate-page .duplicate-table td {
+        padding: 15px;
+        color: var(--add-text);
+        font-size: 12px;
+        border-bottom: 1px solid #eef0f4;
+        vertical-align: middle;
+    }
+
+    .add-candidate-page .duplicate-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .add-candidate-page .duplicate-table tbody tr:hover {
+        background: #fafaff;
+    }
+
+    .add-candidate-page .duplicate-candidate-name {
+        min-width: 150px;
+        font-weight: 800;
+        color: #172033;
+    }
+
+    .add-candidate-page .duplicate-position {
+        color: var(--add-secondary);
+    }
+
+    .add-candidate-page .duplicate-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 9px;
+        border-radius: 20px;
+        background: #eef2ff;
+        color: #4338ca;
+        white-space: nowrap;
+        font-size: 10px;
+        font-weight: 750;
+    }
+
+    .add-candidate-page .duplicate-match-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .add-candidate-page .duplicate-match-list span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 8px;
+        border-radius: 7px;
+        background: #fff1f0;
+        color: #b42318;
+        white-space: nowrap;
+        font-size: 10px;
+        font-weight: 750;
+    }
+
+    .add-candidate-page .duplicate-no-match {
+        color: #98a2b3;
+        font-size: 11px;
+    }
+
+    .add-candidate-page .duplicate-record-btn {
+        min-height: 34px;
+        padding: 7px 12px;
+        border: 1px solid #c7d2fe;
+        border-radius: 8px;
+        background: #eef2ff;
+        color: #4338ca;
+        white-space: nowrap;
+        font-size: 11px;
+        text-decoration: none;
+    }
+
+    .add-candidate-page .duplicate-record-btn:hover {
+        background: #e0e7ff;
+        transform: translateY(-1px);
+    }
+
+    .add-candidate-page .duplicate-modal-footer {
+        padding: 15px 28px;
+        border-top: 1px solid var(--add-border);
+        background: #fafbff;
+        color: var(--add-muted);
+        font-size: 11px;
+        line-height: 1.6;
+    }
+
+    @media(max-width:760px) {
+        .add-candidate-page .form-grid {
+            grid-template-columns: 1fr;
+            gap: 18px
+        }
+
+        .add-candidate-page .field.full {
+            grid-column: auto
+        }
+
+        .add-candidate-page .panel-head {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 21px
+        }
+
+        .add-candidate-page .mode-panel,
+        .add-candidate-page .form-body {
+            padding: 21px
+        }
+
+        .add-candidate-page .mode-tabs {
+            width: 100%
+        }
+
+        .add-candidate-page .mode-tab {
+            flex: 1;
+            justify-content: center
+        }
+
+        .add-candidate-page .duplicate-modal-header,
+        .add-candidate-page .duplicate-modal-body,
+        .add-candidate-page .duplicate-modal-footer {
+            padding-left: 18px;
+            padding-right: 18px;
+        }
+    }
+
+    @media(max-width:600px) {
+        .add-candidate-page .gradient-card {
+            border-radius: 15px
+        }
+
+        .add-candidate-page .panel-head,
+        .add-candidate-page .mode-panel,
+        .add-candidate-page .form-body {
+            padding: 18px
+        }
+
+        .add-candidate-page .auto-drop {
+            flex-direction: column;
+            align-items: stretch
+        }
+
+        .add-candidate-page .form-actions {
+            flex-wrap: wrap;
+            gap: 10px
+        }
+
+        .add-candidate-page .form-actions .btn {
+            flex: 1 1 140px
+        }
+
+        .add-candidate-page .duplicate-modal {
+            padding: 10px;
+        }
+
+        .add-candidate-page .duplicate-modal-dialog {
+            max-height: 92vh;
+            border-radius: 15px;
+        }
+
+        .add-candidate-page .duplicate-modal-body {
+            max-height: calc(92vh - 160px);
+        }
+    }
+
+    @media(max-width:390px) {
+        .add-candidate-page .form-actions {
+            flex-direction: column
+        }
+
+        .add-candidate-page .form-actions .btn {
+            width: 100%
+        }
+    }
+
+    /* -----------------------------------------
+   PERMISSION DENIED MODAL
+----------------------------------------- */
+
+    .add-candidate-page .permission-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(15, 23, 42, .55);
+        backdrop-filter: blur(5px);
+    }
+
+    .add-candidate-page .permission-modal.show {
+        display: flex;
+        animation: permissionFadeIn .2s ease;
+    }
+
+    .add-candidate-page .permission-modal-content {
+        width: 100%;
+        max-width: 420px;
+        padding: 30px;
+        border: 1px solid #e4e7ec;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 25px 70px rgba(15, 23, 42, .22);
+        text-align: center;
+        animation: permissionSlideIn .25s ease;
+    }
+
+    .add-candidate-page .permission-modal-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 68px;
+        height: 68px;
+        margin: 0 auto 18px;
+        border-radius: 50%;
+        background: #fff7ed;
+        color: #ea580c;
+        font-size: 27px;
+    }
+
+    .add-candidate-page .permission-modal-content h3 {
+        margin: 0 0 10px;
+        color: #172033;
+        font-size: 21px;
+        font-weight: 800;
+    }
+
+    .add-candidate-page .permission-modal-content p {
+        margin: 0;
+        color: #667085;
+        font-size: 13px;
+        line-height: 1.8;
+    }
+
+    .add-candidate-page .permission-modal-btn {
+        width: 100%;
+        margin-top: 24px;
+        padding: 12px 20px;
+        border: 0;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 750;
+        cursor: pointer;
+        transition: .2s ease;
+    }
+
+    .add-candidate-page .permission-modal-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 15px rgba(79, 70, 229, .25);
+    }
+
+    @keyframes permissionFadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes permissionSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(15px) scale(.97);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="add-candidate-page">
+    <main>
+        <!-- DUPLICATE CANDIDATE MODAL -->
+        {% if duplicate_candidates %}
+        <div class="duplicate-modal show" id="duplicateModal" role="dialog" aria-modal="true"
+            aria-labelledby="duplicateModalTitle">
+
+            <div class="duplicate-modal-dialog">
+
+                <div class="duplicate-modal-header">
+                    <div class="duplicate-modal-heading">
+                        <span class="duplicate-modal-icon">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </span>
+
+                        <div>
+                            <h2 id="duplicateModalTitle">
+                                Existing Candidate Found
+                            </h2>
+                            <p>
+                                A candidate with the same phone number or email address already exists.
+                                Please review the matching record before adding another candidate.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button type="button" class="duplicate-modal-close" id="closeDuplicateModal" aria-label="Close">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Candidate table only -->
+                <div class="duplicate-modal-body">
+                    <div class="duplicate-table-wrap">
+                        <table class="duplicate-table">
+                            <thead>
+                                <tr>
+                                    <th>Candidate</th>
+                                    <th>Position</th>
+                                    <th>Status</th>
+                                    <th>Match</th>
+                                    <th>Record</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for candidate in duplicate_candidates %}
+                                <tr>
+                                    <td>
+                                        <div class="duplicate-candidate-name">
+                                            {{ candidate.name or '-' }}
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="duplicate-position">
+                                            {{ candidate.position or '-' }}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="duplicate-status">
+                                            {{ (candidate.status or 'Unknown')|replace('_', ' ')|title }}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <div class="duplicate-match-list">
+                                            {% if candidate.phone_match %}
+                                            <span>
+                                                <i class="fa-solid fa-phone"></i>
+                                                Phone
+                                            </span>
+                                            {% endif %}
+
+                                            {% if candidate.email_match %}
+                                            <span>
+                                                <i class="fa-solid fa-envelope"></i>
+                                                Email
+                                            </span>
+                                            {% endif %}
+
+                                            {% if not candidate.phone_match and not candidate.email_match %}
+                                            <span class="duplicate-no-match">-</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        {% if role == 'super_admin' or candidate.can_view %}
+                                        <a href="{{ url_for('candidate.candidate_history', candidate_id=candidate.id) }}"
+                                            target="_blank" rel="noopener noreferrer" class="duplicate-record-btn">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                            Record
+                                        </a>
+                                        {% else %}
+                                        <span class="duplicate-no-access">
+                                            <i class="fa-solid fa-lock"></i>
+                                            No Access
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="duplicate-modal-footer">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Review the existing record before saving a new candidate.
+                </div>
+
+            </div>
+        </div>
+        {% endif %}
+
+        <section class="gradient-card" data-extract-url="{{ url_for('candidate.extract_candidate_from_cv') }}"
+            data-form-mode="{{ form_mode or 'auto' }}"
+            data-auto-department="{{ auto_form_data.get('department_id', '') if auto_form_data else '' }}"
+            data-manual-department="{{ manual_form_data.get('department_id', '') if manual_form_data else '' }}">
+
+            <div class="panel-head">
+                <div>
+                    <h2>＋ Add New Candidate</h2>
+                    <div class="small-note">
+                        Required fields are marked with an asterisk (*).
+                        Address and other attachment are optional.
+                    </div>
+                </div>
+
+                <div class="mode-tabs" role="tablist" aria-label="Entry mode">
+                    <button type="button" class="mode-tab active" data-mode="auto" role="tab" aria-selected="true">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        Auto-fill from CV
+                    </button>
+
+                    <button type="button" class="mode-tab" data-mode="manual" role="tab" aria-selected="false">
+                        <i class="fa-solid fa-pen"></i>
+                        Manual Entry
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- AUTO-FILL PANEL -->
+            <section id="autoPanel" class="mode-panel auto-panel">
+
+                <div class="auto-drop">
+                    <input type="file" id="cv_auto_file" accept=".pdf,application/pdf">
+
+                    <button type="button" id="btnExtract" class="btn btn-extract">
+                        <i class="fa-solid fa-bolt"></i>
+                        Extract &amp; Fill
+                    </button>
+
+                    <button type="button" id="btnPreviewCV" class="btn btn-light">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        Preview CV
+                    </button>
+                </div>
+
+                <p class="hint">
+                    Upload a PDF CV. The local AI model will extract candidate details.
+                    Review the values before saving.
+                </p>
+
+                <div class="status" id="extractStatus" aria-live="polite">
+                    <span class="spinner" hidden></span>
+                    <span class="status-text"></span>
+                </div>
+
+
+                <form action="{{ url_for('candidate.add_candidate') }}" method="POST" enctype="multipart/form-data"
+                    id="autoCandidateForm">
+
+                    <input type="hidden" name="form_mode" value="auto">
+
+                    <div class="form-body">
+
+                        <div class="form-grid">
+
+                            <div class="field" data-field="name">
+                                <label for="auto_name">
+                                    Full name <span class="required">*</span>
+                                </label>
+                                <input id="auto_name" name="name" type="text" maxlength="150" required
+                                    placeholder="Enter full name"
+                                    value="{{ auto_form_data.get('name', '') if auto_form_data else '' }}">
+                            </div>
+
+                            <div class="field" data-field="phone">
+                                <label for="auto_phone">
+                                    Phone number <span class="required">*</span>
+                                </label>
+                                <input id="auto_phone" name="phone" type="tel" maxlength="30" required inputmode="tel"
+                                    pattern="[+0-9()\- ]{7,30}" placeholder="09xxxxxxxxx"
+                                    value="{{ auto_form_data.get('phone', '') if auto_form_data else '' }}">
+                                <p class="hint">Use 7–15 digits; country code is allowed.</p>
+                            </div>
+
+                            <div class="field" data-field="email">
+                                <label for="auto_email">
+                                    Email address <span class="required">*</span>
+                                </label>
+                                <input id="auto_email" name="email" type="email" maxlength="255" required
+                                    placeholder="candidate@example.com"
+                                    value="{{ auto_form_data.get('email', '') if auto_form_data else '' }}">
+                            </div>
+
+                            <div class="field" data-field="nrc">
+                                <label for="auto_nrc">NRC number</label>
+                                <input id="auto_nrc" name="nrc" type="text" maxlength="50"
+                                    placeholder="Enter NRC number"
+                                    value="{{ auto_form_data.get('nrc', '') if auto_form_data else '' }}">
+                            </div>
+
+                            <div class="field" data-field="position">
+                                <label for="auto_position">
+                                    Position <span class="required">*</span>
+                                </label>
+                                <input id="auto_position" name="position" type="text" maxlength="150" required
+                                    placeholder="Enter position"
+                                    value="{{ auto_form_data.get('position', '') if auto_form_data else '' }}">
+                                <p class="hint">Position applied for</p>
+                            </div>
+
+                            <div class="field" data-field="channel">
+                                <label for="auto_channel">
+                                    Channel <span class="required">*</span>
+                                </label>
+                                <input id="auto_channel" name="channel" type="text" maxlength="100" required
+                                    placeholder="e.g. Facebook, JobNet, Referral"
+                                    value="{{ auto_form_data.get('channel', '') if auto_form_data else '' }}">
+                                <p class="hint">How the candidate applied or was sourced</p>
+                            </div>
+
+                            <div class="field" data-field="branch_id">
+                                <label for="auto_branch_id">
+                                    Branch <span class="required">*</span>
+                                </label>
+                                <select id="auto_branch_id" name="branch_id" required>
+                                    <option value="">Select branch</option>
+                                    {% for branch in branches %}
+                                    <option value="{{ branch.id }}" {% if auto_form_data and
+                                        auto_form_data.get('branch_id')|string==branch.id|string %}selected{% endif %}>
+                                        {{ branch.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                {% if not branches %}
+                                <p class="hint">No active branches found.</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="field" data-field="department_id">
+                                <label for="auto_department_id">
+                                    Department <span class="required">*</span>
+                                </label>
+                                <select id="auto_department_id" name="department_id" required>
+                                    <option value="">Select branch first</option>
+                                    {% for department in departments %}
+                                    <option value="{{ department.id }}" data-branch-id="{{ department.branch_id }}" {%
+                                        if auto_form_data and
+                                        auto_form_data.get('department_id')|string==department.id|string %}selected{%
+                                        endif %}>
+                                        {{ department.name }}
+                                        {% if department.short_name %}
+                                        ({{ department.short_name }})
+                                        {% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                {% if not departments %}
+                                <p class="hint">No active departments found. Add or activate a department first.</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="field" data-field="cv_file">
+                                <label for="auto_cv_file">
+                                    CV / Resume <span class="required">*</span>
+                                </label>
+                                <div class="file-wrap">
+                                    <input id="auto_cv_file" name="cv_file" type="file" required
+                                        accept=".pdf,.doc,.docx">
+                                    <p class="hint" id="auto-cv-file-name">
+                                        PDF, DOC, DOCX · Maximum 10 MB
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="field full" data-field="address">
+                                <label for="auto_address">
+                                    Address <span class="small-note">(Optional)</span>
+                                </label>
+                                <textarea id="auto_address" name="address" maxlength="5000"
+                                    placeholder="Enter candidate address if available">{{ auto_form_data.get('address', '') if auto_form_data else '' }}</textarea>
+                            </div>
+
+                            <div class="field full" data-field="additional_data">
+                                <label for="auto_additional_data">
+                                    Additional Information
+                                    <span class="small-note">(Optional)</span>
+                                </label>
+                                <textarea id="auto_additional_data" name="additional_data" maxlength="10000"
+                                    placeholder="Enter any additional candidate information...">{{ auto_form_data.get('additional_data', '') if auto_form_data else '' }}</textarea>
+                            </div>
+
+                            <div class="field full" data-field="other_attachment">
+                                <label for="auto_other_attachment">
+                                    Other attachment
+                                    <span class="small-note">(Optional)</span>
+                                </label>
+                                <div class="file-wrap">
+                                    <input id="auto_other_attachment" name="other_attachment" type="file"
+                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                                    <p class="hint" id="auto-attachment-file-name">
+                                        Certificates, recommendation letters or other documents · Maximum 10 MB
+                                    </p>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="reset" class="btn btn-light">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                Clear Form
+                            </button>
+
+                            <button type="submit" class="btn btn-submit" {% if not departments %}disabled
+                                title="Create an active department first" {% endif %}>
+                                <i class="fa-solid fa-user-plus"></i>
+                                Save Candidate
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+
+            <!-- MANUAL ENTRY PANEL -->
+            <section id="manualPanel" class="mode-panel" hidden>
+
+                <p class="hint" style="margin:0">
+                    Fill in candidate details below, then click
+                    <strong>Save Candidate</strong>.
+                </p>
+
+                <form action="{{ url_for('candidate.add_candidate') }}" method="POST" enctype="multipart/form-data"
+                    id="manualCandidateForm">
+
+                    <input type="hidden" name="form_mode" value="manual">
+
+                    <div class="form-body">
+
+                        <div class="form-grid">
+
+                            <div class="field">
+                                <label for="manual_name">
+                                    Full name <span class="required">*</span>
+                                </label>
+                                <input id="manual_name" name="name" type="text" maxlength="150" required
+                                    placeholder="Enter full name"
+                                    value="{{ manual_form_data.get('name', '') if manual_form_data else '' }}">
+                            </div>
+
+                            <div class="field">
+                                <label for="manual_phone">
+                                    Phone number <span class="required">*</span>
+                                </label>
+                                <input id="manual_phone" name="phone" type="tel" maxlength="30" required inputmode="tel"
+                                    pattern="[+0-9()\- ]{7,30}" placeholder="09xxxxxxxxx"
+                                    value="{{ manual_form_data.get('phone', '') if manual_form_data else '' }}">
+                                <p class="hint">Use 7–15 digits; country code is allowed.</p>
+                            </div>
+
+                            <div class="field">
+                                <label for="manual_email">
+                                    Email address <span class="required">*</span>
+                                </label>
+                                <input id="manual_email" name="email" type="email" maxlength="255" required
+                                    placeholder="candidate@example.com"
+                                    value="{{ manual_form_data.get('email', '') if manual_form_data else '' }}">
+                            </div>
+
+                            <div class="field">
+                                <label for="manual_nrc">NRC number</label>
+                                <input id="manual_nrc" name="nrc" type="text" maxlength="50"
+                                    placeholder="Enter NRC number"
+                                    value="{{ manual_form_data.get('nrc', '') if manual_form_data else '' }}">
+                            </div>
+
+                            <div class="field">
+                                <label for="manual_position">
+                                    Position <span class="required">*</span>
+                                </label>
+                                <input id="manual_position" name="position" type="text" maxlength="150" required
+                                    placeholder="Enter position"
+                                    value="{{ manual_form_data.get('position', '') if manual_form_data else '' }}">
+                            </div>
+
+                            <div class="field">
+                                <label for="manual_channel">
+                                    Channel <span class="required">*</span>
+                                </label>
+                                <input id="manual_channel" name="channel" type="text" maxlength="100" required
+                                    placeholder="e.g. Facebook, JobNet, Referral"
+                                    value="{{ manual_form_data.get('channel', '') if manual_form_data else '' }}">
+                            </div>
+
+                            <div class="field">
+                                <label for="manual_branch_id">
+                                    Branch <span class="required">*</span>
+                                </label>
+                                <select id="manual_branch_id" name="branch_id" required>
+                                    <option value="">Select branch</option>
+                                    {% for branch in branches %}
+                                    <option value="{{ branch.id }}" {% if manual_form_data and
+                                        manual_form_data.get('branch_id')|string==branch.id|string %}selected{% endif
+                                        %}>
+                                        {{ branch.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="field">
+                                <label for="manual_department_id">
+                                    Department <span class="required">*</span>
+                                </label>
+                                <select id="manual_department_id" name="department_id" required>
+                                    <option value="">Select branch first</option>
+                                    {% for department in departments %}
+                                    <option value="{{ department.id }}" data-branch-id="{{ department.branch_id }}" {%
+                                        if manual_form_data and
+                                        manual_form_data.get('department_id')|string==department.id|string %}selected{%
+                                        endif %}>
+                                        {{ department.name }}
+                                        {% if department.short_name %}
+                                        ({{ department.short_name }})
+                                        {% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                {% if not departments %}
+                                <p class="hint">No active departments found. Add or activate a department first.</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="field">
+                                <label for="manual_cv_file">
+                                    CV / Resume <span class="required">*</span>
+                                </label>
+                                <div class="file-wrap">
+                                    <input id="manual_cv_file" name="cv_file" type="file" required
+                                        accept=".pdf,.doc,.docx">
+                                    <p class="hint" id="manual-cv-file-name">
+                                        PDF, DOC, DOCX · Maximum 10 MB
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="field full">
+                                <label for="manual_address">
+                                    Address <span class="small-note">(Optional)</span>
+                                </label>
+                                <textarea id="manual_address" name="address" maxlength="5000"
+                                    placeholder="Enter candidate address if available">{{ manual_form_data.get('address', '') if manual_form_data else '' }}</textarea>
+                            </div>
+
+                            <div class="field full" data-field="additional_data">
+                                <label for="manual_additional_data">
+                                    Additional Information
+                                    <span class="small-note">(Optional)</span>
+                                </label>
+                                <textarea id="manual_additional_data" name="additional_data" maxlength="10000"
+                                    placeholder="Enter any additional candidate information...">{{ manual_form_data.get('additional_data', '') if manual_form_data else '' }}</textarea>
+                            </div>
+
+                            <div class="field full">
+                                <label for="manual_other_attachment">
+                                    Other attachment
+                                    <span class="small-note">(Optional)</span>
+                                </label>
+                                <div class="file-wrap">
+                                    <input id="manual_other_attachment" name="other_attachment" type="file"
+                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                                    <p class="hint" id="manual-attachment-file-name">
+                                        Certificates, recommendation letters or other documents · Maximum 10 MB
+                                    </p>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="reset" class="btn btn-light">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                Clear form
+                            </button>
+
+                            <button type="submit" class="btn btn-submit" {% if not departments %}disabled
+                                title="Create an active department first" {% endif %}>
+                                <i class="fa-solid fa-user-plus"></i>
+                                Save Candidate
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+
+        </section>
+
+        <!-- PERMISSION DENIED MODAL -->
+        <div class="permission-modal {% if permission_denied %}show{% endif %}" id="permissionDeniedModal">
+
+            <div class="permission-modal-content">
+
+                <div class="permission-modal-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+
+                <h3 id="permissionModalTitle">
+                    Permission Denied
+                </h3>
+
+                <p id="permissionModalMessage">
+                    {{ permission_message or "You don't have permission to perform this action. Please contact your
+                    administrator." }}
+                </p>
+
+                <button type="button" class="permission-modal-btn" id="closePermissionModal">
+                    OK
+                </button>
+
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+    (function () {
+        'use strict';
+
+        const card = document.querySelector(
+            '.add-candidate-page .gradient-card[data-extract-url]'
+        );
+
+        if (!card) return;
+
+        const tabs = document.querySelectorAll('.mode-tab');
+        const autoPanel = document.getElementById('autoPanel');
+        const manualPanel = document.getElementById('manualPanel');
+
+        const extractButton = document.getElementById('btnExtract');
+        const previewCVButton = document.getElementById('btnPreviewCV');
+        const autoFile = document.getElementById('cv_auto_file');
+
+        const status = document.getElementById('extractStatus');
+        const statusText = status.querySelector('.status-text');
+        const spinner = status.querySelector('.spinner');
+
+        const extractUrl = card.dataset.extractUrl;
+
+        const autoSelectedDepartment =
+            card.dataset.autoDepartment || '';
+
+        const manualSelectedDepartment =
+            card.dataset.manualDepartment || '';
+
+        const submittedMode =
+            card.dataset.formMode === 'manual' ? 'manual' : 'auto';
+
+        const autoForm = document.getElementById('autoCandidateForm');
+        const manualForm = document.getElementById('manualCandidateForm');
+
+        const maxBytes = 10 * 1024 * 1024;
+
+        // Disable browser's default validation popup.
+        // Custom validation below will display red field errors.
+        [autoForm, manualForm].forEach(form => {
+            if (form) {
+                form.noValidate = true;
+            }
+        });
+
+        const permissionModal = document.getElementById(
+            'permissionDeniedModal'
+        );
+
+        const permissionModalMessage = document.getElementById(
+            'permissionModalMessage'
+        );
+
+        const closePermissionModal = document.getElementById(
+            'closePermissionModal'
+        );
+
+        function showPermissionDenied(message) {
+            if (!permissionModal) return;
+
+            if (permissionModalMessage) {
+                permissionModalMessage.textContent =
+                    message ||
+                    "You don't have permission to perform this action. Please contact your administrator.";
+            }
+
+            permissionModal.classList.add('show');
+
+            closePermissionModal?.focus();
+        }
+
+        function hidePermissionDenied() {
+            permissionModal?.classList.remove('show');
+        }
+
+        closePermissionModal?.addEventListener(
+            'click',
+            hidePermissionDenied
+        );
+
+        permissionModal?.addEventListener('click', function (event) {
+            if (event.target === permissionModal) {
+                hidePermissionDenied();
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (
+                event.key === 'Escape' &&
+                permissionModal?.classList.contains('show')
+            ) {
+                hidePermissionDenied();
+            }
+        });
+
+        // -----------------------------------------
+        // DUPLICATE MODAL
+        // -----------------------------------------
+
+        const duplicateModal = document.getElementById('duplicateModal');
+        const closeDuplicateModal = document.getElementById('closeDuplicateModal');
+
+        function hideDuplicateModal() {
+            if (!duplicateModal) return;
+
+            duplicateModal.classList.remove('show');
+
+            // Make sure the overlay cannot block sidebar clicks
+            duplicateModal.style.display = 'none';
+            duplicateModal.style.pointerEvents = 'none';
+
+            // Restore normal page interaction
+            document.body.style.overflow = '';
+            document.body.style.pointerEvents = '';
+
+            // Remove modal accessibility state
+            duplicateModal.setAttribute('aria-hidden', 'true');
+        }
+
+        if (duplicateModal && closeDuplicateModal) {
+
+            closeDuplicateModal.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                hideDuplicateModal();
+            });
+
+            duplicateModal.addEventListener('click', function (event) {
+                if (event.target === duplicateModal) {
+                    hideDuplicateModal();
+                }
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (
+                    event.key === 'Escape' &&
+                    duplicateModal.classList.contains('show')
+                ) {
+                    hideDuplicateModal();
+                }
+            });
+
+            duplicateModal.setAttribute('aria-hidden', 'false');
+            closeDuplicateModal.focus();
+        }
+
+        let extracting = false;
+
+        // -----------------------------------------
+        // MODE SWITCHING
+        // -----------------------------------------
+
+        function setMode(mode) {
+            const isAuto = mode === 'auto';
+
+            autoPanel.hidden = !isAuto;
+            manualPanel.hidden = isAuto;
+
+            tabs.forEach(tab => {
+                const active = tab.dataset.mode === mode;
+
+                tab.classList.toggle('active', active);
+                tab.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                setMode(tab.dataset.mode);
+            });
+        });
+
+        // -----------------------------------------
+        // STATUS MESSAGE
+        // -----------------------------------------
+
+        function showStatus(kind, message, loading) {
+            status.classList.remove(
+                'loading', 'success', 'error', 'info'
+            );
+
+            status.classList.add('is-visible', kind);
+            statusText.textContent = message;
+            spinner.hidden = !loading;
+        }
+
+        function hideStatus() {
+            status.classList.remove(
+                'is-visible', 'loading', 'success', 'error', 'info'
+            );
+
+            statusText.textContent = '';
+            spinner.hidden = true;
+        }
+
+        // -----------------------------------------
+        // PHONE VALIDATION
+        // -----------------------------------------
+
+        function validatePhone(input) {
+            if (!input) return;
+
+            const value = input.value.trim();
+
+            if (!value) {
+                input.setCustomValidity('');
+                return;
+            }
+
+            const digits = value.replace(/\D/g, '').length;
+
+            input.setCustomValidity(
+                digits >= 7 && digits <= 15
+                    ? ''
+                    : 'Phone number must contain 7–15 digits.'
+            );
+        }
+
+        document.querySelectorAll(
+            '#auto_phone, #manual_phone'
+        ).forEach(input => {
+            input.addEventListener('input', () => {
+                validatePhone(input);
+            });
+        });
+
+        // -----------------------------------------
+        // AUTO-FILL FIELD MAPPING
+        // -----------------------------------------
+
+        function setFormField(form, key, value) {
+            if (
+                value === null ||
+                value === undefined ||
+                !String(value).trim()
+            ) {
+                return false;
+            }
+
+            const input = form.querySelector(
+                '[data-field="' + key + '"] input, ' +
+                '[data-field="' + key + '"] textarea, ' +
+                '[data-field="' + key + '"] select'
+            );
+
+            if (!input || input.type === 'file') return false;
+
+            input.value = String(value).trim();
+
+            input.closest('.field')?.classList.add('autofilled');
+
+            input.dispatchEvent(
+                new Event('input', { bubbles: true })
+            );
+
+            return true;
+        }
+
+        function applyFields(fields) {
+            let count = 0;
+
+            [
+                'name',
+                'phone',
+                'email',
+                'nrc',
+                'position',
+                'address'
+            ].forEach(key => {
+                if (setFormField(autoForm, key, fields[key])) {
+                    count++;
+                }
+            });
+
+            if (setFormField(autoForm, 'channel', 'CV Upload')) {
+                count++;
+            }
+
+            if (fields.confidence === 'low') {
+                [
+                    'name',
+                    'phone',
+                    'email',
+                    'nrc',
+                    'position',
+                    'address'
+                ].forEach(key => {
+                    autoForm.querySelector(
+                        '[data-field="' + key + '"]'
+                    )?.classList.add('low-confidence');
+                });
+            }
+
+            return count;
+        }
+
+        // -----------------------------------------
+        // FILE NAME DISPLAY
+        // -----------------------------------------
+
+        function showFileName(input, label, defaultText) {
+            if (!input || !label) return;
+
+            label.textContent = input.files[0]
+                ? 'Selected: ' + input.files[0].name
+                : defaultText;
+        }
+
+        // -----------------------------------------
+        // CV FILE VALIDATION
+        // -----------------------------------------
+
+        document.querySelectorAll(
+            '#auto_cv_file, #manual_cv_file'
+        ).forEach(input => {
+            input.addEventListener('change', () => {
+                const label = document.getElementById(
+                    input.id === 'auto_cv_file'
+                        ? 'auto-cv-file-name'
+                        : 'manual-cv-file-name'
+                );
+
+                const defaultText = 'PDF, DOC, DOCX · Maximum 10 MB';
+
+                showFileName(input, label, defaultText);
+
+                if (input.files[0] && input.files[0].size > maxBytes) {
+                    input.value = '';
+                    showFileName(input, label, defaultText);
+
+                    showStatus(
+                        'error',
+                        'CV file must not exceed 10 MB.',
+                        false
+                    );
+                }
+            });
+        });
+
+        // -----------------------------------------
+        // OTHER ATTACHMENT VALIDATION
+        // -----------------------------------------
+
+        document.querySelectorAll(
+            '#auto_other_attachment, #manual_other_attachment'
+        ).forEach(input => {
+            input.addEventListener('change', () => {
+                const label = document.getElementById(
+                    input.id === 'auto_other_attachment'
+                        ? 'auto-attachment-file-name'
+                        : 'manual-attachment-file-name'
+                );
+
+                const defaultText =
+                    'Certificates, recommendation letters or other documents · Maximum 10 MB';
+
+                showFileName(input, label, defaultText);
+
+                if (input.files[0] && input.files[0].size > maxBytes) {
+                    input.value = '';
+                    showFileName(input, label, defaultText);
+
+                    showStatus(
+                        'error',
+                        'Other attachment must not exceed 10 MB.',
+                        false
+                    );
+                }
+            });
+        });
+
+        // -----------------------------------------
+        // CV PREVIEW
+        // -----------------------------------------
+
+        previewCVButton.addEventListener('click', () => {
+            const file = autoFile.files[0];
+
+            if (!file) {
+                showStatus('error', 'Please select a CV first.', false);
+                return;
+            }
+
+            if (!file.name.toLowerCase().endsWith('.pdf')) {
+                showStatus(
+                    'error',
+                    'CV Preview currently supports PDF files only.',
+                    false
+                );
+                return;
+            }
+
+            const previewUrl = URL.createObjectURL(file);
+            const previewWindow = window.open(previewUrl, '_blank');
+
+            if (!previewWindow) {
+                URL.revokeObjectURL(previewUrl);
+
+                showStatus(
+                    'error',
+                    'Please allow pop-ups to preview the CV.',
+                    false
+                );
+
+                return;
+            }
+
+            previewWindow.addEventListener(
+                'beforeunload',
+                () => URL.revokeObjectURL(previewUrl),
+                { once: true }
+            );
+        });
+
+        // -----------------------------------------
+        // CV EXTRACTION
+        // -----------------------------------------
+
+        extractButton.addEventListener('click', async () => {
+            if (extracting) return;
+
+            const file = autoFile.files[0];
+
+            if (!file) {
+                showStatus(
+                    'error',
+                    'Please choose a PDF CV first.',
+                    false
+                );
+                return;
+            }
+
+            if (!file.name.toLowerCase().endsWith('.pdf')) {
+                showStatus(
+                    'error',
+                    'Only PDF files are supported for auto-extract.',
+                    false
+                );
+                return;
+            }
+
+            if (file.size > maxBytes) {
+                showStatus(
+                    'error',
+                    'CV file must not exceed 10 MB.',
+                    false
+                );
+                return;
+            }
+
+            if (!extractUrl) {
+                showStatus(
+                    'error',
+                    'CV extraction URL is not configured.',
+                    false
+                );
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('cv_file', file, file.name);
+
+            extracting = true;
+            extractButton.disabled = true;
+
+            showStatus(
+                'loading',
+                'Reading CV and extracting candidate details. Please wait…',
+                true
+            );
+
+            try {
+                const response = await fetch(extractUrl, {
+                    method: 'POST',
+                    body: fd,
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                let data = null;
+
+                try {
+                    data = await response.json();
+                } catch (error) {
+                    data = null;
+                }
+
+                if (!response.ok || !data || !data.ok) {
+                    showStatus(
+                        'error',
+                        data?.error ||
+                        'Extraction failed (HTTP ' + response.status + ').',
+                        false
+                    );
+                    return;
+                }
+
+                const autoCvInput =
+                    document.getElementById('auto_cv_file');
+
+                const transfer = new DataTransfer();
+                transfer.items.add(file);
+                autoCvInput.files = transfer.files;
+
+                if (
+                    !autoCvInput.files.length ||
+                    autoCvInput.files[0].name !== file.name ||
+                    autoCvInput.files[0].size !== file.size
+                ) {
+                    showStatus(
+                        'error',
+                        'Could not attach the selected CV. Please select it again.',
+                        false
+                    );
+                    return;
+                }
+
+                const filled = applyFields(data.fields || {});
+
+                document.getElementById(
+                    'auto-cv-file-name'
+                ).textContent = 'Selected: ' + file.name + ' · Ready to save';
+
+                if (filled === 0) {
+                    showStatus(
+                        'info',
+                        'Extraction finished. No candidate fields were returned. You can enter details in this Auto-fill form.',
+                        false
+                    );
+                } else {
+                    showStatus(
+                        'success',
+                        'Extraction complete. Filled ' + filled +
+                        ' field(s). Review the details below and save.',
+                        false
+                    );
+                }
+
+                setMode('auto');
+
+                requestAnimationFrame(() => {
+                    const firstEmpty = autoForm.querySelector(
+                        'input[required]:not([type="file"]):invalid, select[required]:invalid'
+                    );
+
+                    const target =
+                        firstEmpty || autoForm.querySelector('#auto_name');
+
+                    target?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                });
+
+            } catch (error) {
+                console.error('CV extraction error:', error);
+
+                showStatus(
+                    'error',
+                    'AI service or network error. Check Ollama and try again.',
+                    false
+                );
+
+            } finally {
+                extracting = false;
+                extractButton.disabled = false;
+                spinner.hidden = true;
+            }
+        });
+
+        // -----------------------------------------
+        // BRANCH / DEPARTMENT FILTERING
+        // -----------------------------------------
+
+        function setupBranchDepartment(
+            branchSelectId,
+            departmentSelectId,
+            initialDepartment = ''
+        ) {
+            const branchSelect =
+                document.getElementById(branchSelectId);
+
+            const departmentSelect =
+                document.getElementById(departmentSelectId);
+
+            if (!branchSelect || !departmentSelect) return;
+
+            function filterDepartments(resetSelection = false) {
+                const selectedBranch = branchSelect.value;
+
+                const previousValue = resetSelection
+                    ? ''
+                    : (departmentSelect.value || initialDepartment || '');
+
+                let visibleCount = 0;
+                let previousValueValid = false;
+
+                departmentSelect.querySelectorAll('option').forEach(option => {
+                    if (!option.value) {
+                        option.hidden = false;
+                        option.disabled = false;
+                        return;
+                    }
+
+                    const matches =
+                        selectedBranch !== '' &&
+                        option.dataset.branchId === selectedBranch;
+
+                    option.hidden = !matches;
+                    option.disabled = !matches;
+
+                    if (matches) {
+                        visibleCount++;
+
+                        if (option.value === String(previousValue)) {
+                            previousValueValid = true;
+                        }
+                    }
+                });
+
+                if (!selectedBranch) {
+                    departmentSelect.options[0].textContent =
+                        'Select branch first';
+                } else if (visibleCount === 0) {
+                    departmentSelect.options[0].textContent =
+                        'No departments in this branch';
+                } else {
+                    departmentSelect.options[0].textContent =
+                        'Select department';
+                }
+
+                departmentSelect.disabled = false;
+
+                departmentSelect.value = previousValueValid
+                    ? String(previousValue)
+                    : '';
+            }
+
+            branchSelect.addEventListener('change', () => {
+                filterDepartments(true);
+            });
+
+            filterDepartments(false);
+        }
+
+        setupBranchDepartment(
+            'auto_branch_id',
+            'auto_department_id',
+            autoSelectedDepartment
+        );
+
+        setupBranchDepartment(
+            'manual_branch_id',
+            'manual_department_id',
+            manualSelectedDepartment
+        );
+
+        // -----------------------------------------
+        // FIELD ERROR DISPLAY
+        // -----------------------------------------
+
+        function clearFieldError(input) {
+            if (!input) return;
+
+            const field = input.closest('.field');
+
+            if (!field) return;
+
+            field.classList.remove('has-error');
+
+            const errorMessage = field.querySelector(
+                '.field-error-message'
+            );
+
+            if (errorMessage) {
+                errorMessage.remove();
+            }
+        }
+
+        function showFieldError(input, message) {
+            if (!input) return;
+
+            const field = input.closest('.field');
+
+            if (!field) return;
+
+            field.classList.add('has-error');
+
+            let errorMessage = field.querySelector(
+                '.field-error-message'
+            );
+
+            if (!errorMessage) {
+                errorMessage = document.createElement('span');
+                errorMessage.className = 'field-error-message';
+                field.appendChild(errorMessage);
+            }
+
+            errorMessage.textContent = message;
+        }
+
+        // -----------------------------------------
+        // REQUIRED FIELD VALIDATION
+        // -----------------------------------------
+
+        function validateRequiredFields(form) {
+
+            // Remove previous errors before checking again.
+            form.querySelectorAll('.field').forEach(field => {
+                field.classList.remove('has-error');
+
+                field.querySelectorAll(
+                    '.field-error-message'
+                ).forEach(error => error.remove());
+            });
+
+            let firstInvalid = null;
+
+            const requiredFields = form.querySelectorAll(
+                'input[required], select[required], textarea[required]'
+            );
+
+            requiredFields.forEach(input => {
+
+                if (
+                    input.disabled ||
+                    input.type === 'hidden'
+                ) {
+                    return;
+                }
+
+                let message = '';
+
+                // Required file validation
+                if (input.type === 'file') {
+
+                    if (!input.files || !input.files.length) {
+                        message = 'Please select this required file.';
+                    }
+
+                } else {
+
+                    // Empty field validation
+                    if (!input.value.trim()) {
+                        message = 'This field is required. Please fill it in.';
+                    }
+
+                    // Email, pattern and other HTML validation
+                    else if (!input.checkValidity()) {
+                        message =
+                            input.validationMessage ||
+                            'Please enter a valid value.';
+                    }
+                }
+
+                if (message) {
+                    showFieldError(input, message);
+
+                    if (!firstInvalid) {
+                        firstInvalid = input;
+                    }
+                }
+            });
+
+            // Phone validation
+            const phone = form.querySelector(
+                'input[name="phone"]'
+            );
+
+            if (phone && phone.value.trim()) {
+
+                validatePhone(phone);
+
+                if (!phone.checkValidity()) {
+
+                    showFieldError(
+                        phone,
+                        phone.validationMessage ||
+                        'Phone number must contain 7–15 digits.'
+                    );
+
+                    if (!firstInvalid) {
+                        firstInvalid = phone;
+                    }
+                }
+            }
+
+            // CV file size validation
+            const cv = form.querySelector(
+                'input[name="cv_file"]'
+            );
+
+            if (
+                cv &&
+                cv.files.length &&
+                cv.files[0].size > maxBytes
+            ) {
+                showFieldError(
+                    cv,
+                    'CV file must not exceed 10 MB.'
+                );
+
+                if (!firstInvalid) {
+                    firstInvalid = cv;
+                }
+            }
+
+            // Other attachment size validation
+            const attachment = form.querySelector(
+                'input[name="other_attachment"]'
+            );
+
+            if (
+                attachment &&
+                attachment.files.length &&
+                attachment.files[0].size > maxBytes
+            ) {
+                showFieldError(
+                    attachment,
+                    'Other attachment must not exceed 10 MB.'
+                );
+
+                if (!firstInvalid) {
+                    firstInvalid = attachment;
+                }
+            }
+
+            // Branch validation
+            const branch = form.querySelector(
+                'select[name="branch_id"]'
+            );
+
+            if (branch && !branch.value) {
+
+                showFieldError(
+                    branch,
+                    'Please select a branch.'
+                );
+
+                if (!firstInvalid) {
+                    firstInvalid = branch;
+                }
+            }
+
+            // Department validation
+            const department = form.querySelector(
+                'select[name="department_id"]'
+            );
+
+            if (department && !department.value) {
+
+                showFieldError(
+                    department,
+                    'Please select a valid department for the selected branch.'
+                );
+
+                if (!firstInvalid) {
+                    firstInvalid = department;
+                }
+            }
+
+            // Stop submission if any field is invalid.
+            if (firstInvalid) {
+
+                showStatus(
+                    'error',
+                    'Please complete all required fields highlighted in red.',
+                    false
+                );
+
+                firstInvalid.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+
+                setTimeout(() => {
+                    firstInvalid.focus({
+                        preventScroll: true
+                    });
+                }, 350);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        function prepareSubmit(form) {
+            return validateRequiredFields(form);
+        }
+
+        // Clear red error when the user edits a field.
+        [autoForm, manualForm].forEach(form => {
+
+            if (!form) return;
+
+            form.querySelectorAll(
+                'input, select, textarea'
+            ).forEach(input => {
+
+                input.addEventListener('input', () => {
+                    clearFieldError(input);
+                });
+
+                input.addEventListener('change', () => {
+                    clearFieldError(input);
+                });
+
+            });
+
+        });
+
+        // -----------------------------------------
+        // RESET HELPERS
+        // -----------------------------------------
+
+        function resetDepartment(branchId, departmentId) {
+            const branch = document.getElementById(branchId);
+            const department = document.getElementById(departmentId);
+
+            if (!branch || !department) return;
+
+            department.value = '';
+
+            department.querySelectorAll('option').forEach(option => {
+                if (!option.value) {
+                    option.hidden = false;
+                    option.disabled = false;
+                } else {
+                    const matches =
+                        branch.value &&
+                        option.dataset.branchId === branch.value;
+
+                    option.hidden = !matches;
+                    option.disabled = !matches;
+                }
+            });
+
+            department.disabled = false;
+
+            department.options[0].textContent =
+                branch.value
+                    ? 'Select department'
+                    : 'Select branch first';
+        }
+
+        function resetFileLabels(form) {
+            form.querySelectorAll('input[type="file"]').forEach(input => {
+                const labelId =
+                    input.id === 'auto_cv_file'
+                        ? 'auto-cv-file-name'
+                        : input.id === 'manual_cv_file'
+                            ? 'manual-cv-file-name'
+                            : input.id === 'auto_other_attachment'
+                                ? 'auto-attachment-file-name'
+                                : 'manual-attachment-file-name';
+
+                const label = document.getElementById(labelId);
+
+                if (!label) return;
+
+                label.textContent =
+                    input.name === 'other_attachment'
+                        ? 'Certificates, recommendation letters or other documents · Maximum 10 MB'
+                        : 'PDF, DOC, DOCX · Maximum 10 MB';
+            });
+        }
+
+        // -----------------------------------------
+        // CLEAR DUPLICATE PREVIEW
+        // -----------------------------------------
+
+        function clearDuplicatePreview() {
+            const duplicateModal = document.getElementById('duplicateModal');
+
+            if (duplicateModal) {
+                duplicateModal.classList.remove('show');
+                duplicateModal.style.display = 'none';
+                duplicateModal.style.pointerEvents = 'none';
+                duplicateModal.setAttribute('aria-hidden', 'true');
+            }
+
+            document.body.style.pointerEvents = '';
+            document.body.style.overflow = '';
+        }
+
+        // -----------------------------------------
+        // CLEAR FORM ERRORS
+        // -----------------------------------------
+
+        function clearFormErrors() {
+            const formErrors = document.getElementById('formErrors');
+
+            if (formErrors) {
+                formErrors.remove();
+            }
+        }
+
+        // -----------------------------------------
+        // CLEAR FORM COMPLETELY
+        // -----------------------------------------
+
+        function clearCandidateForm(form) {
+            if (!form) return;
+
+            form.querySelectorAll('input, textarea, select').forEach(input => {
+                if (
+                    input.type === 'button' ||
+                    input.type === 'submit' ||
+                    input.type === 'reset' ||
+                    input.type === 'hidden'
+                ) {
+                    return;
+                }
+
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    input.checked = false;
+                } else {
+                    input.value = '';
+                }
+
+                if (input.setCustomValidity) {
+                    input.setCustomValidity('');
+                }
+            });
+
+            form.querySelectorAll('.autofilled, .low-confidence').forEach(field => {
+                field.classList.remove('autofilled', 'low-confidence');
+            });
+
+            // Clear red validation errors
+            form.querySelectorAll('.has-error').forEach(field => {
+                field.classList.remove('has-error');
+            });
+
+            form.querySelectorAll('.field-error-message').forEach(error => {
+                error.remove();
+            });
+
+            if (form === autoForm) {
+                resetDepartment(
+                    'auto_branch_id',
+                    'auto_department_id'
+                );
+
+                if (autoFile) {
+                    autoFile.value = '';
+                }
+
+                hideStatus();
+                resetFileLabels(form);
+
+            } else {
+                resetDepartment(
+                    'manual_branch_id',
+                    'manual_department_id'
+                );
+
+                resetFileLabels(form);
+            }
+
+            clearDuplicatePreview();
+            clearFormErrors();
+        }
+
+                // -----------------------------------------
+        // DUPLICATE MODAL — DYNAMIC RENDER
+        // -----------------------------------------
+
+        function escapeHtml(value) {
+            const div = document.createElement('div');
+            div.textContent = String(value ?? '');
+            return div.innerHTML;
+        }
+
+        function hideDuplicateModal() {
+            const modal = document.getElementById('duplicateModal');
+
+            if (!modal) return;
+
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+            modal.style.pointerEvents = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+
+            document.body.style.overflow = '';
+            document.body.style.pointerEvents = '';
+        }
+
+        function renderDuplicateModal(duplicates) {
+            if (!Array.isArray(duplicates) || !duplicates.length) {
+                return;
+            }
+
+            let modal = document.getElementById('duplicateModal');
+
+            // Create modal container if it does not exist yet.
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'duplicateModal';
+                modal.className = 'duplicate-modal';
+                modal.setAttribute('role', 'dialog');
+                modal.setAttribute('aria-modal', 'true');
+                modal.setAttribute('aria-labelledby', 'duplicateModalTitle');
+
+                const host = document.querySelector(
+                    '.add-candidate-page main'
+                );
+
+                if (host) {
+                    host.prepend(modal);
+                } else {
+                    document.body.appendChild(modal);
+                }
+            }
+
+            const rows = duplicates.map(candidate => {
+                const matches = [];
+
+                if (candidate.phone_match) {
+                    matches.push(
+                        '<span><i class="fa-solid fa-phone"></i> Phone</span>'
+                    );
+                }
+
+                if (candidate.email_match) {
+                    matches.push(
+                        '<span><i class="fa-solid fa-envelope"></i> Email</span>'
+                    );
+                }
+
+                if (!matches.length) {
+                    matches.push(
+                        '<span class="duplicate-no-match">-</span>'
+                    );
+                }
+
+                const statusLabel = (
+                    candidate.status || 'Unknown'
+                )
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, ch => ch.toUpperCase());
+
+                const recordCell = candidate.can_view
+                    ? `<a href="${escapeHtml(
+                          '/candidates/' + candidate.id + '/history'
+                      )}"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="duplicate-record-btn">
+                          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                          Record
+                       </a>`
+                    : `<span class="duplicate-no-access">
+                          <i class="fa-solid fa-lock"></i>
+                          No Access
+                       </span>`;
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="duplicate-candidate-name">
+                                ${escapeHtml(candidate.name || '-')}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="duplicate-position">
+                                ${escapeHtml(candidate.position || '-')}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="duplicate-status">
+                                ${escapeHtml(statusLabel)}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="duplicate-match-list">
+                                ${matches.join('')}
+                            </div>
+                        </td>
+                        <td>${recordCell}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            modal.innerHTML = `
+                <div class="duplicate-modal-dialog">
+                    <div class="duplicate-modal-header">
+                        <div class="duplicate-modal-heading">
+                            <span class="duplicate-modal-icon">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </span>
+                            <div>
+                                <h2 id="duplicateModalTitle">
+                                    Existing Candidate Found
+                                </h2>
+                                <p>
+                                    A candidate with the same phone number or
+                                    email address already exists. Please review
+                                    the matching record before adding another
+                                    candidate.
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button"
+                                class="duplicate-modal-close"
+                                id="closeDuplicateModal"
+                                aria-label="Close">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="duplicate-modal-body">
+                        <div class="duplicate-table-wrap">
+                            <table class="duplicate-table">
+                                <thead>
+                                    <tr>
+                                        <th>Candidate</th>
+                                        <th>Position</th>
+                                        <th>Status</th>
+                                        <th>Match</th>
+                                        <th>Record</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rows}</tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="duplicate-modal-footer">
+                        <i class="fa-solid fa-circle-info"></i>
+                        Review the existing record before saving a new candidate.
+                    </div>
+                </div>
+            `;
+
+            modal.classList.add('show');
+            modal.style.display = 'flex';
+            modal.style.pointerEvents = 'auto';
+            modal.setAttribute('aria-hidden', 'false');
+
+            document.body.style.overflow = 'hidden';
+
+            const closeBtn = document.getElementById(
+                'closeDuplicateModal'
+            );
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    hideDuplicateModal();
+                });
+
+                closeBtn.focus();
+            }
+
+            modal.addEventListener('click', function (event) {
+                if (event.target === modal) {
+                    hideDuplicateModal();
+                }
+            });
+
+            document.addEventListener('keydown', function onEscape(event) {
+                if (event.key === 'Escape') {
+                    hideDuplicateModal();
+                    document.removeEventListener('keydown', onEscape);
+                }
+            });
+        }
+
+
+        // -----------------------------------------
+        // SUBMIT BUTTON STATE HELPERS
+        // -----------------------------------------
+
+        function setSubmitLoading(button, loading) {
+            if (!button) return;
+
+            if (loading) {
+                button.dataset.originalHtml = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML =
+                    '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            } else {
+                button.disabled = false;
+                button.innerHTML =
+                    button.dataset.originalHtml || button.innerHTML;
+                delete button.dataset.originalHtml;
+            }
+        }
+
+
+        // -----------------------------------------
+        // MAP SERVER ERRORS TO FIELDS (BEST EFFORT)
+        // -----------------------------------------
+
+        function applyServerErrors(form, messages) {
+            if (!Array.isArray(messages) || !messages.length) return;
+
+            const matchers = [
+                { keys: ['full name', 'name'], selector: 'input[name="name"]' },
+                { keys: ['phone'], selector: 'input[name="phone"]' },
+                { keys: ['email'], selector: 'input[name="email"]' },
+                { keys: ['nrc'], selector: 'input[name="nrc"]' },
+                { keys: ['position'], selector: 'input[name="position"]' },
+                { keys: ['channel'], selector: 'input[name="channel"]' },
+                { keys: ['cv', 'resume'], selector: 'input[name="cv_file"]' },
+                { keys: ['address'], selector: 'textarea[name="address"]' },
+                { keys: ['additional'], selector: 'textarea[name="additional_data"]' },
+                { keys: ['attachment'], selector: 'input[name="other_attachment"]' },
+                { keys: ['branch'], selector: 'select[name="branch_id"]' },
+                { keys: ['department'], selector: 'select[name="department_id"]' }
+            ];
+
+            let firstInvalid = null;
+
+            messages.forEach(message => {
+                const lower = String(message || '').toLowerCase();
+
+                for (const matcher of matchers) {
+                    const matched = matcher.keys.some(key =>
+                        lower.includes(key)
+                    );
+
+                    if (!matched) continue;
+
+                    const input = form.querySelector(matcher.selector);
+
+                    if (input) {
+                        showFieldError(input, message);
+                        if (!firstInvalid) firstInvalid = input;
+                    }
+
+                    break;
+                }
+            });
+
+            if (firstInvalid) {
+                firstInvalid.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+
+                setTimeout(() => {
+                    firstInvalid.focus({ preventScroll: true });
+                }, 350);
+            }
+        }
+
+
+        // -----------------------------------------
+        // AJAX FORM SUBMIT (keeps file inputs intact)
+        // -----------------------------------------
+
+        [autoForm, manualForm].forEach(form => {
+            if (!form) return;
+
+            form.addEventListener('submit', async function (event) {
+                event.preventDefault();
+
+                if (!prepareSubmit(form)) {
+                    return;
+                }
+
+                // Hide stale duplicate modal before a new submit.
+                hideDuplicateModal();
+
+                const submitButton = form.querySelector(
+                    'button[type="submit"]'
+                );
+
+                setSubmitLoading(submitButton, true);
+
+                try {
+                    const formData = new FormData(form);
+
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    let data = null;
+
+                    try {
+                        data = await response.json();
+                    } catch (parseError) {
+                        data = null;
+                    }
+
+                    if (!data) {
+                        showStatus(
+                            'error',
+                            'Server returned an invalid response (HTTP ' +
+                                response.status +
+                                ').',
+                            false
+                        );
+                        return;
+                    }
+
+                    // ----------------------------------
+                    // SUCCESS
+                    // ----------------------------------
+                    if (response.ok && data.ok) {
+                        showStatus(
+                            'success',
+                            data.message || 'Candidate added successfully.',
+                            false
+                        );
+
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                        }
+                        return;
+                    }
+
+                    // ----------------------------------
+                    // PERMISSION DENIED
+                    // ----------------------------------
+                    if (data.permission_denied) {
+                        showPermissionDenied(data.message);
+                        return;
+                    }
+
+                    // ----------------------------------
+                    // DUPLICATE — show modal, keep file
+                    // ----------------------------------
+                    if (
+                        data.duplicate &&
+                        Array.isArray(data.duplicate_candidates) &&
+                        data.duplicate_candidates.length
+                    ) {
+                        renderDuplicateModal(data.duplicate_candidates);
+
+                        showStatus(
+                            'error',
+                            data.message ||
+                                'Duplicate candidate detected.',
+                            false
+                        );
+
+                        return;
+                    }
+
+                    // ----------------------------------
+                    // VALIDATION ERRORS
+                    // ----------------------------------
+                    const errorMessages = Array.isArray(data.errors)
+                        ? data.errors
+                        : data.message
+                            ? [data.message]
+                            : [];
+
+                    if (errorMessages.length) {
+                        applyServerErrors(form, errorMessages);
+
+                        showStatus(
+                            'error',
+                            errorMessages[0],
+                            false
+                        );
+                    } else {
+                        showStatus(
+                            'error',
+                            'Could not save candidate.',
+                            false
+                        );
+                    }
+
+                } catch (error) {
+                    console.error('Candidate submit error:', error);
+
+                    showStatus(
+                        'error',
+                        'Network error. Please check your connection and try again.',
+                        false
+                    );
+                } finally {
+                    setSubmitLoading(submitButton, false);
+                }
+            });
+
+            // Reset still clears everything as before.
+            form.addEventListener('reset', function () {
+                setTimeout(() => {
+                    clearCandidateForm(form);
+                }, 0);
+            });
+        });
+
+        // -----------------------------------------
+        // INITIALIZE
+        // -----------------------------------------
+
+        setMode(submittedMode);
+
+    })();
+</script>
+
+{% endblock %}

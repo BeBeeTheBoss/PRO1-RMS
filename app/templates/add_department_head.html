@@ -1,0 +1,1426 @@
+{% extends "base.html" %}
+
+{% block title %}Add Department Head{% endblock %}
+
+{% block page_heading %}Add Department Head{% endblock %}
+
+{% block page_subtitle %}
+Create a new department head account and assign it to a department
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .add-head-page,
+    .add-head-page * {
+        box-sizing: border-box;
+    }
+
+    .add-head-page {
+        --dh-primary: #5145cd;
+        --dh-primary-hover: #4338b8;
+        --dh-text: #1e293b;
+        --dh-muted: #64748b;
+        --dh-border: #e8edf4;
+
+        width: 100%;
+        max-width: 820px;
+        min-width: 0;
+        margin: 0 auto;
+        color: var(--dh-text);
+        font-family: inherit, 'Poppins';
+        font-size: 14px;
+    }
+
+    /* Toolbar */
+    .add-head-page .ah-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 18px;
+        padding: 8px 0 24px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid #e9edf5;
+    }
+
+    .add-head-page .ah-welcome {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        min-width: 0;
+    }
+
+    .add-head-page .ah-welcome-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 54px;
+        height: 54px;
+        flex: 0 0 54px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #5145cd, #8175f4);
+        color: #fff;
+        font-size: 22px;
+        box-shadow: 0 7px 18px rgba(81, 69, 205, .25);
+    }
+
+    .add-head-page .ah-breadcrumb {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 7px;
+        color: #8b95a7;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .add-head-page .ah-breadcrumb i {
+        font-size: 9px;
+    }
+
+    .add-head-page .ah-welcome h2 {
+        margin: 0 0 5px;
+        color: #172033;
+        font-size: 23px;
+        font-weight: 800;
+        letter-spacing: -.5px;
+        line-height: 1.35;
+    }
+
+    .add-head-page .ah-welcome p {
+        margin: 0;
+        color: #758197;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .add-head-page .ah-back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 10px 15px;
+        border: 1px solid var(--dh-border);
+        border-radius: 10px;
+        background: #fff;
+        color: #475569;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+        transition: all .2s ease;
+    }
+
+    .add-head-page .ah-back-link:hover {
+        border-color: #c7c2ff;
+        background: #f5f3ff;
+        color: var(--dh-primary);
+    }
+
+    /* Card */
+    .add-head-page .ah-card {
+        min-width: 0;
+        margin-bottom: 22px;
+        padding: 26px;
+        overflow: hidden;
+        border: 1px solid var(--dh-border);
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 6px 22px rgba(15, 23, 42, .06);
+    }
+
+    .add-head-page .ah-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .add-head-page .ah-card-heading {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .add-head-page .ah-card-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+        border-radius: 13px;
+        background: linear-gradient(135deg, #5145cd, #8175f4);
+        color: #fff;
+        font-size: 18px;
+        box-shadow: 0 5px 14px rgba(81, 69, 205, .25);
+    }
+
+    .add-head-page .ah-card-heading h3 {
+        margin: 1px 0 5px;
+        color: var(--dh-text);
+        font-size: 16px;
+        font-weight: 750;
+        line-height: 1.4;
+    }
+
+    .add-head-page .ah-card-heading p {
+        margin: 0;
+        color: var(--dh-muted);
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    /* Form */
+    .add-head-page .ah-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .add-head-page .ah-field {
+        min-width: 0;
+    }
+
+    .add-head-page .ah-field-full {
+        grid-column: 1 / -1;
+    }
+
+    .add-head-page .ah-field label {
+        display: block;
+        margin: 0 0 8px;
+        color: #475569;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .add-head-page .ah-field input,
+    .add-head-page .ah-field select {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        height: 44px;
+        margin: 0;
+        padding: 0 12px;
+        border: 1px solid #dce3ed;
+        border-radius: 10px;
+        outline: none;
+        background: #fff;
+        color: var(--dh-text);
+        font: inherit;
+        font-size: 13px;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .add-head-page .ah-field input::placeholder {
+        color: #a0a9b8;
+    }
+
+    .add-head-page .ah-field input:focus,
+    .add-head-page .ah-field select:focus {
+        border-color: #8980f4;
+        box-shadow: 0 0 0 3px rgba(81, 69, 205, .10);
+    }
+
+    .add-head-page .ah-field-hint {
+        margin: 7px 0 0;
+        color: #94a0b2;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+    .add-head-page .ah-field select[multiple] {
+        height: auto;
+        min-height: 130px;
+        padding: 10px 12px;
+        cursor: pointer;
+    }
+
+    .add-head-page .ah-field select[multiple] option {
+        padding: 8px;
+        border-radius: 5px;
+    }
+
+    .add-head-page .ah-field select[multiple] option:checked {
+        background: #5145cd linear-gradient(0deg, #5145cd 0%, #5145cd 100%);
+        color: #fff;
+    }
+
+    /* Actions */
+    .add-head-page .ah-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding-top: 22px;
+        margin-top: 24px;
+        border-top: 1px solid #eef1f6;
+    }
+
+    .add-head-page .ah-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 11px 20px;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        cursor: pointer;
+        text-decoration: none;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.3;
+        transition: background .2s, border-color .2s, transform .2s, box-shadow .2s;
+    }
+
+    .add-head-page .ah-btn:active {
+        transform: translateY(1px);
+    }
+
+    .add-head-page .ah-btn-primary {
+        background: linear-gradient(135deg, #5145cd, #6f63e6);
+        color: #fff;
+        box-shadow: 0 5px 14px rgba(81, 69, 205, .25);
+    }
+
+    .add-head-page .ah-btn-primary:hover {
+        background: linear-gradient(135deg, #4338b8, #5d51dd);
+        box-shadow: 0 7px 18px rgba(81, 69, 205, .32);
+    }
+
+    .add-head-page .ah-btn-secondary {
+        border-color: #e2e8f0;
+        background: #f8fafc;
+        color: #475569;
+    }
+
+    .add-head-page .ah-btn-secondary:hover {
+        background: #eef2f7;
+    }
+
+    /* Flash */
+    .add-head-page .ah-message {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 14px;
+        padding: 13px 16px;
+        border: 1px solid transparent;
+        border-radius: 11px;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .add-head-page .ah-message.success {
+        border-color: #bbf7d0;
+        background: #f0fdf4;
+        color: #166534;
+    }
+
+    .add-head-page .ah-message.error {
+        border-color: #fecaca;
+        background: #fef2f2;
+        color: #991b1b;
+    }
+
+    /* Empty state */
+    .add-head-page .ah-empty {
+        padding: 22px;
+        border: 1px dashed #d8ddeb;
+        border-radius: 12px;
+        background: #fafbff;
+        text-align: center;
+    }
+
+    .add-head-page .ah-empty i {
+        display: block;
+        margin-bottom: 10px;
+        color: #b8bfd4;
+        font-size: 28px;
+    }
+
+    .add-head-page .ah-empty p {
+        margin: 0 0 16px;
+        color: var(--dh-muted);
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+    /* Responsive */
+    @media (max-width: 650px) {
+        .add-head-page .ah-toolbar {
+            align-items: flex-start;
+        }
+
+        .add-head-page .ah-card {
+            padding: 18px;
+            border-radius: 13px;
+        }
+
+        .add-head-page .ah-form-grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .add-head-page .ah-field-full {
+            grid-column: auto;
+        }
+
+        .add-head-page .ah-welcome h2 {
+            font-size: 19px;
+        }
+
+        .add-head-page .ah-welcome-badge {
+            width: 46px;
+            height: 46px;
+            flex-basis: 46px;
+        }
+
+        .add-head-page .ah-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .add-head-page .ah-actions .ah-btn {
+            width: 100%;
+        }
+    }
+
+    /* Password show / hide */
+    .add-head-page .ah-password-wrap {
+        position: relative;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .add-head-page .ah-password-wrap input {
+        padding-right: 46px;
+    }
+
+    .add-head-page .ah-password-toggle {
+        position: absolute;
+        top: 50%;
+        right: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        transform: translateY(-50%);
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: #64748b;
+        cursor: pointer;
+        transition: background .2s, color .2s;
+    }
+
+    .add-head-page .ah-password-toggle:hover {
+        background: #eef2ff;
+        color: #5145cd;
+    }
+
+    .add-head-page .ah-password-toggle:focus-visible {
+        outline: 2px solid #8175f4;
+        outline-offset: 2px;
+    }
+
+    .ah-field .required {
+        color: red;
+        font-weight: 800;
+    }
+
+    /* Department selection */
+    .department-select-wrapper {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #e4e7ec;
+        border-radius: 10px;
+        background: #ffffff;
+    }
+
+    .department-select-row {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 40px;
+        cursor: pointer;
+        user-select: none;
+        margin: 0;
+        padding: 5px 2px;
+    }
+
+    .department-select-row input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        margin: 0;
+        pointer-events: none;
+    }
+
+    .department-checkmark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 18px;
+        height: 18px;
+        border: 1.7px solid #cbd0dc;
+        border-radius: 5px;
+        background: #fff;
+        transition: all 0.2s ease;
+    }
+
+    .department-select-row input:checked + .department-checkmark {
+        background: #5145cd;
+        border-color: #5145cd;
+    }
+
+    .department-select-row input:checked + .department-checkmark::after {
+        content: "";
+        width: 5px;
+        height: 9px;
+        border: solid #fff;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+        margin-top: -2px;
+    }
+
+    .department-select-row input:focus-visible + .department-checkmark {
+        outline: 3px solid rgba(81, 69, 205, 0.18);
+        outline-offset: 2px;
+    }
+
+    .department-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #344054;
+    }
+
+    .department-select-row:hover .department-label {
+        color: #5145cd;
+    }
+
+    .select-all-row .department-label {
+        font-weight: 650;
+        color: #5145cd;
+    }
+
+    .department-divider {
+        height: 1px;
+        background: #edf0f5;
+        margin: 8px 0;
+    }
+
+    .department-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .ah-field-hint {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #667085;
+    }
+
+    /* Department Permission UI */
+    .department-item {
+        display: block;
+        padding: 12px;
+        margin-bottom: 2px;
+        border: 1px solid #e8edf4;
+        border-radius: 10px;
+        background: #fff;
+    }
+
+    .department-item:hover {
+        border-color: #c7c2ff;
+        background: #fafaff;
+    }
+
+    .department-main-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 32px;
+    }
+
+    .department-main-row .department-select-row {
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* Permission panel hidden until department is selected */
+    .department-permissions {
+        display: none;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        padding: 12px 0 2px 30px;
+        margin-top: 8px;
+        border-top: 1px solid #eef1f6;
+    }
+
+    .department-item.selected .department-permissions {
+        display: flex;
+    }
+
+    .department-permissions label {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 6px;
+        margin: 0 !important;
+        color: #64748b !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        cursor: pointer;
+    }
+
+    .department-permissions input {
+        width: 15px;
+        height: 15px;
+        margin: 0;
+        accent-color: #5145cd;
+        cursor: pointer;
+    }
+
+    .department-permissions input:disabled {
+        cursor: not-allowed;
+        opacity: .45;
+    }
+
+    .department-permissions .permission-all-label {
+        color: #5145cd !important;
+        font-weight: 700 !important;
+    }
+
+    @media (max-width: 650px) {
+        .department-permissions {
+            padding-left: 5px;
+            gap: 10px 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="add-head-page">
+
+    <!-- Toolbar -->
+    <div class="ah-toolbar">
+        <div class="ah-welcome">
+            <div>
+                <div class="ah-breadcrumb">
+                    <span>Administration</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                    <span>Department Head</span>
+                </div>
+
+                <h2>Create Department Head</h2>
+                <p>Add an account and assign it to a department.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Account Form -->
+    <section class="ah-card">
+
+        <div class="ah-card-header">
+            <div class="ah-card-heading">
+                <div class="ah-card-icon">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+
+                <div>
+                    <h3>Account Information</h3>
+                    <p>Enter the account details and assign a department.</p>
+                </div>
+            </div>
+        </div>
+
+        {% if departments %}
+        <form method="POST" action="{{ url_for('main.add_department_head') }}">
+
+            <input type="hidden" name="action" value="add">
+
+            <div class="ah-form-grid">
+
+                <div class="ah-field">
+                    <label for="dh-name">Full Name <span class="required">*</span></label>
+                    <input id="dh-name" name="name" maxlength="150"
+                           placeholder="Enter full name" required>
+                </div>
+
+                <div class="ah-field">
+                    <label for="dh-code">Employee Code <span class="required">*</span></label>
+                    <input id="dh-code" name="employee_code" maxlength="30"
+                           placeholder="Enter employee code" required>
+                </div>
+
+                <div class="ah-field">
+                    <label for="dh-password">Initial Password <span class="required">*</span></label>
+
+                    <div class="ah-password-wrap">
+                        <input id="dh-password" type="password" name="password"
+                               minlength="8" autocomplete="new-password"
+                               placeholder="Minimum 8 characters" required>
+
+                        <button type="button" class="ah-password-toggle"
+                                data-password-target="dh-password"
+                                aria-label="Show password" aria-pressed="false">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <p class="ah-field-hint">
+                        Password must be at least 8 characters long.
+                    </p>
+                </div>
+
+                <div class="ah-field">
+                    <label for="dh-confirm-password">Confirm Password <span class="required">*</span></label>
+
+                    <div class="ah-password-wrap">
+                        <input id="dh-confirm-password" type="password"
+                               name="confirm_password" minlength="8"
+                               autocomplete="new-password"
+                               placeholder="Re-enter password" required>
+
+                        <button type="button" class="ah-password-toggle"
+                                data-password-target="dh-confirm-password"
+                                aria-label="Show confirm password"
+                                aria-pressed="false">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <p class="ah-field-hint" id="dh-password-message">
+                        Please enter the same password again.
+                    </p>
+                </div>
+
+                <div class="ah-field ah-field-full">
+
+                    <label for="dh-branch">
+                        Select Branch <span class="required">*</span>
+                    </label>
+
+                    <select id="dh-branch" name="branch_id" required>
+                        <option value="">Select Branch</option>
+
+                        {% for branch in branches %}
+                        <option value="{{ branch[0] }}">
+                            {{ branch[1] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <p class="ah-field-hint">
+                        Select a branch to display its departments.
+                    </p>
+
+                    <div style="margin-top: 18px;">
+
+                        <label>
+                            Assign Departments <span class="required">*</span>
+                        </label>
+
+                        <div class="department-select-wrapper"
+                             id="departmentSelectWrapper"
+                             style="display: none;">
+
+                            <!-- Select All Departments -->
+                            <label class="department-select-row select-all-row">
+                                <input type="checkbox" id="selectAllDepartments">
+                                <span class="department-checkmark"></span>
+                                <span class="department-label">
+                                    Select All Departments
+                                </span>
+                            </label>
+
+                            <div class="department-divider"></div>
+
+                            <!-- Department List -->
+                            <div class="department-list">
+
+                                {% for d in departments %}
+                                <div class="department-item"
+                                     data-branch-id="{{ d[3] }}"
+                                     style="display: none;">
+
+                                    <div class="department-main-row">
+
+                                        <label class="department-select-row">
+                                            <input type="checkbox"
+                                                   name="department_ids"
+                                                   value="{{ d[0] }}"
+                                                   class="department-checkbox">
+
+                                            <span class="department-checkmark"></span>
+
+                                            <span class="department-label">
+                                                {{ d[1] }} ({{ d[2] }})
+                                            </span>
+                                        </label>
+
+                                    </div>
+
+                                    <!-- Permissions appear only after selecting this department -->
+                                    <div class="department-permissions">
+
+                                        <label class="permission-all-label">
+                                            <input type="checkbox"
+                                                   class="permission-all-checkbox"
+                                                   disabled>
+                                            All
+                                        </label>
+
+                                        <label>
+                                            <input type="checkbox"
+                                                   name="permission_{{ d[0] }}_view"
+                                                   value="on"
+                                                   class="permission-checkbox"
+                                                   disabled>
+                                            View
+                                        </label>
+
+                                        <label>
+                                            <input type="checkbox"
+                                                   name="permission_{{ d[0] }}_add"
+                                                   value="on"
+                                                   class="permission-checkbox"
+                                                   disabled>
+                                            Add
+                                        </label>
+
+                                        <label>
+                                            <input type="checkbox"
+                                                   name="permission_{{ d[0] }}_edit"
+                                                   value="on"
+                                                   class="permission-checkbox"
+                                                   disabled>
+                                            Edit
+                                        </label>
+
+                                        <label>
+                                            <input type="checkbox"
+                                                   name="permission_{{ d[0] }}_delete"
+                                                   value="on"
+                                                   class="permission-checkbox"
+                                                   disabled>
+                                            Delete
+                                        </label>
+
+                                        <label>
+                                            <input type="checkbox"
+                                                   name="permission_{{ d[0] }}_export"
+                                                   value="on"
+                                                   class="permission-checkbox"
+                                                   disabled>
+                                            Export
+                                        </label>
+
+                                    </div>
+
+                                </div>
+                                {% endfor %}
+
+                            </div>
+
+                            <p id="noDepartmentMessage"
+                               class="ah-field-hint"
+                               style="display: none;">
+                                No active departments are available in this branch.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <p class="ah-field-hint">
+                        Select one or more departments for this Department Head.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="ah-actions">
+                <button class="ah-btn ah-btn-primary" type="submit">
+                    <i class="fa-solid fa-plus"></i>
+                    Add Department Head
+                </button>
+
+                <button class="ah-btn ah-btn-secondary"
+                        type="button"
+                        id="clearDepartmentHeadForm">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    Cancel
+                </button>
+            </div>
+
+        </form>
+
+        {% else %}
+        <div class="ah-empty">
+            <i class="fa-solid fa-building-circle-exclamation"></i>
+            <p>
+                No active departments are available. Activate or create a department first.
+            </p>
+
+            <a class="ah-btn ah-btn-secondary"
+               href="{{ url_for('main.manage_departments') }}">
+                <i class="fa-solid fa-building"></i>
+                Manage Departments
+            </a>
+        </div>
+        {% endif %}
+
+    </section>
+
+</div>
+
+<!-- Password Validation -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const password = document.getElementById("dh-password");
+    const confirmPassword = document.getElementById("dh-confirm-password");
+    const message = document.getElementById("dh-password-message");
+
+    if (!password || !confirmPassword || !message) return;
+
+    const form = password.closest("form");
+    if (!form) return;
+
+    function validatePasswords() {
+
+        password.setCustomValidity("");
+        confirmPassword.setCustomValidity("");
+
+        if (password.value.length > 0 && password.value.length < 8) {
+            password.setCustomValidity(
+                "Password must be at least 8 characters long."
+            );
+        }
+
+        if (confirmPassword.value &&
+            password.value !== confirmPassword.value) {
+
+            confirmPassword.setCustomValidity(
+                "Passwords do not match. Please try again."
+            );
+
+            message.textContent =
+                "Passwords do not match. Please try again.";
+
+            message.style.color = "#dc2626";
+            confirmPassword.style.borderColor = "#dc2626";
+
+        } else if (
+            confirmPassword.value &&
+            password.value === confirmPassword.value
+        ) {
+
+            message.textContent = "Passwords match.";
+            message.style.color = "#059669";
+            confirmPassword.style.borderColor = "#059669";
+
+        } else {
+
+            message.textContent =
+                "Please enter the same password again.";
+
+            message.style.color = "#94a3b8";
+            confirmPassword.style.borderColor = "";
+
+        }
+    }
+
+    password.addEventListener("input", validatePasswords);
+    confirmPassword.addEventListener("input", validatePasswords);
+
+    form.addEventListener("submit", function (event) {
+
+        validatePasswords();
+
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            form.reportValidity();
+        }
+
+    });
+
+});
+</script>
+
+<!-- Password Show / Hide -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.querySelectorAll(
+        ".ah-password-toggle[data-password-target]"
+    ).forEach(function (button) {
+
+        button.addEventListener("click", function () {
+
+            const targetId = button.dataset.passwordTarget;
+            const input = document.getElementById(targetId);
+            const icon = button.querySelector("i");
+
+            if (!input || !icon) return;
+
+            const showPassword = input.type === "password";
+
+            input.type = showPassword ? "text" : "password";
+
+            icon.classList.toggle("fa-eye", !showPassword);
+            icon.classList.toggle("fa-eye-slash", showPassword);
+
+            button.setAttribute(
+                "aria-label",
+                showPassword ? "Hide password" : "Show password"
+            );
+
+            button.setAttribute(
+                "aria-pressed",
+                String(showPassword)
+            );
+
+        });
+
+    });
+
+});
+</script>
+
+<!-- Branch / Department / Permission Selection -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const branchSelect = document.getElementById("dh-branch");
+
+    const departmentWrapper = document.getElementById(
+        "departmentSelectWrapper"
+    );
+
+    const departmentItems = document.querySelectorAll(
+        ".department-item"
+    );
+
+    const selectAll = document.getElementById(
+        "selectAllDepartments"
+    );
+
+    const noDepartmentMessage = document.getElementById(
+        "noDepartmentMessage"
+    );
+
+    if (!branchSelect || !departmentWrapper || !selectAll) return;
+
+
+    function getDepartmentCheckbox(item) {
+        return item.querySelector(".department-checkbox");
+    }
+
+
+    function getPermissionCheckboxes(item) {
+        return item.querySelectorAll(".permission-checkbox");
+    }
+
+
+    // Update permission All checkbox
+    function updatePermissionAll(item) {
+
+        const permissionCheckboxes = Array.from(
+            getPermissionCheckboxes(item)
+        );
+
+        const permissionAll = item.querySelector(
+            ".permission-all-checkbox"
+        );
+
+        if (!permissionAll) return;
+
+        const checkedCount = permissionCheckboxes.filter(
+            checkbox => checkbox.checked
+        ).length;
+
+        permissionAll.checked =
+            permissionCheckboxes.length > 0 &&
+            checkedCount === permissionCheckboxes.length;
+
+        permissionAll.indeterminate =
+            checkedCount > 0 &&
+            checkedCount < permissionCheckboxes.length;
+
+    }
+
+
+    // Show permissions only when department is selected
+    function updateDepartmentPermissions(item) {
+
+        const departmentCheckbox = getDepartmentCheckbox(item);
+
+        const permissionCheckboxes = getPermissionCheckboxes(item);
+
+        const permissionAll = item.querySelector(
+            ".permission-all-checkbox"
+        );
+
+        const isSelected = departmentCheckbox.checked;
+
+        item.classList.toggle("selected", isSelected);
+
+        permissionCheckboxes.forEach(function (checkbox) {
+
+            checkbox.disabled = !isSelected;
+
+            if (!isSelected) {
+                checkbox.checked = false;
+            }
+
+        });
+
+        if (permissionAll) {
+
+            permissionAll.disabled = !isSelected;
+
+            if (!isSelected) {
+                permissionAll.checked = false;
+                permissionAll.indeterminate = false;
+            }
+
+        }
+
+        updatePermissionAll(item);
+
+    }
+
+
+    // Update Select All Departments checkbox
+    function updateSelectAll() {
+
+        const visibleItems = Array.from(departmentItems).filter(
+            item => item.style.display !== "none"
+        );
+
+        const visibleCheckboxes = visibleItems.map(
+            item => getDepartmentCheckbox(item)
+        );
+
+        const checkedCount = visibleCheckboxes.filter(
+            checkbox => checkbox.checked
+        ).length;
+
+        selectAll.checked =
+            visibleCheckboxes.length > 0 &&
+            checkedCount === visibleCheckboxes.length;
+
+        selectAll.indeterminate =
+            checkedCount > 0 &&
+            checkedCount < visibleCheckboxes.length;
+
+    }
+
+
+    // Filter departments by selected branch
+    function filterDepartments() {
+
+        const selectedBranchId = branchSelect.value;
+
+        let visibleCount = 0;
+
+        departmentItems.forEach(function (item) {
+
+            const itemBranchId = item.dataset.branchId;
+
+            const departmentCheckbox = getDepartmentCheckbox(item);
+
+            const isMatch =
+                selectedBranchId !== "" &&
+                itemBranchId === selectedBranchId;
+
+            item.style.display = isMatch ? "block" : "none";
+
+            if (isMatch) {
+
+                visibleCount++;
+
+            } else {
+
+                departmentCheckbox.checked = false;
+
+                updateDepartmentPermissions(item);
+
+            }
+
+        });
+
+        departmentWrapper.style.display =
+            selectedBranchId ? "block" : "none";
+
+        noDepartmentMessage.style.display =
+            selectedBranchId && visibleCount === 0
+                ? "block"
+                : "none";
+
+        updateSelectAll();
+
+    }
+
+
+    // Department checkbox events
+    departmentItems.forEach(function (item) {
+
+        const departmentCheckbox = getDepartmentCheckbox(item);
+
+        const permissionCheckboxes = getPermissionCheckboxes(item);
+
+        const permissionAll = item.querySelector(
+            ".permission-all-checkbox"
+        );
+
+
+        departmentCheckbox.addEventListener("change", function () {
+
+            updateDepartmentPermissions(item);
+
+            updateSelectAll();
+
+        });
+
+
+        // Individual permission checkbox events
+        permissionCheckboxes.forEach(function (checkbox) {
+
+            checkbox.addEventListener("change", function () {
+
+                updatePermissionAll(item);
+
+            });
+
+        });
+
+
+        // Select all permissions in one department
+        if (permissionAll) {
+
+            permissionAll.addEventListener("change", function () {
+
+                permissionCheckboxes.forEach(function (checkbox) {
+
+                    if (!checkbox.disabled) {
+                        checkbox.checked = permissionAll.checked;
+                    }
+
+                });
+
+                permissionAll.indeterminate = false;
+
+            });
+
+        }
+
+    });
+
+
+    // Select all visible departments and all their permissions
+    selectAll.addEventListener("change", function () {
+
+        departmentItems.forEach(function (item) {
+
+            if (item.style.display !== "none") {
+
+                const departmentCheckbox = getDepartmentCheckbox(item);
+
+                departmentCheckbox.checked = selectAll.checked;
+
+                updateDepartmentPermissions(item);
+
+                if (selectAll.checked) {
+
+                    getPermissionCheckboxes(item).forEach(
+                        function (checkbox) {
+                            checkbox.checked = true;
+                        }
+                    );
+
+                }
+
+                updatePermissionAll(item);
+
+            }
+
+        });
+
+        selectAll.indeterminate = false;
+
+    });
+
+
+    // Branch change
+    branchSelect.addEventListener("change", filterDepartments);
+
+
+    // Initial state
+    filterDepartments();
+
+});
+
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const clearButton = document.getElementById(
+        "clearDepartmentHeadForm"
+    );
+
+    if (!clearButton) return;
+
+    clearButton.addEventListener("click", function () {
+
+        const form = clearButton.closest("form");
+
+        if (!form) return;
+
+        // Reset all form fields
+        form.reset();
+
+        // Clear password validation messages
+        const password = document.getElementById("dh-password");
+        const confirmPassword = document.getElementById(
+            "dh-confirm-password"
+        );
+        const passwordMessage = document.getElementById(
+            "dh-password-message"
+        );
+
+        if (password) {
+            password.setCustomValidity("");
+            password.style.borderColor = "";
+        }
+
+        if (confirmPassword) {
+            confirmPassword.setCustomValidity("");
+            confirmPassword.style.borderColor = "";
+            confirmPassword.type = "password";
+        }
+
+        if (password) {
+            password.type = "password";
+        }
+
+        if (passwordMessage) {
+            passwordMessage.textContent =
+                "Please enter the same password again.";
+
+            passwordMessage.style.color = "#94a3b8";
+        }
+
+        // Reset password eye icons
+        document.querySelectorAll(
+            ".ah-password-toggle[data-password-target]"
+        ).forEach(function (button) {
+
+            const icon = button.querySelector("i");
+
+            if (icon) {
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+
+            button.setAttribute("aria-pressed", "false");
+            button.setAttribute("aria-label", "Show password");
+
+        });
+
+        // Reset branch and department filtering
+        const branchSelect = document.getElementById("dh-branch");
+
+        if (branchSelect) {
+            branchSelect.dispatchEvent(
+                new Event("change", { bubbles: true })
+            );
+        }
+
+        // Reset Select All indeterminate state
+        const selectAll = document.getElementById(
+            "selectAllDepartments"
+        );
+
+        if (selectAll) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+        }
+
+        // Reset permission checkboxes and department UI
+        document.querySelectorAll(".department-item").forEach(
+            function (item) {
+
+                item.classList.remove("selected");
+
+                const departmentCheckbox = item.querySelector(
+                    ".department-checkbox"
+                );
+
+                if (departmentCheckbox) {
+                    departmentCheckbox.checked = false;
+                }
+
+                item.querySelectorAll(
+                    ".permission-checkbox, .permission-all-checkbox"
+                ).forEach(function (checkbox) {
+
+                    checkbox.checked = false;
+                    checkbox.disabled = true;
+
+                });
+
+                const permissionAll = item.querySelector(
+                    ".permission-all-checkbox"
+                );
+
+                if (permissionAll) {
+                    permissionAll.indeterminate = false;
+                }
+
+            }
+        );
+
+        // Hide department selection until a branch is selected
+        const departmentWrapper = document.getElementById(
+            "departmentSelectWrapper"
+        );
+
+        if (departmentWrapper) {
+            departmentWrapper.style.display = "none";
+        }
+
+        const noDepartmentMessage = document.getElementById(
+            "noDepartmentMessage"
+        );
+
+        if (noDepartmentMessage) {
+            noDepartmentMessage.style.display = "none";
+        }
+
+        // Scroll to the top of the form
+        form.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+    });
+
+});
+</script>
+{% endblock %}

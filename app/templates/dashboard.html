@@ -1,0 +1,1269 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Recruitment System{% endblock %}
+{% block page_heading %}Dashboard{% endblock %}
+
+{% block page_subtitle %}
+Here's what's happening with your recruitment process.
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #6658e8;
+        --primary-light: #efedff;
+        --success: #10b981;
+        --success-light: #e5f8ef;
+        --info: #3985d7;
+        --info-light: #e9f3ff;
+        --warning: #d88b2d;
+        --warning-light: #fff3e4;
+        --danger: #c0394b;
+        --danger-light: #fdebec;
+        --purple: #a14bb1;
+        --purple-light: #f9e9fc;
+        --gray-50: #f8f9fc;
+        --gray-100: #f3f4f9;
+        --gray-200: #e9ebf3;
+        --gray-300: #d1d5e0;
+        --gray-400: #a3a8bc;
+        --gray-500: #858ba2;
+        --gray-600: #6b7280;
+        --gray-700: #454b62;
+        --gray-800: #252a41;
+        --radius-sm: 10px;
+        --radius-md: 14px;
+        --radius-lg: 18px;
+        --radius-xl: 22px;
+        --shadow-sm: 0 2px 8px rgba(30, 50, 90, 0.04);
+        --shadow-md: 0 8px 24px rgba(30, 50, 90, 0.06);
+        --shadow-lg: 0 16px 40px rgba(30, 50, 90, 0.08);
+        --shadow-glow: 0 0 0 3px rgba(102, 88, 232, 0.12);
+        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: 'Inter', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #f6f7fc;
+        color: var(--gray-800);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* WELCOME BANNER */
+    .welcome-banner {
+        background: linear-gradient(135deg, #5145cd 0%, #7c6ef0 50%, #a89bff 100%);
+        color: white;
+        border-radius: var(--radius-xl);
+        padding: 30px 34px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 12px 36px -8px rgba(81, 69, 205, 0.35);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .welcome-banner::before {
+        content: '';
+        position: absolute;
+        top: -60%;
+        right: -10%;
+        width: 320px;
+        height: 320px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .welcome-banner h2 {
+        font-size: 26px;
+        font-weight: 750;
+        margin-bottom: 10px;
+        letter-spacing: -0.02em;
+        position: relative;
+        z-index: 1;
+    }
+
+    .welcome-banner p {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 14px;
+        line-height: 1.7;
+        position: relative;
+        z-index: 1;
+        max-width: 480px;
+    }
+
+    .banner-date {
+        background: rgba(255, 255, 255, 0.14);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 14px;
+        padding: 14px 22px;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        position: relative;
+        z-index: 1;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    /* SECTION HEADINGS */
+    .section-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .section-heading h2 {
+        font-size: 18px;
+        font-weight: 750;
+        color: var(--gray-800);
+        letter-spacing: -0.02em;
+    }
+
+    .section-heading p {
+        margin-top: 6px;
+        color: var(--gray-500);
+        font-size: 13px;
+        font-weight: 400;
+    }
+
+    /* STAT CARDS */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        padding: 24px;
+        border-radius: var(--radius-lg);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        color: #ffffff;
+        border: none;
+    }
+
+    .stat-card-link {
+        display: block;
+        text-decoration: none;
+        color: #ffffff;
+        cursor: pointer;
+    }
+
+    .stat-card-link:focus-visible {
+        outline: 3px solid var(--primary);
+        outline-offset: 4px;
+    }
+
+    .stat-card:nth-child(1) {
+        background: linear-gradient(135deg, #6658e8 0%, #8b7ff0 50%, #a89bff 100%);
+        box-shadow: 0 10px 30px -8px rgba(102, 88, 232, 0.45);
+    }
+
+    .stat-card:nth-child(2) {
+        background: linear-gradient(135deg, #3985d7 0%, #5da0e8 50%, #7cb8f0 100%);
+        box-shadow: 0 10px 30px -8px rgba(57, 133, 215, 0.45);
+    }
+
+    .stat-card:nth-child(3) {
+        background: linear-gradient(135deg, #d88b2d 0%, #e8a84d 50%, #f0b86a 100%);
+        box-shadow: 0 10px 30px -8px rgba(216, 139, 45, 0.45);
+    }
+
+    .stat-card:nth-child(4) {
+        background: linear-gradient(135deg, #10b981 0%, #2eb87e 50%, #4ecf9a 100%);
+        box-shadow: 0 10px 30px -8px rgba(16, 185, 129, 0.45);
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 180px;
+        height: 180px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.28) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .stat-card::after {
+        content: '';
+        position: absolute;
+        bottom: -40%;
+        left: -10%;
+        width: 140px;
+        height: 140px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 16px 40px -8px rgba(30, 50, 90, 0.25);
+    }
+
+    .stat-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 18px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        border-radius: var(--radius-md);
+        font-size: 22px;
+        transition: var(--transition);
+        background: rgba(255, 255, 255, 0.22);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        backdrop-filter: blur(6px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-card:hover .stat-icon {
+        transform: scale(1.1) rotate(-4deg);
+        background: rgba(255, 255, 255, 0.32);
+    }
+
+    .purple {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .blue {
+        background: var(--info-light);
+        color: var(--info);
+    }
+
+    .green {
+        background: var(--success-light);
+        color: var(--success);
+    }
+
+    .orange {
+        background: var(--warning-light);
+        color: var(--warning);
+    }
+
+    .stat-label {
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        position: relative;
+        z-index: 1;
+    }
+
+    .stat-number {
+        font-size: 34px;
+        font-weight: 800;
+        margin-bottom: 10px;
+        color: #ffffff;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-foot {
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 11px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .stat-foot strong {
+        color: #ffffff;
+        font-weight: 800;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 2px 8px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    /* CHART + QUICK ACTIONS */
+    .dashboard-middle-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.55fr) minmax(250px, 0.85fr);
+        gap: 22px;
+        margin-bottom: 30px;
+        align-items: stretch;
+    }
+
+    .pipeline-card,
+    .quick-actions-panel {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        box-shadow: var(--shadow-md);
+        min-width: 0;
+        transition: var(--transition);
+    }
+
+    .pipeline-card {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pipeline-card:hover,
+    .quick-actions-panel:hover {
+        box-shadow: var(--shadow-lg);
+    }
+
+    .pipeline-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 18px;
+    }
+
+    .pipeline-header h2 {
+        color: var(--gray-800);
+        font-size: 19px;
+        font-weight: 750;
+        margin-bottom: 8px;
+        letter-spacing: -0.02em;
+    }
+
+    .pipeline-header p {
+        color: var(--gray-500);
+        font-size: 12px;
+        line-height: 1.6;
+        font-weight: 400;
+    }
+
+    .live-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+        color: #047857;
+        padding: 9px 16px;
+        border-radius: 30px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
+    }
+
+    .live-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        animation: pulse-dot 1.8s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+
+        0%,
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 0.5;
+            transform: scale(1.3);
+        }
+    }
+
+    /* CHART AREA */
+    .graph-wrap {
+        position: relative;
+        width: 100%;
+        height: 340px;
+        margin: auto;
+    }
+
+    #pipelineChart {
+        display: block;
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 12px;
+    }
+
+    .pipeline-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+        padding-top: 18px;
+        border-top: 1px solid var(--gray-100);
+        color: var(--gray-400);
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    /* QUICK ACTIONS */
+    .quick-actions-panel {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .quick-actions-panel .section-heading {
+        margin-bottom: 18px;
+    }
+
+    .quick-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        flex-grow: 1;
+        justify-content: space-between;
+    }
+
+    .quick-action {
+        width: 100%;
+        min-width: 0;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-md);
+        padding: 14px 18px;
+        background: white;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        color: var(--gray-800);
+        text-decoration: none;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .quick-action::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 3px;
+        background: linear-gradient(180deg, var(--primary), #a89bff);
+        opacity: 0;
+        transition: var(--transition);
+    }
+
+    .quick-action:hover {
+        border-color: rgba(102, 88, 232, 0.3);
+        background: #faf9ff;
+        transform: translateX(4px);
+        box-shadow: 0 6px 20px rgba(102, 88, 232, 0.08);
+    }
+
+    .quick-action:hover::before {
+        opacity: 1;
+    }
+
+    .quick-action:active {
+        transform: scale(.985);
+    }
+
+    .quick-action:focus-visible {
+        outline: 3px solid rgba(102, 88, 232, .25);
+        outline-offset: 3px;
+    }
+
+    .quick-action-icon {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        border-radius: var(--radius-sm);
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, var(--primary-light), #e0dcff);
+        color: var(--primary);
+        font-size: 18px;
+        transition: var(--transition);
+    }
+
+    .quick-action:hover .quick-action-icon {
+        transform: scale(1.08) rotate(-4deg);
+        background: linear-gradient(135deg, #e0dcff, #d4ccff);
+    }
+
+    .quick-action strong {
+        font-size: 13px;
+        font-weight: 700;
+        display: block;
+        letter-spacing: -0.01em;
+    }
+
+    .quick-action small {
+        display: block;
+        margin-top: 4px;
+        color: var(--gray-500);
+        font-size: 11px;
+        line-height: 1.5;
+        font-weight: 400;
+    }
+
+    .quick-arrow {
+        margin-left: auto;
+        color: var(--gray-300);
+        transition: var(--transition);
+        font-size: 18px;
+        font-weight: 300;
+    }
+
+    .quick-action:hover .quick-arrow {
+        transform: translateX(5px);
+        color: var(--primary);
+    }
+
+    /* CANDIDATE TABLE */
+    .table-panel {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        margin-bottom: 28px;
+        min-width: 0;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+    }
+
+    .table-panel:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    .table-heading {
+        padding: 24px 28px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 18px;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .table-heading h2 {
+        font-size: 17px;
+        font-weight: 750;
+        color: var(--gray-800);
+        letter-spacing: -0.02em;
+    }
+
+    .table-heading p {
+        font-size: 12px;
+        color: var(--gray-500);
+        margin-top: 6px;
+        font-weight: 400;
+    }
+
+    .table-wrap {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        white-space: nowrap;
+    }
+
+    thead {
+        background: var(--gray-50);
+    }
+
+    th {
+        padding: 15px 24px;
+        text-align: left;
+        color: var(--gray-500);
+        font-size: 10px;
+        font-weight: 750;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    td {
+        padding: 16px 24px;
+        border-top: 1px solid var(--gray-100);
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--gray-700);
+    }
+
+    tbody tr {
+        transition: var(--transition);
+    }
+
+    tbody tr:hover {
+        background: #fbfbff;
+    }
+
+    .candidate {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .candidate-avatar {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        border-radius: var(--radius-sm);
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, var(--primary-light), #e0dcff);
+        color: var(--primary);
+        font-weight: 750;
+        font-size: 13px;
+        transition: var(--transition);
+        box-shadow: 0 2px 8px rgba(102, 88, 232, 0.1);
+    }
+
+    tbody tr:hover .candidate-avatar {
+        transform: scale(1.06);
+        box-shadow: 0 4px 12px rgba(102, 88, 232, 0.18);
+    }
+
+    .candidate-name {
+        font-weight: 700;
+        font-size: 13px;
+        color: var(--gray-800);
+        letter-spacing: -0.01em;
+    }
+
+    .candidate-email {
+        font-size: 11px;
+        color: var(--gray-500);
+        margin-top: 4px;
+        font-weight: 400;
+    }
+
+    .status {
+        display: inline-block;
+        border-radius: 20px;
+        padding: 7px 14px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: capitalize;
+        transition: var(--transition);
+    }
+
+    .status:hover {
+        transform: scale(1.04);
+    }
+
+    .status-applied {
+        background: var(--info-light);
+        color: var(--info);
+    }
+
+    .status-screening {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .status-interview {
+        background: var(--warning-light);
+        color: var(--warning);
+    }
+
+    .status-offered {
+        background: var(--purple-light);
+        color: var(--purple);
+    }
+
+    .status-hired {
+        background: var(--success-light);
+        color: var(--success);
+    }
+
+    .status-rejected {
+        background: var(--danger-light);
+        color: var(--danger);
+    }
+
+    .empty-state {
+        padding: 40px;
+        text-align: center;
+        color: var(--gray-500);
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .table-footer {
+        padding: 16px 28px;
+        border-top: 1px solid var(--gray-100);
+        color: var(--gray-500);
+        font-size: 11px;
+        font-weight: 500;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 900px) {
+        .dashboard-middle-grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    /* ဖုန်း size အတွက် ပြင်ဆင်ချက် */
+    @media (max-width: 760px) {
+        .welcome-banner {
+            padding: 24px 22px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .welcome-banner h2 {
+            font-size: 21px;
+        }
+
+        .banner-date {
+            display: none;
+        }
+
+        .pipeline-card,
+        .quick-actions-panel {
+            padding: 20px;
+        }
+
+        .pipeline-header h2 {
+            font-size: 17px;
+        }
+
+        /* Graph အမြင့်ကို တိုးပေးပါ (ထပ်နေတာကို သက်သာစေရန်) */
+        .graph-wrap {
+            height: 380px;
+            margin-bottom: 10px;
+            /* အောက်က footer နဲ့ ခွာပေးရန် */
+        }
+
+        .table-heading {
+            padding: 18px 20px;
+        }
+
+        .stat-number {
+            font-size: 28px;
+        }
+
+        th,
+        td {
+            padding: 12px 16px;
+        }
+
+        /* Footer စာသားများ ထပ်မနေစေရန် */
+        .pipeline-footer {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            padding-top: 15px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-actions {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .pipeline-header {
+            flex-direction: column;
+        }
+
+        /* Graph အမြင့်ကို နောက်တစ်ဆင့် တိုးပေးပါ */
+        .graph-wrap {
+            height: 420px;
+        }
+
+        .welcome-banner h2 {
+            font-size: 19px;
+        }
+
+        .section-heading h2 {
+            font-size: 16px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .live-dot {
+            animation: none;
+        }
+
+        .pipeline-card,
+        .quick-actions-panel,
+        .quick-action,
+        .quick-action-icon,
+        .quick-arrow {
+            transition: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="welcome-banner">
+    <div>
+        <h2>Welcome back, {{ session.get('user_name', 'User') }}! 👋</h2>
+        <p>Manage your recruitment activities and hiring progress.</p>
+    </div>
+    <div class="banner-date" id="bannerDate"></div>
+</div>
+
+<!-- SUMMARY CARDS -->
+<div class="section-heading">
+    <div>
+        <h2>Recruitment Overview</h2>
+        <p>Live information from your recruitment database.</p>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <!-- TOTAL DEPARTMENTS -->
+    <a class="stat-card stat-card-link" href="{{ url_for('main.manage_departments') }}"
+        aria-label="View all departments">
+        <div class="stat-top">
+            <span class="stat-label">Total Departments</span>
+            <span class="stat-icon">🏢</span>
+        </div>
+        <div class="stat-number">{{ total_departments }}</div>
+        <div class="stat-foot"><strong>{{ active_departments }} active</strong> departments</div>
+    </a>
+
+    <!-- TOTAL CANDIDATES -->
+    <a class="stat-card stat-card-link" href="{{ url_for('candidate.view_candidates') }}"
+        aria-label="View all candidate records">
+        <div class="stat-top">
+            <span class="stat-label">Total Candidates</span>
+            <span class="stat-icon fa-solid fa-users"></span>
+        </div>
+        <div class="stat-number">{{ total_candidates }}</div>
+        <div class="stat-foot">All authorized candidate records</div>
+    </a>
+
+    <!-- INTERVIEW REQUESTS -->
+    <a class="stat-card stat-card-link" href="{{ url_for('candidate.candidates', tab='interview_request') }}"
+        aria-label="View interview request candidates">
+        <div class="stat-top">
+            <span class="stat-label">Interview Requests</span>
+            <span class="stat-icon">✉</span>
+        </div>
+        <div class="stat-number">{{ interview_request_count }}</div>
+        <div class="stat-foot">Current interview requests</div>
+    </a>
+
+    <!-- JOINED -->
+    <a class="stat-card stat-card-link" href="{{ url_for('candidate.candidates', tab='joined') }}"
+        aria-label="View joined candidates">
+        <div class="stat-top">
+            <span class="stat-label">Joined</span>
+            <span class="stat-icon">✓</span>
+        </div>
+        <div class="stat-number">{{ joined_count }}</div>
+        <div class="stat-foot">Candidates who have joined</div>
+    </a>
+</div>
+
+<!-- RECRUITMENT PIPELINE + QUICK ACTIONS -->
+<div class="dashboard-middle-grid">
+    <section class="pipeline-card">
+        <div class="pipeline-header">
+            <div>
+                <h2>Recruitment Pipeline</h2>
+                <p>Candidate count by hiring stage.</p>
+            </div>
+            <span class="live-label"><span class="live-dot"></span>Live Data</span>
+        </div>
+
+        <div class="graph-wrap">
+            <canvas id="pipelineChart" data-counts='{{ [
+        candidate_count | int,
+        interview_request_count | int,
+        first_interview_count | int,
+        second_interview_count | int,
+        offer_count | int,
+        joined_count | int,
+        resigned_count | int
+    ] | tojson }}' data-urls='{{ [
+        url_for("main.dashboard_stage", stage="candidate"),
+        url_for("main.dashboard_stage", stage="interview-request"),
+        url_for("main.dashboard_stage", stage="first-interview"),
+        url_for("main.dashboard_stage", stage="second-interview"),
+        url_for("main.dashboard_stage", stage="offer"),
+        url_for("main.dashboard_stage", stage="joined"),
+        url_for("main.dashboard_stage", stage="resign")
+    ] | tojson }}' aria-label="Candidate counts by recruitment stage" role="img"></canvas>
+        </div>
+
+        <div class="pipeline-footer">
+            <span>Click a chart point to view that stage's candidates.</span>
+            <span>PostgreSQL Source</span>
+        </div>
+    </section>
+
+    <!-- QUICK ACTIONS -->
+    <div class="quick-actions-panel">
+        <div class="section-heading" style="margin-bottom: 12px;">
+            <div>
+                <h2>Quick Actions</h2>
+                <p>Shortcuts to common tasks.</p>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            {% if session.get('role') == 'super_admin' %}
+            <a class="quick-action" href="{{ url_for('main.manage_departments') }}">
+                <span class="quick-action-icon">🏢</span>
+                <span><strong>View Department</strong><small>Create and update departments</small></span>
+                <span class="quick-arrow">›</span>
+            </a>
+
+            <a class="quick-action" href="{{ url_for('main.manage_department_heads') }}">
+                <span class="quick-action-icon">👥</span>
+                <span><strong>View Department Head</strong><small>Manage department head accounts</small></span>
+                <span class="quick-arrow">›</span>
+            </a>
+            {% endif %}
+
+            <a class="quick-action" href="{{ url_for('candidate.view_candidates') }}">
+                <span class="quick-action-icon">＋</span>
+                <span><strong>Manage Candidates</strong><small>Edit and manage candidates</small></span>
+                <span class="quick-arrow">›</span>
+            </a>
+
+            <a class="quick-action" href="{{ url_for('candidate.records') }}">
+                <span class="quick-action-icon">📋</span>
+                <span><strong>Candidate Records</strong><small>View all accessible records</small></span>
+                <span class="quick-arrow">›</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- CANDIDATE RECORDS -->
+<section class="table-panel">
+    <div class="table-heading">
+        <div>
+            <h2>Candidate Records</h2>
+            <p>Showing the latest 5 candidate records.</p>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Phone</th>
+                    <th>Department</th>
+                    <th>Applied Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for candidate in candidates %}
+                <tr>
+                    <td>
+                        <div class="candidate">
+                            <div class="candidate-avatar">{{ (candidate.name or '?')[:2] | upper }}</div>
+                            <div>
+                                <div class="candidate-name">{{ candidate.name }}</div>
+                                <div class="candidate-email">{{ candidate.email or 'No email' }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ candidate.phone or '—' }}</td>
+                    <td>{{ candidate.department_name or '—' }}</td>
+                    <td>{% if candidate.created_at %}{{ candidate.created_at.strftime('%Y-%m-%d') }}{% else %}—{% endif
+                        %}</td>
+                    <td><span class="status {{ candidate.status_class }}">{{ candidate.status_label }}</span></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">No candidate records found.</div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-footer">
+        <span>Showing {{ candidates | length }} recent records</span>
+        <span>Recruitment Candidate Tracking System</span>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    "use strict";
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const bannerDate = document.getElementById("bannerDate");
+
+        if (bannerDate) {
+            bannerDate.textContent = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+        }
+
+        const canvas = document.getElementById("pipelineChart");
+
+        if (!canvas) return;
+
+        if (typeof Chart === "undefined") {
+            console.error("Chart.js failed to load.");
+            return;
+        }
+
+        let counts;
+        let urls;
+
+        try {
+            counts = JSON.parse(canvas.dataset.counts || "[]");
+            urls = JSON.parse(canvas.dataset.urls || "[]");
+        } catch (error) {
+            console.error("Invalid chart data:", error);
+            return;
+        }
+
+        const labels = [
+            "Candidates",
+            "Interview Request",
+            "First Interview",
+            "Second Interview",
+            "Offer",
+            "Joined",
+            "Resign"
+        ];
+        if (!Array.isArray(counts) || counts.length !== labels.length || !Array.isArray(urls) || urls.length !== labels.length) {
+            console.error("Chart data or stage URLs are incomplete.");
+            return;
+        }
+
+        const values = counts.map(function (value) {
+            const number = Number(value);
+            return Number.isFinite(number) && number >= 0 ? number : 0;
+        });
+
+        const context = canvas.getContext("2d");
+
+        const gradient = context.createLinearGradient(0, 0, 0, 340);
+        gradient.addColorStop(0, "rgba(102, 88, 232, 0.28)");
+        gradient.addColorStop(0.60, "rgba(135, 124, 247, 0.09)");
+        gradient.addColorStop(1, "rgba(135, 124, 247, 0)");
+
+        const pointGlow = {
+            id: "pointGlow",
+            afterDatasetsDraw(chart) {
+                const activePoints = chart.getActiveElements();
+
+                if (!activePoints.length) return;
+
+                const active = activePoints[0];
+                const meta = chart.getDatasetMeta(active.datasetIndex);
+                const point = meta.data[active.index];
+
+                if (!point) return;
+
+                const position = point.getProps(["x", "y"], true);
+                const ctx = chart.ctx;
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(position.x, position.y, 15, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(102, 88, 232, 0.15)";
+                ctx.fill();
+                ctx.restore();
+            }
+        };
+
+        new Chart(context, {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Candidates",
+                    data: values,
+                    borderColor: "#7161ed",
+                    backgroundColor: gradient,
+                    fill: true,
+                    borderWidth: 3,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointHitRadius: 16,
+                    pointBackgroundColor: "#ffffff",
+                    pointBorderColor: "#7161ed",
+                    pointBorderWidth: 3,
+                    pointHoverBackgroundColor: "#7161ed",
+                    pointHoverBorderColor: "#ffffff",
+                    pointHoverBorderWidth: 3
+                }]
+            },
+            plugins: [pointGlow],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1400,
+                    easing: "easeOutQuart"
+                },
+                interaction: {
+                    mode: "nearest",
+                    intersect: false
+                },
+                layout: {
+                    padding: { top: 18, right: 10, bottom: 4, left: 4 }
+                },
+                onClick: function (event, elements) {
+                    if (!elements.length) return;
+
+                    const index = elements[0].index;
+                    const target = urls[index];
+
+                    if (typeof target === "string" && target.length > 0) {
+                        window.location.href = target;
+                    }
+                },
+                onHover: function (event, elements) {
+                    if (event.native && event.native.target) {
+                        event.native.target.style.cursor = elements.length ? "pointer" : "default";
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: "#24213f",
+                        titleColor: "#ffffff",
+                        bodyColor: "#e7e4ff",
+                        borderColor: "#7161ed",
+                        borderWidth: 1,
+                        padding: 14,
+                        cornerRadius: 12,
+                        displayColors: false,
+                        caretSize: 6,
+                        callbacks: {
+                            title: function (items) {
+                                return items.length ? items[0].label : "";
+                            },
+                            label: function (item) {
+                                return " " + item.parsed.y + " candidates";
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: true,
+                            color: "rgba(145, 151, 180, 0.13)",
+                            drawTicks: false,
+                            lineWidth: 1
+                        },
+                        border: {
+                            display: false
+                        },
+                        ticks: {
+                            color: "#858ba2",
+                            font: { size: 10, weight: "600" },
+                            padding: 15,
+                            maxRotation: 90,
+                            minRotation: 90,
+                            autoSkip: false,
+                            callback: function (value) {
+                                const label = this.getLabelForValue(value);
+                                // စာလုံးအရေအတွက် ၁၀ လုံးထက် ပိုရင် နှစ်ကြောင်းခွဲမယ်
+                                if (label.length > 10) {
+                                    const words = label.split(' ');
+                                    if (words.length > 1) {
+                                        const mid = Math.ceil(words.length / 2);
+                                        const firstLine = words.slice(0, mid).join(' ');
+                                        const secondLine = words.slice(mid).join(' ');
+                                        return [firstLine, secondLine]; // Array အနေနဲ့ ပြန်ပေးရင် နှစ်ကြောင်းဖြစ်သွားပါမယ်
+                                    }
+                                }
+                                return label;
+                            }
+                        }
+
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: true,
+                            color: "rgba(145, 151, 180, 0.13)",
+                            drawTicks: false,
+                            lineWidth: 1
+                        },
+                        ticks: {
+                            precision: 0,
+                            color: "#98a2b3",
+                            padding: 10
+                        },
+                        border: {
+                            display: false,
+                            dash: [4, 5]
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

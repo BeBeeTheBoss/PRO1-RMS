@@ -1,0 +1,377 @@
+{% extends "base.html" %} {% block title %}Manage Questions{% endblock %} {%
+block page_heading %}Manage Questions{% endblock %} {% block page_subtitle
+%}View, update and manage your exam question banks.{% endblock %} {% block
+extra_css %}
+<style>
+  .manage-wrap {
+    max-width: 1200px;
+    margin: auto;
+  }
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .search-box {
+    display: flex;
+    gap: 9px;
+    flex: 1;
+    max-width: 650px;
+  }
+  .search-box input {
+    flex: 1;
+    min-width: 150px;
+    border: 1px solid #e0e5ef;
+    border-radius: 10px;
+    padding: 11px 13px;
+    font: inherit;
+    font-size: 13px;
+    background: #fff;
+  }
+  .btn {
+    border: 0;
+    border-radius: 10px;
+    padding: 11px 15px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .primary {
+    background: #596fe8;
+    color: #fff;
+  }
+  .light {
+    background: #f0f2fa;
+    color: #46516a;
+  }
+  .table-panel {
+    background: #fff;
+    border: 1px solid #e8ebf3;
+    border-radius: 17px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px #17203308;
+  }
+  .table-scroll {
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 850px;
+  }
+  th {
+    background: #f7f8fc;
+    color: #69748b;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 15px;
+  }
+  td {
+    padding: 15px;
+    border-top: 1px solid #edf0f5;
+    color: #39445b;
+    font-size: 13px;
+  }
+  tr:hover td {
+    background: #fbfcff;
+  }
+  .title {
+    font-weight: 700;
+    color: #25314c;
+  }
+  .sub {
+    font-size: 11px;
+    color: #8a93a6;
+    margin-top: 4px;
+  }
+  .badge {
+    padding: 6px 10px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .active {
+    background: #e7f8ef;
+    color: #20945a;
+  }
+  .inactive {
+    background: #fff0e7;
+    color: #d17b35;
+  }
+  .actions {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+  }
+  .actions form {
+    margin: 0;
+  }
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 9px;
+    display: inline-grid;
+    place-items: center;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 15px;
+    transition: 0.2s;
+  }
+  .icon-btn:hover {
+    transform: translateY(-2px);
+  }
+  .edit {
+    background: #edf1ff;
+    color: #5369e8;
+  }
+  .delete {
+    background: #fff0f0;
+    color: #df4e5b;
+  }
+  .toggle {
+    background: #e7f8ef;
+    color: #20945a;
+  }
+  .toggle.off {
+    background: #fff0e7;
+    color: #d17b35;
+  }
+  .empty {
+    text-align: center;
+    padding: 55px 15px;
+    color: #8992a6;
+  }
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #10182880;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+  }
+  .modal-backdrop.show {
+    display: flex;
+  }
+  .modal {
+    background: white;
+    border-radius: 17px;
+    padding: 24px;
+    width: 100%;
+    max-width: 420px;
+  }
+  .modal h3 {
+    margin: 0 0 10px;
+    color: #25314c;
+  }
+  .modal p {
+    color: #737f95;
+    font-size: 13px;
+  }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 9px;
+    margin-top: 20px;
+  }
+  @media (max-width: 650px) {
+    .search-box {
+      max-width: none;
+      width: 100%;
+    }
+    .toolbar > a {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="manage-wrap">
+  <div class="toolbar">
+    <form
+      class="search-box"
+      method="GET"
+      action="{{ url_for('exam.exam_list') }}"
+    >
+      <input
+        type="search"
+        name="search"
+        value="{{ request.args.get('search','') }}"
+        placeholder="Search exam title or category..."
+      />
+
+      <button class="btn light" type="submit">
+        <i class="fa-solid fa-search"></i> Search
+      </button>
+
+      <a class="btn light" href="{{ url_for('exam.exam_list') }}"> Reset </a>
+    </form>
+  </div>
+
+  <div class="table-panel">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Question Bank</th>
+            <th>Department</th>
+            <th>Category</th>
+            <th>Questions</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for item in exam_sets %}
+          <tr>
+            <td>
+              <div class="title">{{ item.exam_title }}</div>
+              <div class="sub">ID: #{{ item.id }}</div>
+            </td>
+
+            <td>{{ item.department_name }}</td>
+            <td>{{ item.sub_department }}</td>
+            <td><strong>{{ item.question_count }}</strong></td>
+
+            <td>
+              {% if item.is_active %}
+              <span class="badge active">Active</span>
+              {% else %}
+              <span class="badge inactive">Inactive</span>
+              {% endif %}
+            </td>
+
+            <td>
+              {{ item.created_at.strftime('%d %b %Y') if item.created_at else
+              '—' }}
+            </td>
+
+            <td>
+              <div class="actions">
+                <a
+                  class="icon-btn edit"
+                  title="Edit Question Bank"
+                  href="{{ url_for('exam.exam_edit', exam_set_id=item.id) }}"
+                >
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+
+                <form
+                  method="POST"
+                  action="{{ url_for('exam.exam_toggle', exam_set_id=item.id) }}"
+                >
+                  <button
+                    class="icon-btn toggle {% if not item.is_active %}off{% endif %}"
+                    title="{% if item.is_active %}Deactivate{% else %}Activate{% endif %}"
+                    type="submit"
+                  >
+                    {% if item.is_active %}
+                    <i class="fa-solid fa-toggle-on"></i>
+                    {% else %}
+                    <i class="fa-solid fa-toggle-off"></i>
+                    {% endif %}
+                  </button>
+                </form>
+
+                <button
+                  class="icon-btn delete"
+                  title="Delete"
+                  type="button"
+                  data-delete-url="{{ url_for('exam.exam_delete', exam_set_id=item.id) }}"
+                  data-exam-title="{{ item.exam_title|e }}"
+                  onclick="confirmDelete(this)"
+                >
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          {% else %}
+          <tr>
+            <td colspan="7" class="empty">
+              <i class="fa-regular fa-folder-open" style="font-size: 30px"></i>
+              <p>No question banks found.</p>
+
+              <a class="btn primary" href="{{ url_for('exam.exam_create') }}">
+                Create your first question bank
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="deleteModal">
+  <div class="modal">
+    <h3>Delete Question Bank?</h3>
+
+    <p id="deleteMessage">
+      Are you sure you want to delete this question bank?
+    </p>
+
+    <form method="POST" id="deleteForm">
+      <div class="modal-actions">
+        <button type="button" class="btn light" onclick="closeDelete()">
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="btn"
+          style="background: #df4e5b; color: white"
+        >
+          Delete
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  function confirmDelete(button) {
+    const url = button.dataset.deleteUrl;
+    const title = button.dataset.examTitle;
+
+    const deleteForm = document.getElementById("deleteForm");
+    const deleteMessage = document.getElementById("deleteMessage");
+    const deleteModal = document.getElementById("deleteModal");
+
+    deleteForm.action = url;
+
+    deleteMessage.textContent = `Delete "${title}"? This action cannot be undone.`;
+
+    deleteModal.classList.add("show");
+  }
+
+  function closeDelete() {
+    document.getElementById("deleteModal").classList.remove("show");
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const deleteModal = document.getElementById("deleteModal");
+
+    deleteModal.addEventListener("click", function (e) {
+      if (e.target === deleteModal) {
+        closeDelete();
+      }
+    });
+  });
+</script>
+{% endblock %}

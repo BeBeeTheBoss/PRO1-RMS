@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Examination Entry</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6fc;font-family:Arial,sans-serif;color:#202943;display:grid;min-height:100vh;place-items:center}
+.card{background:#fff;border:1px solid #e7eaf2;border-radius:20px;padding:32px;width:min(560px,92vw);box-shadow:0 12px 40px #26345b12}
+.muted{color:#788198;font-size:14px}.btn{display:block;width:100%;padding:14px;background:#5267e8;color:white;border:0;border-radius:12px;font-weight:bold;font-size:15px;margin-top:22px;cursor:pointer}
+</style></head><body><main class="card"><h1>{{ assignment.exam_title }}</h1>
+<p class="muted">Candidate: {{ assignment.candidate_name }}</p><p class="muted">Department: {{ assignment.department_name }} · {{ assignment.sub_department }}</p>
+<hr><p><strong>Questions:</strong> {{ assignment.total_questions }}</p><p><strong>Duration:</strong> 30 minutes</p>
+<p class="muted">Once you start, the timer cannot be paused. Your answers are saved automatically. The exam will submit when time runs out.</p>
+<form method="post">{% if direct_url %}<input type="hidden" name="direct" value="1">{% endif %}
+<button class="btn" type="submit">Start Examination</button></form></main></body></html>

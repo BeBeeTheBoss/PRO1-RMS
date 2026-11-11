@@ -1,0 +1,62 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ assignment.exam_title }}</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6fc;color:#202943;font-family:Arial,sans-serif}
+header{position:sticky;top:0;background:white;border-bottom:1px solid #e7eaf2;padding:15px 4%;display:flex;justify-content:space-between;align-items:center;z-index:2}
+.timer{font-size:22px;font-weight:bold;color:#d97706}.wrap{max-width:900px;margin:25px auto;padding:0 16px}
+.card{background:white;border:1px solid #e7eaf2;border-radius:16px;padding:22px;margin-bottom:15px}
+.option{display:flex;gap:12px;padding:13px;border:1px solid #e4e8f0;border-radius:11px;margin-top:9px;cursor:pointer}
+.option:has(input:checked){border-color:#6475e9;background:#f5f6ff}.muted{color:#788198;font-size:13px}
+button{border:0;border-radius:10px;padding:13px 20px;background:#5267e8;color:white;font-weight:bold;cursor:pointer}
+@media(max-width:600px){header{padding:12px}.timer{font-size:18px}.card{padding:16px}}
+</style></head><body>
+<header><div><strong>{{ assignment.exam_title }}</strong><div class="muted">{{ assignment.candidate_name }}</div></div>
+<div><div class="muted">TIME REMAINING</div><div class="timer" id="timer">30:00</div></div></header>
+<main class="wrap"><div class="card"><strong>Instructions</strong><p class="muted">Your answers are saved automatically. You have 30 minutes. Do not close this page until you submit.</p></div>
+<form id="examForm">
+{% for q in questions %}
+{% set q_index = loop.index0 %}
+<section class="card"><div class="muted">QUESTION {{ loop.index }} OF {{ questions|length }}</div>
+<h3>{{ q.question }}</h3>
+{% for option in q.options %}
+<label class="option"><input type="radio" name="q{{ q_index }}" value="{{ loop.index0 }}"
+  {% if answers.get(q_index|string) == loop.index0 %}checked{% endif %}
+  onchange="saveAnswer({{ q_index }},{{ loop.index0 }})">
+  <span><strong>{{ option.label }}.</strong> {{ option.text }}</span></label>
+{% endfor %}
+</section>
+{% endfor %}
+</form>
+<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+<span class="muted" id="saveStatus">Answers save automatically</span><button type="button" onclick="submitExam()">Submit Examination</button>
+</div></main>
+<script>
+const endAt=new Date({{ expires_at|tojson }}).getTime();
+const token={{ token|tojson }};
+const directId={{ direct_assignment_id|default(none)|tojson }};
+const answerUrl=directId?`/exams/direct/${directId}/answer`:`/exam/${token}/answer`;
+const submitUrl=directId?`/exams/direct/${directId}/submit`:`/exam/${token}/submit`;
+let submitting=false;
+async function saveAnswer(questionIndex,selectedOption){
+ const status=document.getElementById('saveStatus');status.textContent='Saving...';
+ try{const r=await fetch(answerUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question_index:questionIndex,selected_option:selectedOption})});
+ if(!r.ok)throw new Error();status.textContent='Saved';}
+ catch(e){status.textContent='Could not save. Check your connection.';}
+}
+async function submitExam(){
+ if(submitting)return;
+ if(!confirm('Are you sure you want to submit your examination?'))return;
+ submitting=true;
+ // Save any selected answers before final submission.
+ const radios=[...document.querySelectorAll('input[type=radio]:checked')];
+ for(const radio of radios){const q=Number(radio.name.substring(1));await saveAnswer(q,Number(radio.value));}
+ const form=document.createElement('form');form.method='POST';form.action=submitUrl;document.body.appendChild(form);form.submit();
+}
+function tick(){
+ const remaining=Math.max(0,Math.floor((endAt-Date.now())/1000));
+ const m=String(Math.floor(remaining/60)).padStart(2,'0');
+ const s=String(remaining%60).padStart(2,'0');
+ document.getElementById('timer').textContent=`${m}:${s}`;
+ if(remaining<=0){submitting=true;const f=document.createElement('form');f.method='POST';f.action=submitUrl;document.body.appendChild(f);f.submit();}
+}
+tick();setInterval(tick,1000);
+</script></body></html>

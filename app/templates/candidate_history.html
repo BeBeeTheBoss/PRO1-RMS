@@ -1,0 +1,1005 @@
+{% extends "base.html" %} {% block title %}Candidate History | Recruitment
+System{% endblock %} {% block page_heading %}Candidate History{% endblock %} {%
+block page_subtitle %} Review each recorded status change, action, and
+responsible user. {% endblock %} {% block extra_css %}
+
+<style>
+  .history-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 0 40px;
+    color: #172033;
+    font:
+      14px Inter,
+      "Poppins",
+      "Segoe UI",
+      Arial,
+      sans-serif;
+  }
+
+  .history-page * {
+    box-sizing: border-box;
+  }
+
+  .history-page .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+
+  .history-page .eyebrow {
+    color: #4f46e5;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .history-page h1 {
+    margin: 0 0 8px;
+    font-size: clamp(25px, 3vw, 34px);
+    letter-spacing: -0.8px;
+  }
+
+  .history-page .muted {
+    color: #788399;
+    line-height: 1.6;
+  }
+
+  .history-page .card {
+    background: #fff;
+    border: 1px solid #e6eaf2;
+    border-radius: 16px;
+    box-shadow: 0 8px 28px #1e293b0d;
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+
+  .history-page .head {
+    padding: 22px 24px;
+    border-bottom: 1px solid #e6eaf2;
+  }
+
+  .history-page .body {
+    padding: 22px 24px;
+  }
+
+  .history-page .facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .history-page .fact {
+    background: #f8f9fc;
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  .history-page .label {
+    font-size: 11px;
+    color: #788399;
+    margin-bottom: 6px;
+  }
+
+  .history-page .value {
+    font-weight: 750;
+    overflow-wrap: anywhere;
+  }
+
+  .history-page .status {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 30px;
+    background: #eef2ff;
+    color: #4338ca;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .history-page .status-joined {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .history-page .status-rejected,
+  .history-page .status-withdrawn {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .history-page .status-first_interview,
+  .history-page .status-second_interview,
+  .history-page .status-interview_requested {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .history-page .status-offer,
+  .history-page .status-offer_letter_sent {
+    background: #fffbeb;
+    color: #92400e;
+  }
+
+  .history-page .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    text-decoration: none;
+    font-weight: 750;
+    background: #eef2ff;
+    color: #4338ca;
+    cursor: pointer;
+  }
+
+  .history-page .btn:hover {
+    background: #e0e7ff;
+  }
+
+  .history-page .timeline {
+    display: grid;
+    gap: 0;
+  }
+
+  .history-page .event {
+    position: relative;
+    padding: 0 0 24px 30px;
+    border-left: 2px solid #e0e7ff;
+    margin-left: 8px;
+  }
+
+  .history-page .event:last-child {
+    border-left-color: transparent;
+    padding-bottom: 0;
+  }
+
+  .history-page .dot {
+    position: absolute;
+    left: -8px;
+    top: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #4f46e5;
+    border: 3px solid #e0e7ff;
+  }
+
+  .history-page .event-title {
+    font-weight: 800;
+    margin-bottom: 5px;
+  }
+
+  .history-page .event-meta {
+    font-size: 12px;
+    color: #788399;
+    line-height: 1.7;
+  }
+
+  /* EXAM RESULT IN STATUS TIMELINE */
+
+  .history-page .exam-result {
+      margin-top: 12px;
+      padding: 14px;
+      background: #f5f3ff;
+      border: 1px solid #ddd6fe;
+      border-radius: 12px;
+  }
+
+  .history-page .exam-result-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #4338ca;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 12px;
+  }
+
+  .history-page .exam-result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+  }
+
+  .history-page .exam-result-item {
+      background: #ffffff;
+      border: 1px solid #e9e5ff;
+      border-radius: 9px;
+      padding: 11px;
+      min-width: 0;
+  }
+
+  .history-page .exam-result-label {
+      font-size: 10px;
+      color: #788399;
+      margin-bottom: 6px;
+      font-weight: 700;
+  }
+
+  .history-page .exam-result-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: #3730a3;
+      overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 500px) {
+      .history-page .exam-result-grid {
+          grid-template-columns: 1fr;
+      }
+  }
+
+  .history-page .remarks {
+    margin-top: 9px;
+    padding: 10px 12px;
+    background: #f8f9fc;
+    border-radius: 9px;
+    color: #475467;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .history-page .empty {
+    padding: 38px;
+    text-align: center;
+    color: #788399;
+  }
+
+  /* SKIP BADGE (status history) */
+  .history-page .skip-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fde68a;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  /* EDIT HISTORY — modern card UI (no tables) */
+  .history-page .edit-timeline {
+    display: grid;
+    gap: 16px;
+  }
+
+  .history-page .edit-card {
+    position: relative;
+    border: 1px solid #e6eaf2;
+    border-radius: 16px;
+    background: #ffffff;
+    overflow: hidden;
+    transition:
+      box-shadow 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .history-page .edit-card:hover {
+    box-shadow: 0 8px 28px rgba(30, 41, 59, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .history-page .edit-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%);
+  }
+
+  .history-page .edit-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 16px 18px 16px 22px;
+    background: linear-gradient(135deg, #fafbff 0%, #f3f5ff 100%);
+    border-bottom: 1px solid #eef1f9;
+  }
+
+  .history-page .edit-avatar {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: #ffffff;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    letter-spacing: -0.5px;
+  }
+
+  .history-page .edit-head-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .history-page .edit-head-title {
+    font-weight: 800;
+    font-size: 14.5px;
+    color: #1e293b;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .history-page .edit-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef2ff;
+    color: #4338ca;
+    border: 1px solid #c7d2fe;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .history-page .edit-head-sub {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.65;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    align-items: center;
+  }
+
+  .history-page .edit-head-sub .sep {
+    color: #cbd5e1;
+  }
+
+  .history-page .edit-head-sub strong {
+    color: #334155;
+    font-weight: 750;
+  }
+
+  .history-page .edit-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #64748b;
+  }
+
+  .history-page .edit-time::before {
+    content: "🕒";
+    font-size: 11px;
+  }
+
+  .history-page .edit-body {
+    padding: 16px 18px 18px 22px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .history-page .edit-field {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 14px;
+    align-items: start;
+    padding: 10px 0;
+    border-bottom: 1px dashed #eef1f9;
+  }
+
+  .history-page .edit-field:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .history-page .edit-field-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding-top: 9px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .history-page .edit-field-label::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    flex: 0 0 7px;
+  }
+
+  .history-page .edit-field-values {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .history-page .edit-value {
+    position: relative;
+    padding: 9px 12px;
+    border-radius: 9px;
+    font-size: 13px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+    min-height: 36px;
+    word-break: break-word;
+  }
+
+  .history-page .edit-old {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+  }
+
+  .history-page .edit-new {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+  }
+
+  .history-page .edit-empty {
+    color: #94a3b8 !important;
+    font-style: italic;
+    background: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  .history-page .edit-arrow {
+    display: none;
+  }
+
+  /* EDIT HISTORY PAGINATION */
+  .history-page .edit-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px 22px;
+    border-top: 1px solid #e6eaf2;
+    background: #fafbff;
+  }
+
+  .history-page .edit-pagination-info {
+    color: #788399;
+    font-size: 12px;
+  }
+
+  .history-page .edit-pagination-controls {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
+  .history-page .edit-page-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 9px;
+    border: 1px solid #dbe3ed;
+    border-radius: 8px;
+    background: #fff;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+      background 0.15s,
+      color 0.15s,
+      border-color 0.15s;
+  }
+
+  .history-page .edit-page-btn:hover {
+    background: #eef2ff;
+    color: #4338ca;
+    border-color: #c7d2fe;
+  }
+
+  .history-page .edit-page-btn.active {
+    color: #fff;
+    background: #4f46e5;
+    border-color: #4f46e5;
+  }
+
+  .history-page .edit-page-btn.disabled {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  .history-page .edit-page-ellipsis {
+    min-width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-weight: 700;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 760px) {
+    .history-page .edit-field {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .history-page .edit-field-label {
+      padding-top: 0;
+    }
+
+    .history-page .edit-field-values {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .history-page .edit-value {
+      padding: 10px 12px 10px 34px;
+    }
+
+    .history-page .edit-value::before {
+      top: 12px;
+      transform: none;
+    }
+  }
+
+  @media (max-width: 650px) {
+    .history-page {
+      padding: 18px 0 30px;
+    }
+
+    .history-page .top {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .history-page .facts {
+      grid-template-columns: 1fr;
+    }
+
+    .history-page .head,
+    .history-page .body {
+      padding: 17px;
+    }
+
+    .history-page .edit-card-head {
+      padding: 14px 16px 14px 20px;
+    }
+
+    .history-page .edit-body {
+      padding: 14px 16px 16px 20px;
+    }
+  }
+</style>
+
+{% endblock %} {% block content %}
+
+<div class="history-page">
+  <div class="top">
+    <div>
+      <div class="eyebrow">TalentFlow · Audit trail</div>
+
+      <h1>Candidate Status History</h1>
+
+      <p class="muted">
+        Review each recorded status change, action, and responsible user.
+      </p>
+    </div>
+  </div>
+
+  <!-- =========================================
+         CANDIDATE FACTS
+    ========================================== -->
+
+  <section class="card">
+    <div class="head">
+      <h2 style="margin: 0 0 6px">{{ candidate.name }}</h2>
+
+      <div class="muted">
+        Candidate #{{ candidate.id }} · {{ candidate.department_name or '—' }}
+      </div>
+    </div>
+
+    <div class="body facts">
+      <div class="fact">
+        <div class="label">Phone</div>
+
+        <div class="value">{{ candidate.phone }}</div>
+      </div>
+
+      <div class="fact">
+        <div class="label">Email</div>
+
+        <div class="value">{{ candidate.email }}</div>
+      </div>
+
+      <div class="fact">
+        <div class="label">Current status</div>
+
+        <div class="value">
+          <span class="status status-{{ candidate.status }}">
+            {{ candidate.status|replace('_',' ')|title }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================
+         STATUS HISTORY TIMELINE
+    ========================================== -->
+
+  <section class="card">
+    <div class="head">
+      <h2 style="margin: 0">Activity timeline</h2>
+
+      <div class="muted">{{ history|length }} recorded event(s)</div>
+    </div>
+
+    <div class="body">
+      {% if history %}
+
+      <div class="timeline">
+        {% for event in history %}
+
+        <div class="event">
+          <span class="dot"></span>
+
+          <div class="event-title">
+            {{ event.action|replace('_',' ')|title }} · {{
+            event.to_status|replace('_',' ')|title }} {% if event.action ==
+            'skip' %}
+
+            <span class="skip-badge">⏭ Skipped stage</span>
+
+            {% endif %}
+          </div>
+
+          <div class="event-meta">
+            {% if event.from_status %} From
+
+            <strong>{{ event.from_status|replace('_',' ')|title }}</strong>
+
+            → {% endif %} To
+
+            <strong>{{ event.to_status|replace('_',' ')|title }}</strong>
+
+            <br />
+
+            By {{ event.performed_by_name }}{% if event.performed_role %} ({{
+            event.performed_role|replace('_',' ')|title }}) {% endif %}
+
+            <br />
+
+            {% if event.created_at %} {{ event.created_at.strftime('%d %b %Y,
+            %I:%M %p') }} {% endif %}
+          </div>
+
+          {% if event.exam_result %}
+
+          <div class="exam-result">
+
+              <div class="exam-result-title">
+                  <i class="fa-solid fa-clipboard-check"></i>
+                  Exam Result
+              </div>
+
+              <div class="exam-result-grid">
+
+                  <div class="exam-result-item">
+                      <div class="exam-result-label">
+                          Score
+                      </div>
+
+                      <div class="exam-result-value">
+                          {{ "%.2f"|format(event.exam_result.score or 0) }}%
+                      </div>
+                  </div>
+
+                  <div class="exam-result-item">
+                      <div class="exam-result-label">
+                          Total Questions
+                      </div>
+
+                      <div class="exam-result-value">
+                          {{ event.exam_result.total_questions }}
+                      </div>
+                  </div>
+
+                  <div class="exam-result-item">
+                      <div class="exam-result-label">
+                          Correct Answers
+                      </div>
+
+                      <div class="exam-result-value">
+                          {{ event.exam_result.correct_answers or 0 }}
+                      </div>
+                  </div>
+
+              </div>
+
+          </div>
+
+          {% endif %}
+
+          {% if event.remarks %}
+
+          <div class="remarks">{{ event.remarks }}</div>
+
+          {% endif %}
+        </div>
+
+        {% endfor %}
+      </div>
+
+      {% else %}
+
+      <div class="empty">No status history has been recorded yet.</div>
+
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- =========================================
+         EDIT HISTORY — modern card UI (no tables)
+    ========================================== -->
+
+  <section class="card">
+    <div class="head">
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+        "
+      >
+        <div>
+          <h2 style="margin: 0 0 4px">Edit history</h2>
+
+          <div class="muted" style="font-size: 12px">
+            Detailed changes made to this candidate's profile.
+          </div>
+        </div>
+
+        <div
+          class="muted"
+          style="
+            font-size: 12px;
+            background: #eef2ff;
+            color: #4338ca;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            border: 1px solid #c7d2fe;
+          "
+        >
+          {{ edit_total }} edit(s)
+        </div>
+      </div>
+    </div>
+
+    <div class="body" style="padding-bottom: 20px">
+      {% if edit_history %}
+
+      <div class="edit-timeline">
+        {% for event in edit_history %}
+
+        <div class="edit-card">
+          <!-- Card header -->
+
+          <div class="edit-card-head">
+            <div class="edit-avatar" aria-hidden="true">✎</div>
+
+            <div class="edit-head-meta">
+              <div class="edit-head-title">
+                Profile updated {% if event.display_fields %}
+
+                <span class="edit-count-badge">
+                  {{ event.display_fields|length }} field(s)
+                </span>
+
+                {% endif %}
+              </div>
+
+              <div class="edit-head-sub">
+                <span> By <strong>{{ event.performed_by_name }}</strong> </span>
+
+                {% if event.performed_role %}
+
+                <span class="sep">·</span>
+
+                <span>{{ event.performed_role|replace('_',' ')|title }}</span>
+
+                {% endif %} {% if event.created_at %}
+
+                <span class="sep">·</span>
+
+                <span class="edit-time">
+                  {{ event.created_at.strftime('%d %b %Y, %I:%M %p') }}
+                </span>
+
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Card body: field-by-field diff -->
+
+          {% if event.display_fields %}
+
+          <div class="edit-body">
+            {% for item in event.display_fields %}
+
+            <div class="edit-field">
+              <div class="edit-field-label">{{ item.label }}</div>
+
+              <div class="edit-field-values">
+                <!-- OLD value -->
+
+                <div
+                  class="edit-value edit-old {% if item.old is none or item.old == '' %}edit-empty{% endif %}"
+                  title="Previous value"
+                >
+                  {% if item.old is none or item.old == '' %} Empty {% else %}
+                  {{ item.old }} {% if item.old|length >= 200 and item.old[-1]
+                  == '…' %}
+
+                  <span
+                    style="font-size: 11px; color: #94a3b8; font-style: italic"
+                  >
+                    (truncated)</span
+                  >
+
+                  {% endif %} {% endif %}
+                </div>
+
+                <!-- NEW value -->
+
+                <div
+                  class="edit-value edit-new {% if item.new is none or item.new == '' %}edit-empty{% endif %}"
+                  title="Updated value"
+                >
+                  {% if item.new is none or item.new == '' %} Empty {% else %}
+                  {{ item.new }} {% if item.new|length >= 200 and item.new[-1]
+                  == '…' %}
+
+                  <span
+                    style="font-size: 11px; color: #94a3b8; font-style: italic"
+                  >
+                    (truncated)</span
+                  >
+
+                  {% endif %} {% endif %}
+                </div>
+              </div>
+            </div>
+
+            {% endfor %}
+          </div>
+
+          {% endif %}
+        </div>
+
+        {% endfor %}
+      </div>
+
+      {% else %}
+
+      <div class="empty">No edit history has been recorded yet.</div>
+
+      {% endif %}
+    </div>
+
+    {% if edit_total_pages > 1 %}
+
+    <div class="edit-pagination">
+      <div class="edit-pagination-info">
+        Showing {{ edit_offset + 1 }}–{{ edit_offset + edit_history|length }} of
+        {{ edit_total }} edit(s)
+      </div>
+
+      <div class="edit-pagination-controls">
+        {# Previous #} {% if edit_page > 1 %}
+        <a
+          class="edit-page-btn"
+          href="{{ url_for('candidate.candidate_history', candidate_id=candidate.id, edit_page=edit_page-1, tab=return_tab, global_search=return_global_search, stage_search=return_stage_search, status=return_status, return_to=return_to) }}"
+          aria-label="Previous page"
+          >‹</a
+        >
+        {% else %}
+        <span class="edit-page-btn disabled" aria-hidden="true">‹</span>
+
+        {% endif %} {# Page numbers #} {% for p in edit_page_numbers %} {% if p
+        is none %}
+        <span class="edit-page-ellipsis">…</span>
+
+        {% elif p == edit_page %}
+
+        <span class="edit-page-btn active" aria-current="page">{{ p }}</span>
+
+        {% else %}
+
+        <a
+          class="edit-page-btn"
+          href="{{ url_for('candidate.candidate_history', candidate_id=candidate.id, edit_page=p, tab=return_tab, global_search=return_global_search, stage_search=return_stage_search, status=return_status, return_to=return_to) }}"
+          >{{ p }}</a
+        >
+
+        {% endif %} {% endfor %} {# Next #} {% if edit_page < edit_total_pages
+        %}
+        <a
+          class="edit-page-btn"
+          href="{{ url_for('candidate.candidate_history', candidate_id=candidate.id, edit_page=edit_page+1, tab=return_tab, global_search=return_global_search, stage_search=return_stage_search, status=return_status, return_to=return_to) }}"
+          aria-label="Next page"
+          >›</a
+        >
+
+        {% else %}
+
+        <span class="edit-page-btn disabled" aria-hidden="true">›</span>
+
+        {% endif %}
+      </div>
+    </div>
+
+    {% endif %}
+  </section>
+
+  <!-- =========================================
+         BACK BUTTON
+    ========================================== -->
+
+  {% if return_to == 'records' %}
+
+  <a class="btn" href="{{ url_for('candidate.records') }}">
+    ← Back to Records
+  </a>
+
+  {% elif return_to == 'view_candidates' %}
+
+  <a class="btn" href="{{ url_for('candidate.view_candidates') }}">
+    ← Back to Manage Candidates
+  </a>
+
+  {% else %}
+
+  <a
+    class="btn"
+    href="{{ url_for(
+        'candidate.candidates',
+        tab=return_tab,
+        global_search=return_global_search,
+        stage_search=return_stage_search,
+        status=return_status
+    ) }}"
+  >
+    ← Back to Candidate Workflow
+  </a>
+  {% endif %}
+</div>
+
+{% endblock %}
