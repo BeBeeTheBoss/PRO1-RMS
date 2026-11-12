@@ -678,6 +678,103 @@ Manage interview appointments, schedules and candidate progress.
         padding: 14px 16px;
     }
 }
+
+/* ==============================
+   PAGINATION
+============================== */
+
+.pagination-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+    background: #fafbff;
+}
+
+.pagination-info {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.pagination-info strong {
+    color: #334155;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.pagination-btn {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    color: #475569;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    transition: all .2s ease;
+}
+
+.pagination-btn:hover {
+    color: #4f46e5;
+    border-color: #818cf8;
+    background: #eef2ff;
+}
+
+.pagination-btn.active {
+    color: #fff;
+    background: #4f46e5;
+    border-color: #4f46e5;
+    box-shadow: 0 3px 8px rgba(79, 70, 229, .2);
+}
+
+.pagination-btn.disabled {
+    color: #cbd5e1;
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.pagination-dots {
+    padding: 0 4px;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+@media (max-width: 600px) {
+    .pagination-footer {
+        padding: 14px 15px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .pagination-controls {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .pagination-btn {
+        min-width: 32px;
+        height: 32px;
+        padding: 0 8px;
+    }
+}
+
 </style>
 {% endblock %}
 
@@ -1074,7 +1171,7 @@ Manage interview appointments, schedules and candidate progress.
                     <tr>
                         <!-- CANDIDATE ID -->
                         <td>
-                            <span style="font-weight: 700; color: #635bdb;">#{{ item.candidate_id }}</span>
+                            <span style="font-weight: 700; color: #635bdb;">{{ item.candidate_id }}</span>
                         </td>
                         
                         <!-- CANDIDATE -->
@@ -1306,18 +1403,203 @@ Manage interview appointments, schedules and candidate progress.
         </div>
 
 
-        <!-- TABLE FOOTER -->
-        <div class="table-footer">
+        
+<!-- ==============================
+     PAGINATION FOOTER
+============================== -->
 
-            <span>
-                Showing {{ schedules|length }} interview schedule(s)
-            </span>
+<div class="pagination-footer">
 
-            <span>
-                Interview Management
-            </span>
+    <!-- RECORD INFORMATION -->
+    <div class="pagination-info">
 
-        </div>
+        Showing
+        <strong>{{ start_record }}</strong>
+        -
+        <strong>{{ end_record }}</strong>
+
+        of
+
+        <strong>{{ total_records }}</strong>
+
+        interview schedules
+
+    </div>
+
+
+    <!-- PAGINATION CONTROLS -->
+    {% if total_records > 0 %}
+
+    <div class="pagination-controls">
+
+        <!-- FIRST PAGE -->
+        <a href="{{ url_for(
+            'candidate.interview_schedules',
+            stage=selected_stage or None,
+            search=search or None,
+            branch_id=branch_filter or None,
+            department_id=department_filter or None,
+            from_date=from_date_filter or None,
+            to_date=to_date_filter or None,
+            status=status_filter or None,
+            page=1
+        ) }}#scheduleTableSection"
+           class="pagination-btn {% if not has_prev %}disabled{% endif %}"
+           aria-label="First page">
+
+            <i class="fa-solid fa-angles-left"></i>
+
+        </a>
+
+
+        <!-- PREVIOUS PAGE -->
+        <a href="{{ url_for(
+            'candidate.interview_schedules',
+            stage=selected_stage or None,
+            search=search or None,
+            branch_id=branch_filter or None,
+            department_id=department_filter or None,
+            from_date=from_date_filter or None,
+            to_date=to_date_filter or None,
+            status=status_filter or None,
+            page=prev_page
+        ) }}#scheduleTableSection"
+           class="pagination-btn {% if not has_prev %}disabled{% endif %}">
+
+            <i class="fa-solid fa-chevron-left"></i>
+
+            Previous
+
+        </a>
+
+
+        <!-- PAGE NUMBERS -->
+
+        {% set page_start = [1, page - 2]|max %}
+        {% set page_end = [total_pages, page + 2]|min %}
+
+
+        {% if page_start > 1 %}
+
+            <a href="{{ url_for(
+                'candidate.interview_schedules',
+                stage=selected_stage or None,
+                search=search or None,
+                branch_id=branch_filter or None,
+                department_id=department_filter or None,
+                from_date=from_date_filter or None,
+                to_date=to_date_filter or None,
+                status=status_filter or None,
+                page=1
+            ) }}#scheduleTableSection"
+               class="pagination-btn">
+
+                1
+
+            </a>
+
+            {% if page_start > 2 %}
+                <span class="pagination-dots">...</span>
+            {% endif %}
+
+        {% endif %}
+
+
+        {% for page_num in range(page_start, page_end + 1) %}
+
+            <a href="{{ url_for(
+                'candidate.interview_schedules',
+                stage=selected_stage or None,
+                search=search or None,
+                branch_id=branch_filter or None,
+                department_id=department_filter or None,
+                from_date=from_date_filter or None,
+                to_date=to_date_filter or None,
+                status=status_filter or None,
+                page=page_num
+            ) }}#scheduleTableSection"
+               class="pagination-btn {% if page_num == page %}active{% endif %}"
+               {% if page_num == page %}aria-current="page"{% endif %}>
+
+                {{ page_num }}
+
+            </a>
+
+        {% endfor %}
+
+
+        {% if page_end < total_pages %}
+
+            {% if page_end < total_pages - 1 %}
+                <span class="pagination-dots">...</span>
+            {% endif %}
+
+            <a href="{{ url_for(
+                'candidate.interview_schedules',
+                stage=selected_stage or None,
+                search=search or None,
+                branch_id=branch_filter or None,
+                department_id=department_filter or None,
+                from_date=from_date_filter or None,
+                to_date=to_date_filter or None,
+                status=status_filter or None,
+                page=total_pages
+            ) }}#scheduleTableSection"
+               class="pagination-btn">
+
+                {{ total_pages }}
+
+            </a>
+
+        {% endif %}
+
+
+        <!-- NEXT PAGE -->
+        <a href="{{ url_for(
+            'candidate.interview_schedules',
+            stage=selected_stage or None,
+            search=search or None,
+            branch_id=branch_filter or None,
+            department_id=department_filter or None,
+            from_date=from_date_filter or None,
+            to_date=to_date_filter or None,
+            status=status_filter or None,
+            page=next_page
+        ) }}#scheduleTableSection"
+           class="pagination-btn {% if not has_next %}disabled{% endif %}">
+
+            Next
+
+            <i class="fa-solid fa-chevron-right"></i>
+
+        </a>
+
+
+        <!-- LAST PAGE -->
+        <a href="{{ url_for(
+            'candidate.interview_schedules',
+            stage=selected_stage or None,
+            search=search or None,
+            branch_id=branch_filter or None,
+            department_id=department_filter or None,
+            from_date=from_date_filter or None,
+            to_date=to_date_filter or None,
+            status=status_filter or None,
+            page=total_pages
+        ) }}#scheduleTableSection"
+           class="pagination-btn {% if not has_next %}disabled{% endif %}"
+           aria-label="Last page">
+
+            <i class="fa-solid fa-angles-right"></i>
+
+        </a>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
 
     </div>
 

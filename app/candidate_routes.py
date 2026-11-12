@@ -2940,6 +2940,7 @@ def accept_candidate(candidate_id):
 
 
 
+
 @candidate_bp.route("/interview-schedules", methods=["GET"])
 @login_required
 def interview_schedules():
@@ -2965,6 +2966,19 @@ def interview_schedules():
 
         branch_filter = (request.args.get("branch_id") or "").strip()
         department_filter = (request.args.get("department_id") or "").strip()
+
+        # --------------------------------------------------
+        # 1.1 PAGINATION PARAMETERS
+        # --------------------------------------------------
+
+        PER_PAGE = 10
+
+        try:
+            page = int(request.args.get("page", 1))
+        except (TypeError, ValueError):
+            page = 1
+
+        page = max(page, 1)
 
         # --------------------------------------------------
         # 2. VALIDATE DATE FILTERS
@@ -3088,6 +3102,7 @@ def interview_schedules():
                     """, (available_department_ids,))
 
                 else:
+
                     cur.execute("""
                         SELECT
                             id,
@@ -3111,6 +3126,7 @@ def interview_schedules():
         # --------------------------------------------------
 
         if branch_filter and branch_filter not in available_branch_ids:
+
             branch_filter = None
             department_filter = None
 
@@ -3164,6 +3180,7 @@ def interview_schedules():
                     ))
 
                 else:
+
                     cur.execute("""
                         SELECT
                             id,
@@ -3359,6 +3376,7 @@ def interview_schedules():
             if stats_row:
 
                 if isinstance(stats_row, dict):
+
                     stats = {
                         "total": stats_row.get("total", 0),
                         "upcoming": stats_row.get("upcoming", 0),
@@ -3367,6 +3385,7 @@ def interview_schedules():
                     }
 
                 else:
+
                     stats = {
                         "total": stats_row[0] or 0,
                         "upcoming": stats_row[1] or 0,
@@ -3422,7 +3441,60 @@ def interview_schedules():
         )
 
         # --------------------------------------------------
-        # 12. LOAD INTERVIEW SCHEDULES
+        # 12. COUNT FILTERED INTERVIEW SCHEDULES
+        # --------------------------------------------------
+
+        with conn.cursor() as cur:
+
+            cur.execute(f"""
+                SELECT COUNT(*) AS total
+
+                FROM candidate_interviews ci
+
+                INNER JOIN candidates c
+                    ON c.id = ci.candidate_id
+
+                LEFT JOIN branches b
+                    ON b.id = c.branch_id
+
+                LEFT JOIN departments d
+                    ON d.id = c.department_id
+
+                {list_where}
+            """, tuple(list_params))
+
+            count_row = cur.fetchone()
+
+            if isinstance(count_row, dict):
+                total_records = count_row.get("total", 0) or 0
+            else:
+                total_records = count_row[0] if count_row else 0
+
+        # --------------------------------------------------
+        # 12.1 CALCULATE PAGINATION
+        # --------------------------------------------------
+
+        total_pages = max(
+            1,
+            (total_records + PER_PAGE - 1) // PER_PAGE
+        )
+
+        # Prevent invalid page numbers
+        page = min(page, total_pages)
+
+        offset = (page - 1) * PER_PAGE
+
+        start_record = (
+            offset + 1 if total_records > 0 else 0
+        )
+
+        end_record = min(
+            offset + PER_PAGE,
+            total_records
+        )
+
+        # --------------------------------------------------
+        # 13. LOAD PAGINATED INTERVIEW SCHEDULES
         # --------------------------------------------------
 
         with conn.cursor() as cur:
@@ -3466,12 +3538,16 @@ def interview_schedules():
                     ci.interview_date ASC,
                     ci.interview_time ASC,
                     ci.id DESC
-            """, tuple(list_params))
+
+                LIMIT %s
+                OFFSET %s
+
+            """, tuple(list_params) + (PER_PAGE, offset))
 
             interviews = rows_as_dicts(cur)
 
         # --------------------------------------------------
-        # 13. RENDER PAGE
+        # 14. RENDER PAGE
         # --------------------------------------------------
 
         return render_template(
@@ -3481,7 +3557,7 @@ def interview_schedules():
             schedules=interviews,
             interviews=interviews,
 
-            # Statistics (Template က သုံးနေတဲ့ variable names)
+            # Statistics
             total_interviews=stats.get("total", 0),
             upcoming_interviews=stats.get("upcoming", 0),
             completed_interviews=stats.get("completed", 0),
@@ -3505,7 +3581,20 @@ def interview_schedules():
             status_filter=status_filter,
 
             branch_filter=branch_filter,
-            department_filter=department_filter
+            department_filter=department_filter,
+
+            # Pagination
+            page=page,
+            per_page=PER_PAGE,
+            total_records=total_records,
+            total_pages=total_pages,
+            start_record=start_record,
+            end_record=end_record,
+            has_prev=page > 1,
+            has_next=page < total_pages,
+            prev_page=page - 1,
+            next_page=page + 1
+
         )
 
     except HTTPException:
