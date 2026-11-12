@@ -1549,6 +1549,10 @@ Manage applications and move candidates through each recruitment stage.
             </div>
 
             <div class="table-wrap">
+                {% set show_details_column = (
+                    current_role == 'super_admin'
+                    or (candidates | selectattr('can_view') | list | length > 0)
+                ) %}
                 <table>
                     <thead>
                         <tr>
@@ -1565,7 +1569,9 @@ Manage applications and move candidates through each recruitment stage.
                             {% if active_tab != 'resign' %}
                             <th>Actions</th>
                             {% endif %}
-                            <th>Details</th>
+                            {% if show_details_column %}
+                                <th>Details</th>
+                            {% endif %}
                         </tr>
                     </thead>
 
@@ -1799,36 +1805,48 @@ Manage applications and move candidates through each recruitment stage.
                             </td>
                             {% endif %}
 
+                            {% if show_details_column %}
                             <td>
-                                <div class="actions-cell action-column">
-                                    <a class="btn btn-light btn-small" href="{{ url_for(
-                                            'candidate.view_candidate',
-                                            candidate_id=candidate.id,
-                                            return_to='workflow',
-                                            tab=active_tab,
-                                            global_search=global_search,
-                                            stage_search=stage_search,
-                                            status=selected_status
-                                        ) }}">
-                                        View
-                                    </a>
+                                {% if current_role == 'super_admin' or candidate.can_view %}
+                                    <div class="actions-cell action-column">
 
-                                    <a class="btn btn-light btn-small" href="{{ url_for(
-                                            'candidate.candidate_history',
-                                            candidate_id=candidate.id,
-                                            tab=active_tab,
-                                            global_search=global_search,
-                                            stage_search=stage_search,
-                                            status=selected_status
+                                        <a class="btn btn-light btn-small"
+                                        href="{{ url_for(
+                                                'candidate.view_candidate',
+                                                candidate_id=candidate.id,
+                                                return_to='workflow',
+                                                tab=active_tab,
+                                                global_search=global_search,
+                                                stage_search=stage_search,
+                                                status=selected_status
                                         ) }}">
-                                        History
-                                    </a>
-                                </div>
+                                            View 
+                                        </a>
+
+                                        <a class="btn btn-light btn-small"
+                                        href="{{ url_for(
+                                                'candidate.candidate_history',
+                                                candidate_id=candidate.id,
+                                                tab=active_tab,
+                                                global_search=global_search,
+                                                stage_search=stage_search,
+                                                status=selected_status
+                                        ) }}">
+                                            History
+                                        </a>
+
+                                    </div>
+                                {% endif %}
                             </td>
+                            {% endif %}
+
                         </tr>
                         {% else %}
                         <tr class="empty-table-row">
-                            <td colspan="{% if active_tab == 'resign' %}7{% else %}8{% endif %}">
+                            <td colspan="{{
+                                (6 if active_tab == 'resign' else 7)
+                                + (1 if show_details_column else 0)
+                            }}">
                                 <div class="empty">
                                     <div class="empty-icon">⌕</div>
                                     {% if search %}

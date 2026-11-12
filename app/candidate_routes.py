@@ -2192,6 +2192,18 @@ def candidates():
                     c.department_id,
                     c.branch_id,
                     c.position,
+                    -- CANDIDATE VIEW PERMISSION
+                    CASE
+                        WHEN %s = 'super_admin' THEN TRUE
+                        ELSE EXISTS (
+                            SELECT 1
+                            FROM public.user_department_permissions udp
+                            WHERE udp.user_id = %s
+                              AND udp.branch_id = c.branch_id
+                              AND udp.department_id = c.department_id
+                              AND udp.can_view = TRUE
+                        )
+                    END AS can_view,
                     c.channel,
                     c.cv_file_path,
                     c.other_attachment_path,
@@ -2252,7 +2264,7 @@ def candidates():
                 WHERE 1 = 1
             """
                         
-            params = []
+            params = [role, user_id]
 
             # Apply user department permission
             sql += department_scope_sql
@@ -5325,19 +5337,22 @@ def delete_candidate(candidate_id):
 # Department Head: Own department only
 # --------------------------------------------------
 
-
 @candidate_bp.route("/candidates/view", methods=["GET"])
 @login_required
 def view_candidates():
     conn = None
 
     try:
-        role = (session.get("role") or current_role() or "").strip().lower()
+        role = (
+            session.get("role") or current_role() or ""
+        ).strip().lower()
+
         user_id = session.get("user_id")
 
         conn = get_connection()
 
         with conn.cursor() as cur:
+
             sql = """
                 SELECT
                     c.id,
@@ -5386,18 +5401,42 @@ def view_candidates():
                         BOOL_OR(p.can_view) AS can_view,
                         BOOL_OR(p.can_edit) AS can_edit,
                         BOOL_OR(p.can_delete) AS can_delete
+
                     FROM public.user_department_permissions p
+
                     WHERE p.user_id = %s
                       AND p.branch_id = c.branch_id
                       AND p.department_id = c.department_id
                 ) udp ON TRUE
+
+                WHERE
+                    (
+                        %s = 'super_admin'
+                        OR EXISTS (
+                            SELECT 1
+                            FROM public.user_departments ud
+                            WHERE ud.user_id = %s
+                              AND ud.department_id = c.department_id
+                        )
+                    )
 
                 ORDER BY
                     c.created_at DESC NULLS LAST,
                     c.id DESC
             """
 
-            cur.execute(sql, (role, role, role, user_id))
+            cur.execute(
+                sql,
+                (
+                    role,
+                    role,
+                    role,
+                    user_id,
+                    role,
+                    user_id
+                )
+            )
+
             candidates = rows_as_dicts(cur)
 
         return render_template(
@@ -5406,8 +5445,15 @@ def view_candidates():
         )
 
     except Exception:
-        current_app.logger.exception("View candidate page loading failed")
-        flash("Unable to load candidate records. Please try again.", "error")
+        current_app.logger.exception(
+            "View candidate page loading failed"
+        )
+
+        flash(
+            "Unable to load candidate records. Please try again.",
+            "error"
+        )
+
         return redirect(url_for("main.dashboard"))
 
     finally:
