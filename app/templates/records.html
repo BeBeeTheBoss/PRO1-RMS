@@ -2196,7 +2196,7 @@ Quickly view and retrieve candidate information whenever needed.
                         data-rejected="{{ 'true' if timeline_rejected else 'false' }}"
                         data-department="{{ candidate.department_name or 'N/A' }}"
                         data-status="{{ candidate.status or '' }}" data-stages='{{ timeline_stages|tojson }}'>
-                        <td class="candidate-id">#{{ candidate.id }}</td>
+                        <td class="candidate-id">{{ candidate.id }}</td>
 
                         <td>
                             <div class="candidate-cell">
@@ -2206,7 +2206,6 @@ Quickly view and retrieve candidate information whenever needed.
                                         href="{{ url_for('candidate.view_candidate', candidate_id=candidate.id, return_to='records') }}">
                                         {{ candidate.name }}
                                     </a>
-                                    <span class="candidate-subtext">Candidate #{{ candidate.id }}</span>
                                 </div>
                             </div>
                         </td>

@@ -366,6 +366,7 @@
       <table>
         <thead>
           <tr>
+            <th>ID</th>
             <th>Question Bank</th>
             <th>Department</th>
             <th>Category</th>
@@ -380,8 +381,10 @@
           {% for item in exam_sets %}
           <tr>
             <td>
+              <strong> {{ item.id }}</strong>
+            </td>
+            <td>
               <div class="title">{{ item.exam_title }}</div>
-              <div class="sub">ID: #{{ item.id }}</div>
             </td>
 
             <td>{{ item.department_name }}</td>
@@ -449,7 +452,7 @@
 
           {% else %}
           <tr>
-            <td colspan="7" class="empty">
+            <td colspan="8" class="empty">
               <i
                 class="fa-regular fa-folder-open"
                 style="font-size: 30px"
