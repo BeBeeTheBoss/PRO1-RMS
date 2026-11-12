@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% block title %}{{ candidate.name }} | Candidate
 Profile{% endblock %} {% block page_heading %}Candidate Profile{% endblock %} {%
-block page_subtitle %} Candidate #{{ candidate.id }} · {{ candidate.name }} {%
+block page_subtitle %} Candidate {{ candidate.id }} · {{ candidate.name }} {%
 endblock %} {% block extra_css %}
 <style>
   :root {
@@ -624,10 +624,6 @@ endblock %} {% block extra_css %}
 {% else %}
 <div class="profile-page">
   <main>
-    <div class="breadcrumb">
-      <a href="{{ url_for('candidate.candidates') }}">Candidates</a>
-      / Candidate #{{ candidate.id }}
-    </div>
 
     <section class="hero">
       <div class="hero-main">
@@ -637,7 +633,7 @@ endblock %} {% block extra_css %}
           <h1>{{ candidate.name }}</h1>
 
           <div class="hero-meta">
-            Candidate #{{ candidate.id }} · {{ candidate.department_name }} {%
+            Candidate {{ candidate.id }} · {{ candidate.department_name }} {%
             if candidate.branch_name %} · {{ candidate.branch_name }} {% endif
             %}
           </div>
@@ -905,7 +901,7 @@ endblock %} {% block extra_css %}
             <div style="margin-bottom: 23px">
               <div class="label">Candidate ID</div>
 
-              <div class="value">#{{ candidate.id }}</div>
+              <div class="value">{{ candidate.id }}</div>
             </div>
 
             <div style="margin-bottom: 23px">
@@ -929,13 +925,35 @@ endblock %} {% block extra_css %}
             </div>
 
             <div style="margin-bottom: 23px">
-              <div class="label">Date Created</div>
+              <div class="label">Created Date</div>
 
               <div class="value">
                 {{ candidate.created_at.strftime( '%d %B %Y, %I:%M %p' ) if
                 candidate.created_at else '—' }}
               </div>
             </div>
+
+            {% if candidate.status in ['resigned', 'resign'] %}
+
+            <div style="margin-bottom: 23px">
+                <div class="label">Joined Date</div>
+
+                <div class="value">
+                    {{ candidate.joined_date.strftime('%d %B %Y, %I:%M %p')
+                      if candidate.joined_date else '—' }}
+                </div>
+            </div>
+
+            <div style="margin-bottom: 23px">
+                <div class="label">Resigned Date</div>
+
+                <div class="value">
+                    {{ candidate.resigned_date.strftime('%d %B %Y, %I:%M %p')
+                      if candidate.resigned_date else '—' }}
+                </div>
+            </div>
+
+            {% endif %}
 
             <div>
               <div class="label">Last Updated</div>

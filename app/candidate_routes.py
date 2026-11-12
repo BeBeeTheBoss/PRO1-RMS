@@ -2198,6 +2198,14 @@ def candidates():
                     c.status,
                     c.created_at,
                     c.updated_at,
+                    (
+                        SELECT h.created_at
+                        FROM public.candidate_status_history h
+                        WHERE h.candidate_id = c.id
+                        AND h.to_status = 'joined'
+                        ORDER BY h.created_at ASC
+                        LIMIT 1
+                    ) AS joined_date,
                     d.name AS department_name,
                     b.name AS branch_name,
 
@@ -5453,13 +5461,38 @@ def view_candidate(candidate_id):
                     c.status,
                     c.created_at,
                     c.updated_at,
+
+                    -- Joined Date
+                    (
+                        SELECT h.created_at
+                        FROM public.candidate_status_history h
+                        WHERE h.candidate_id = c.id
+                        AND h.to_status = 'joined'
+                        ORDER BY h.created_at ASC
+                        LIMIT 1
+                    ) AS joined_date,
+
+                    -- Resigned Date
+                    (
+                        SELECT h.created_at
+                        FROM public.candidate_status_history h
+                        WHERE h.candidate_id = c.id
+                        AND h.to_status IN ('resigned', 'resign')
+                        ORDER BY h.created_at DESC
+                        LIMIT 1
+                    ) AS resigned_date,
+
                     d.name AS department_name,
                     b.name AS branch_name
+
                 FROM public.candidates c
+
                 JOIN public.departments d
                     ON d.id = c.department_id
+
                 LEFT JOIN public.branches b
                     ON b.id = c.branch_id
+
                 WHERE c.id = %s
                 """,
                 (candidate_id,),

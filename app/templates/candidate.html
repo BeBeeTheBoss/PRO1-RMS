@@ -1557,7 +1557,11 @@ Manage applications and move candidates through each recruitment stage.
                             <th>Branch</th>
                             <th>Department</th>
                             <th>Status</th>
-                            <th>Added Date</th>
+                            {% if active_tab in ['resign', 'resigned'] %}
+                                <th>Joined Date</th>
+                            {% else %}
+                                <th>Added Date</th>
+                            {% endif %}
                             {% if active_tab != 'resign' %}
                             <th>Actions</th>
                             {% endif %}
@@ -1593,10 +1597,18 @@ Manage applications and move candidates through each recruitment stage.
                             </td>
 
                             <td>
-                                {% if candidate.created_at %}
-                                {{ candidate.created_at.strftime('%d %b %Y') }}
+                                {% if active_tab in ['resign', 'resigned'] %}
+                                    {% if candidate.joined_date %}
+                                        {{ candidate.joined_date.strftime('%d %b %Y') }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
                                 {% else %}
-                                —
+                                    {% if candidate.created_at %}
+                                        {{ candidate.created_at.strftime('%d %b %Y') }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
                                 {% endif %}
                             </td>
 
