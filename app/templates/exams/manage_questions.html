@@ -1,12 +1,17 @@
-{% extends "base.html" %} {% block title %}Manage Questions{% endblock %} {%
-block page_heading %}Manage Questions{% endblock %} {% block page_subtitle
-%}View, update and manage your exam question banks.{% endblock %} {% block
-extra_css %}
+
+{% extends "base.html" %}
+
+{% block title %}Manage Questions{% endblock %}
+{% block page_heading %}Manage Questions{% endblock %}
+{% block page_subtitle %}View, update and manage your exam question banks.{% endblock %}
+
+{% block extra_css %}
 <style>
   .manage-wrap {
     max-width: 1200px;
     margin: auto;
   }
+
   .toolbar {
     display: flex;
     justify-content: space-between;
@@ -15,12 +20,14 @@ extra_css %}
     flex-wrap: wrap;
     margin-bottom: 18px;
   }
+
   .search-box {
     display: flex;
     gap: 9px;
     flex: 1;
     max-width: 650px;
   }
+
   .search-box input {
     flex: 1;
     min-width: 150px;
@@ -31,6 +38,7 @@ extra_css %}
     font-size: 13px;
     background: #fff;
   }
+
   .btn {
     border: 0;
     border-radius: 10px;
@@ -43,14 +51,17 @@ extra_css %}
     align-items: center;
     gap: 7px;
   }
+
   .primary {
     background: #596fe8;
     color: #fff;
   }
+
   .light {
     background: #f0f2fa;
     color: #46516a;
   }
+
   .table-panel {
     background: #fff;
     border: 1px solid #e8ebf3;
@@ -58,14 +69,17 @@ extra_css %}
     overflow: hidden;
     box-shadow: 0 5px 20px #17203308;
   }
+
   .table-scroll {
     overflow-x: auto;
   }
+
   table {
     width: 100%;
     border-collapse: collapse;
     min-width: 850px;
   }
+
   th {
     background: #f7f8fc;
     color: #69748b;
@@ -75,46 +89,56 @@ extra_css %}
     letter-spacing: 0.5px;
     padding: 15px;
   }
+
   td {
     padding: 15px;
     border-top: 1px solid #edf0f5;
     color: #39445b;
     font-size: 13px;
   }
+
   tr:hover td {
     background: #fbfcff;
   }
+
   .title {
     font-weight: 700;
     color: #25314c;
   }
+
   .sub {
     font-size: 11px;
     color: #8a93a6;
     margin-top: 4px;
   }
+
   .badge {
     padding: 6px 10px;
     border-radius: 30px;
     font-size: 11px;
     font-weight: 700;
   }
+
   .active {
     background: #e7f8ef;
     color: #20945a;
   }
+
   .inactive {
     background: #fff0e7;
     color: #d17b35;
   }
+
   .actions {
     display: flex;
     gap: 7px;
     align-items: center;
   }
+
   .actions form {
     margin: 0;
   }
+
   .icon-btn {
     width: 36px;
     height: 36px;
@@ -127,30 +151,118 @@ extra_css %}
     font-size: 15px;
     transition: 0.2s;
   }
+
   .icon-btn:hover {
     transform: translateY(-2px);
   }
+
   .edit {
     background: #edf1ff;
     color: #5369e8;
   }
+
   .delete {
     background: #fff0f0;
     color: #df4e5b;
   }
+
   .toggle {
     background: #e7f8ef;
     color: #20945a;
   }
+
   .toggle.off {
     background: #fff0e7;
     color: #d17b35;
   }
+
   .empty {
     text-align: center;
     padding: 55px 15px;
     color: #8992a6;
   }
+
+  /* -----------------------------------------
+     PAGINATION
+  ----------------------------------------- */
+
+  .pagination-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+    padding: 16px 20px;
+    border-top: 1px solid #edf0f5;
+    background: #fff;
+  }
+
+  .pagination-info {
+    color: #8992a6;
+    font-size: 12px;
+  }
+
+  .pagination-info strong {
+    color: #39445b;
+    font-weight: 700;
+  }
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .pagination-btn {
+    min-width: 35px;
+    height: 35px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid #e5e9f2;
+    border-radius: 9px;
+    background: #fff;
+    color: #596579;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .pagination-btn:hover {
+    border-color: #596fe8;
+    color: #596fe8;
+    background: #f5f6ff;
+  }
+
+  .pagination-btn.current {
+    background: #596fe8;
+    border-color: #596fe8;
+    color: #fff;
+    box-shadow: 0 3px 8px #596fe833;
+  }
+
+  .pagination-btn.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: not-allowed;
+    background: #f8f9fc;
+  }
+
+  .pagination-dots {
+    color: #9aa3b5;
+    padding: 0 3px;
+    font-size: 13px;
+  }
+
+  /* -----------------------------------------
+     DELETE MODAL
+  ----------------------------------------- */
+
   .modal-backdrop {
     display: none;
     position: fixed;
@@ -161,9 +273,11 @@ extra_css %}
     justify-content: center;
     padding: 15px;
   }
+
   .modal-backdrop.show {
     display: flex;
   }
+
   .modal {
     background: white;
     border-radius: 17px;
@@ -171,33 +285,59 @@ extra_css %}
     width: 100%;
     max-width: 420px;
   }
+
   .modal h3 {
     margin: 0 0 10px;
     color: #25314c;
   }
+
   .modal p {
     color: #737f95;
     font-size: 13px;
   }
+
   .modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 9px;
     margin-top: 20px;
   }
+
   @media (max-width: 650px) {
     .search-box {
       max-width: none;
       width: 100%;
     }
+
     .toolbar > a {
       width: 100%;
       justify-content: center;
     }
+
+    .pagination-footer {
+      flex-direction: column;
+      align-items: center;
+      padding: 15px 12px;
+    }
+
+    .pagination-controls {
+      width: 100%;
+      gap: 5px;
+    }
+
+    .pagination-btn {
+      min-width: 32px;
+      height: 33px;
+      padding: 0 8px;
+      font-size: 11px;
+    }
   }
 </style>
-{% endblock %} {% block content %}
+{% endblock %}
+
+{% block content %}
 <div class="manage-wrap">
+
   <div class="toolbar">
     <form
       class="search-box"
@@ -207,7 +347,7 @@ extra_css %}
       <input
         type="search"
         name="search"
-        value="{{ request.args.get('search','') }}"
+        value="{{ search }}"
         placeholder="Search exam title or category..."
       />
 
@@ -215,7 +355,9 @@ extra_css %}
         <i class="fa-solid fa-search"></i> Search
       </button>
 
-      <a class="btn light" href="{{ url_for('exam.exam_list') }}"> Reset </a>
+      <a class="btn light" href="{{ url_for('exam.exam_list') }}">
+        Reset
+      </a>
     </form>
   </div>
 
@@ -243,8 +385,12 @@ extra_css %}
             </td>
 
             <td>{{ item.department_name }}</td>
+
             <td>{{ item.sub_department }}</td>
-            <td><strong>{{ item.question_count }}</strong></td>
+
+            <td>
+              <strong>{{ item.question_count }}</strong>
+            </td>
 
             <td>
               {% if item.is_active %}
@@ -255,12 +401,12 @@ extra_css %}
             </td>
 
             <td>
-              {{ item.created_at.strftime('%d %b %Y') if item.created_at else
-              '—' }}
+              {{ item.created_at.strftime('%d %b %Y') if item.created_at else '—' }}
             </td>
 
             <td>
               <div class="actions">
+
                 <a
                   class="icon-btn edit"
                   title="Edit Question Bank"
@@ -296,6 +442,7 @@ extra_css %}
                 >
                   <i class="fa-solid fa-trash"></i>
                 </button>
+
               </div>
             </td>
           </tr>
@@ -303,10 +450,17 @@ extra_css %}
           {% else %}
           <tr>
             <td colspan="7" class="empty">
-              <i class="fa-regular fa-folder-open" style="font-size: 30px"></i>
+              <i
+                class="fa-regular fa-folder-open"
+                style="font-size: 30px"
+              ></i>
+
               <p>No question banks found.</p>
 
-              <a class="btn primary" href="{{ url_for('exam.exam_create') }}">
+              <a
+                class="btn primary"
+                href="{{ url_for('exam.exam_create') }}"
+              >
                 Create your first question bank
               </a>
             </td>
@@ -315,11 +469,139 @@ extra_css %}
         </tbody>
       </table>
     </div>
+
+    <!-- ---------------------------------------
+         PAGINATION FOOTER
+    ---------------------------------------- -->
+
+    {% if total_records > 0 %}
+    <div class="pagination-footer">
+
+      <div class="pagination-info">
+        Showing
+        <strong>{{ start_record }}–{{ end_record }}</strong>
+        of
+        <strong>{{ total_records }}</strong>
+        question banks
+      </div>
+
+      <div class="pagination-controls">
+
+        <!-- PREVIOUS -->
+        {% if has_prev %}
+        <a
+          class="pagination-btn"
+          href="{{ url_for(
+            'exam.exam_list',
+            search=search,
+            page=prev_page
+          ) }}"
+          title="Previous Page"
+        >
+          <i class="fa-solid fa-chevron-left"></i>
+          <span>Previous</span>
+        </a>
+        {% else %}
+        <span class="pagination-btn disabled">
+          <i class="fa-solid fa-chevron-left"></i>
+          <span>Previous</span>
+        </span>
+        {% endif %}
+
+        <!-- FIRST PAGE -->
+        {% if page > 3 %}
+        <a
+          class="pagination-btn"
+          href="{{ url_for('exam.exam_list', search=search, page=1) }}"
+        >
+          1
+        </a>
+        {% endif %}
+
+        <!-- LEFT DOTS -->
+        {% if page > 4 %}
+        <span class="pagination-dots">...</span>
+        {% endif %}
+
+        <!-- PAGE NUMBERS -->
+        {% for p in range(
+          [1, page - 2]|max,
+          [total_pages, page + 2]|min + 1
+        ) %}
+
+          {% if p == page %}
+          <span class="pagination-btn current">
+            {{ p }}
+          </span>
+          {% else %}
+          <a
+            class="pagination-btn"
+            href="{{ url_for(
+              'exam.exam_list',
+              search=search,
+              page=p
+            ) }}"
+          >
+            {{ p }}
+          </a>
+          {% endif %}
+
+        {% endfor %}
+
+        <!-- RIGHT DOTS -->
+        {% if page < total_pages - 3 %}
+        <span class="pagination-dots">...</span>
+        {% endif %}
+
+        <!-- LAST PAGE -->
+        {% if page < total_pages - 2 %}
+        <a
+          class="pagination-btn"
+          href="{{ url_for(
+            'exam.exam_list',
+            search=search,
+            page=total_pages
+          ) }}"
+        >
+          {{ total_pages }}
+        </a>
+        {% endif %}
+
+        <!-- NEXT -->
+        {% if has_next %}
+        <a
+          class="pagination-btn"
+          href="{{ url_for(
+            'exam.exam_list',
+            search=search,
+            page=next_page
+          ) }}"
+          title="Next Page"
+        >
+          <span>Next</span>
+          <i class="fa-solid fa-chevron-right"></i>
+        </a>
+        {% else %}
+        <span class="pagination-btn disabled">
+          <span>Next</span>
+          <i class="fa-solid fa-chevron-right"></i>
+        </span>
+        {% endif %}
+
+      </div>
+    </div>
+    {% endif %}
+
   </div>
 </div>
 
+<!-- ---------------------------------------
+     DELETE MODAL
+---------------------------------------- -->
+
 <div class="modal-backdrop" id="deleteModal">
   <div class="modal">
+
     <h3>Delete Question Bank?</h3>
 
     <p id="deleteMessage">
@@ -328,7 +610,12 @@ extra_css %}
 
     <form method="POST" id="deleteForm">
       <div class="modal-actions">
-        <button type="button" class="btn light" onclick="closeDelete()">
+
+        <button
+          type="button"
+          class="btn light"
+          onclick="closeDelete()"
+        >
           Cancel
         </button>
 
@@ -339,11 +626,15 @@ extra_css %}
         >
           Delete
         </button>
+
       </div>
     </form>
   </div>
 </div>
-{% endblock %} {% block extra_js %}
+
+{% endblock %}
+
+{% block extra_js %}
 <script>
   function confirmDelete(button) {
     const url = button.dataset.deleteUrl;

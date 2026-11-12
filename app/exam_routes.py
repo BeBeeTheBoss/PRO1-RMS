@@ -198,17 +198,29 @@ def exam_list():
         return denied
 
     conn = _db()
+
     try:
         cur = _dict_cursor(conn)
+
         dept_scope = _scope_department()
         search = (request.args.get("search") or "").strip()
 
-        cur.execute("""
-            SELECT es.*, d.name AS department_name,
-                   COUNT(eq.id)::int AS question_count
-            FROM exam_sets es
-            JOIN departments d ON d.id = es.department_id
-            LEFT JOIN exam_questions eq ON eq.exam_set_id = es.id
+        # --------------------------------------------------
+        # PAGINATION SETTINGS
+        # --------------------------------------------------
+        PER_PAGE = 5
+
+        try:
+            page = int(request.args.get("page", 1))
+        except (TypeError, ValueError):
+            page = 1
+
+        page = max(1, page)
+
+        # --------------------------------------------------
+        # SEARCH CONDITIONS
+        # --------------------------------------------------
+        where_conditions = """
             WHERE (%s IS NULL OR es.department_id = %s)
               AND (
                   %s = ''
@@ -216,24 +228,104 @@ def exam_list():
                   OR es.sub_department ILIKE %s
                   OR d.name ILIKE %s
               )
+        """
+
+        query_params = (
+            dept_scope,
+            dept_scope,
+            search,
+            f"%{search}%",
+            f"%{search}%",
+            f"%{search}%"
+        )
+
+        # --------------------------------------------------
+        # 1. COUNT TOTAL RECORDS
+        # --------------------------------------------------
+        cur.execute(f"""
+            SELECT COUNT(DISTINCT es.id)::int AS total
+            FROM exam_sets es
+            JOIN departments d ON d.id = es.department_id
+            {where_conditions}
+        """, query_params)
+
+        count_row = cur.fetchone()
+
+        if count_row:
+            total_records = (
+                count_row["total"]
+                if isinstance(count_row, dict)
+                else count_row[0]
+            )
+        else:
+            total_records = 0
+
+        # --------------------------------------------------
+        # 2. CALCULATE TOTAL PAGES
+        # --------------------------------------------------
+        total_pages = max(
+            1,
+            (total_records + PER_PAGE - 1) // PER_PAGE
+        )
+
+        # Prevent invalid page number
+        page = min(page, total_pages)
+
+        offset = (page - 1) * PER_PAGE
+
+        # --------------------------------------------------
+        # 3. GET PAGINATED EXAM SETS
+        # --------------------------------------------------
+        cur.execute(f"""
+            SELECT es.*, d.name AS department_name,
+                   COUNT(eq.id)::int AS question_count
+            FROM exam_sets es
+            JOIN departments d ON d.id = es.department_id
+            LEFT JOIN exam_questions eq ON eq.exam_set_id = es.id
+            {where_conditions}
             GROUP BY es.id, d.name
             ORDER BY es.created_at DESC
-        """, (
-            dept_scope, dept_scope,
-            search,
-            f"%{search}%", f"%{search}%", f"%{search}%"
-        ))
+            LIMIT %s OFFSET %s
+        """, query_params + (PER_PAGE, offset))
 
         sets = cur.fetchall()
 
+        # --------------------------------------------------
+        # 4. PAGINATION DISPLAY INFORMATION
+        # --------------------------------------------------
+        start_record = (
+            (page - 1) * PER_PAGE + 1
+            if total_records > 0
+            else 0
+        )
+
+        end_record = min(
+            page * PER_PAGE,
+            total_records
+        )
+
         return render_template(
             "exams/manage_questions.html",
-            exam_sets=sets
+            exam_sets=sets,
+
+            # Existing search
+            search=search,
+
+            # Pagination
+            page=page,
+            per_page=PER_PAGE,
+            total_records=total_records,
+            total_pages=total_pages,
+            start_record=start_record,
+            end_record=end_record,
+            has_prev=page > 1,
+            has_next=page < total_pages,
+            prev_page=page - 1,
+            next_page=page + 1
         )
 
     finally:
         conn.close()
-
 
 
 @exam_bp.route("/exams/create", methods=["GET", "POST"])
