@@ -365,6 +365,7 @@ def candidate_is_accessible(cur, candidate_id, lock=False, permission="can_view"
             c.status
         FROM public.candidates c
         WHERE c.id = %s
+        AND c.deleted_at IS NULL
     """
 
     params = [candidate_id]
@@ -514,14 +515,15 @@ def candidate_search_suggestions():
                 FROM candidates c
                 JOIN departments d
                     ON d.id = c.department_id
-                WHERE (
-                    c.name ILIKE %s
-                    OR c.phone ILIKE %s
-                    OR c.email ILIKE %s
-                    OR COALESCE(c.nrc, '') ILIKE %s
-                    OR d.name ILIKE %s
-                    OR CAST(c.id AS TEXT) ILIKE %s
-                )
+                WHERE c.deleted_at IS NULL
+                    AND (
+                        c.name ILIKE %s
+                        OR c.phone ILIKE %s
+                        OR c.email ILIKE %s
+                        OR COALESCE(c.nrc, '') ILIKE %s
+                        OR d.name ILIKE %s
+                        OR CAST(c.id AS TEXT) ILIKE %s
+                    )
             """
 
             params = [like] * 6
@@ -620,21 +622,21 @@ def check_candidate_duplicate():
                     ON b.id = c.branch_id
                 LEFT JOIN public.departments d
                     ON d.id = c.department_id
-                WHERE
-                    (
-                        %s <> ''
-                        AND regexp_replace(
-                            COALESCE(c.phone, ''),
-                            '[^0-9]',
-                            '',
-                            'g'
-                        ) = %s
-                    )
-                    OR
-                    (
-                        %s <> ''
-                        AND LOWER(TRIM(COALESCE(c.email, ''))) = %s
-                    )
+                WHERE c.deleted_at IS NULL
+                    AND(
+                            %s <> ''
+                            AND regexp_replace(
+                                COALESCE(c.phone, ''),
+                                '[^0-9]',
+                                '',
+                                'g'
+                            ) = %s
+                        )
+                        OR
+                        (
+                            %s <> ''
+                            AND LOWER(TRIM(COALESCE(c.email, ''))) = %s
+                        )
             """
 
             params = [
@@ -1213,8 +1215,9 @@ def add_candidate():
                 ON d.id = c.department_id
 
             WHERE
-                (
-                    regexp_replace(c.phone, '\\D', '', 'g') = %s
+                c.deleted_at IS NULL
+                AND (
+                    regexp_replace(c.phone, '[^0-9]', '', 'g') = %s
                     OR LOWER(TRIM(c.email)) = %s
                 )
 
@@ -1283,7 +1286,7 @@ def add_candidate():
             """
             SELECT
                 BOOL_OR(
-                    regexp_replace(phone, '\\D', '', 'g') = %s
+                    regexp_replace(phone, '[^0-9]', '', 'g') = %s
                 ) AS phone_exists,
 
                 BOOL_OR(
@@ -1292,9 +1295,11 @@ def add_candidate():
 
             FROM public.candidates
 
-            WHERE
-                regexp_replace(phone, '\\D', '', 'g') = %s
+            WHERE deleted_at IS NULL
+            AND (
+                regexp_replace(phone, '[^0-9]', '', 'g') = %s
                 OR LOWER(TRIM(email)) = %s
+            )
             """,
             (
                 phone_digits,
@@ -1310,7 +1315,7 @@ def add_candidate():
         email_exists = bool(duplicate_row[1])
 
         return phone_exists, email_exists
-
+    
     # --------------------------------------------------
     # 10. Validate and insert candidate
     # --------------------------------------------------
@@ -1586,10 +1591,8 @@ def add_candidate():
             )
 
             duplicate_constraints = (
-                "uq_candidates_phone",
                 "uq_candidates_phone_normalized",
                 "uq_candidates_email_lower",
-                "uq_candidates_email_normalized",
             )
 
             if constraint_name in duplicate_constraints:
@@ -2261,7 +2264,7 @@ def candidates():
                     ON si.candidate_id = c.id
                     AND si.interview_stage = 'second_interview'
 
-                WHERE 1 = 1
+                WHERE c.deleted_at IS NULL
             """
                         
             params = [role, user_id]
@@ -2347,7 +2350,7 @@ def candidates():
 
             scope_sql = """
                 FROM public.candidates
-                WHERE 1 = 1
+                WHERE deleted_at IS NULL
             """
 
             scope_params = []
@@ -2418,7 +2421,8 @@ def candidates():
                 count_sql = """
                     SELECT COUNT(*)
                     FROM public.candidates
-                    WHERE status = ANY(%s)
+                    WHERE deleted_at IS NULL
+                        AND status = ANY(%s)
                 """
 
                 count_params = [
@@ -3245,7 +3249,10 @@ def interview_schedules():
         # 9. COMMON SQL CONDITIONS
         # --------------------------------------------------
 
-        common_conditions = []
+        common_conditions = [
+            "c.deleted_at IS NULL"
+        ]
+
         common_params = []
 
         # Department permission
@@ -3698,6 +3705,7 @@ def update_interview_status(interview_id):
                     ON c.id = ci.candidate_id
 
                 WHERE ci.id = %s
+                    AND c.deleted_at IS NULL
             """, (interview_id,))
 
             interview = cur.fetchone()
@@ -4202,6 +4210,7 @@ def skip_candidate(candidate_id):
         conn.close()
 
     return _candidate_list_redirect(active_tab)
+
 # --------------------------------------------------
 # CANCEL CANDIDATE FROM A PIPELINE STAGE
 # URL: /candidates/<id>/cancel (POST)
@@ -4441,6 +4450,7 @@ def edit_candidate(candidate_id):
                     SELECT c.id
                     FROM public.candidates c
                     WHERE c.id = %s
+                      AND c.deleted_at IS NULL
                       AND EXISTS (
                           SELECT 1
                           FROM public.user_department_permissions udp
@@ -4544,6 +4554,7 @@ def edit_candidate(candidate_id):
                     LEFT JOIN public.branches b
                         ON b.id = c.branch_id
                     WHERE c.id = %s
+                        AND c.deleted_at IS NULL
                     """,
                     (candidate_id,),
                 )
@@ -4974,6 +4985,7 @@ def edit_candidate(candidate_id):
                     other_attachment_path = %s,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = %s
+                    AND deleted_at IS NULL
                 """,
                 (
                     name,
@@ -5173,6 +5185,7 @@ def check_delete_permission(candidate_id):
                       ON udp.branch_id = c.branch_id
                      AND udp.department_id = c.department_id
                     WHERE c.id = %s
+                      AND c.deleted_at IS NULL
                       AND udp.user_id = %s
                       AND udp.can_delete = TRUE
                 )
@@ -5191,6 +5204,7 @@ def check_delete_permission(candidate_id):
 # DELETE CANDIDATE
 # URL: /candidates/<id>/delete (POST)
 # --------------------------------------------------
+
 @candidate_bp.route(
     "/candidates/<int:candidate_id>/delete",
     methods=["POST"],
@@ -5198,7 +5212,6 @@ def check_delete_permission(candidate_id):
 @login_required
 def delete_candidate(candidate_id):
     conn = get_connection()
-    file_paths = []
 
     try:
         with conn.cursor() as cur:
@@ -5212,10 +5225,11 @@ def delete_candidate(candidate_id):
                         FROM public.candidates c
                         JOIN public.user_department_permissions udp
                             ON udp.branch_id = c.branch_id
-                        AND udp.department_id = c.department_id
+                           AND udp.department_id = c.department_id
                         WHERE c.id = %s
-                        AND udp.user_id = %s
-                        AND udp.can_delete = TRUE
+                          AND udp.user_id = %s
+                          AND udp.can_delete = TRUE
+                          AND c.deleted_at IS NULL
                     )
                     """,
                     (candidate_id, session.get("user_id")),
@@ -5225,7 +5239,6 @@ def delete_candidate(candidate_id):
 
                 if not can_delete:
                     conn.rollback()
-
                     return redirect(
                         url_for(
                             "candidate.view_candidates",
@@ -5241,11 +5254,14 @@ def delete_candidate(candidate_id):
                     permission="can_delete",
                 )
 
+            # Check candidate exists and is not already deleted.
             cur.execute(
                 """
-                SELECT cv_file_path, other_attachment_path
-                FROM candidates
+                SELECT id
+                FROM public.candidates
                 WHERE id = %s
+                  AND deleted_at IS NULL
+                FOR UPDATE
                 """,
                 (candidate_id,),
             )
@@ -5255,58 +5271,23 @@ def delete_candidate(candidate_id):
             if row is None:
                 abort(404)
 
-            file_paths = [p for p in row if p]
-
-            # Delete status history first.
+            # Soft delete candidate only.
+            # Keep CV, attachments and all related history.
             cur.execute(
                 """
-                DELETE FROM candidate_status_history
-                WHERE candidate_id = %s
-                """,
-                (candidate_id,),
-            )
-
-            # Delete edit history only.
-            cur.execute(
-                """
-                SELECT EXISTS (
-                    SELECT 1
-                    FROM information_schema.tables
-                    WHERE table_name = 'candidate_edit_history'
-                )
-                """
-            )
-
-            if cur.fetchone()[0]:
-                cur.execute(
-                    """
-                    DELETE FROM candidate_edit_history
-                    WHERE candidate_id = %s
-                    """,
-                    (candidate_id,),
-                )
-
-            # Delete the candidate.
-            cur.execute(
-                """
-                DELETE FROM candidates
+                UPDATE public.candidates
+                SET deleted_at = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP
                 WHERE id = %s
+                  AND deleted_at IS NULL
                 """,
                 (candidate_id,),
             )
 
         conn.commit()
 
-        for relative_path in file_paths:
-            try:
-                remove_uploaded_file(relative_path)
-            except OSError:
-                current_app.logger.exception(
-                    "Failed to remove deleted candidate file"
-                )
-
         flash(
-            "Candidate and related history deleted successfully.",
+            "Candidate deleted successfully.",
             "success",
         )
 
@@ -5317,11 +5298,10 @@ def delete_candidate(candidate_id):
     except Exception:
         conn.rollback()
 
-        current_app.logger.exception("Failed to delete candidate")
+        current_app.logger.exception("Failed to soft delete candidate")
 
         flash(
-            "Could not delete candidate. "
-            "The record may be referenced by another table.",
+            "Could not delete candidate.",
             "error",
         )
 
@@ -5329,6 +5309,7 @@ def delete_candidate(candidate_id):
         conn.close()
 
     return redirect(url_for("candidate.view_candidates"))
+
 
 # --------------------------------------------------
 # VIEW CANDIDATES PAGE
@@ -5410,7 +5391,8 @@ def view_candidates():
                 ) udp ON TRUE
 
                 WHERE
-                    (
+                    c.deleted_at IS NULL
+                    AND(
                         %s = 'super_admin'
                         OR EXISTS (
                             SELECT 1
@@ -6506,7 +6488,9 @@ def records():
         # ==================================================
         # BASE WHERE: ROLE ACCESS ONLY
         # ==================================================
-        base_conditions = []
+        base_conditions = [
+            "c.deleted_at IS NULL"
+        ]
         base_params = []
 
         if role == "department_head":
@@ -7060,7 +7044,9 @@ def export_records():
 
         conn = get_connection()
 
-        where_conditions = []
+        where_conditions = [
+            "c.deleted_at IS NULL"
+        ]
         params = []
         
         # --------------------------------------------------

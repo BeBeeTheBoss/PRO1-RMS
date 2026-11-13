@@ -6,7 +6,7 @@ import random
 from datetime import datetime, timedelta, date
 from decimal import Decimal
 from app.routes import login_required
-
+from werkzeug.exceptions import HTTPException
 from flask import (
     Blueprint, render_template, request, redirect, url_for,
     session, flash, abort, jsonify, current_app
@@ -174,7 +174,8 @@ def _load_exam_sets(cur, department_id=None):
             FROM exam_sets es
             JOIN departments d ON d.id = es.department_id
             LEFT JOIN exam_questions eq ON eq.exam_set_id = es.id
-            WHERE es.department_id = %s
+            WHERE es.deleted_at IS NULL
+              AND es.department_id = %s
             GROUP BY es.id, d.name
             ORDER BY es.created_at DESC
         """, (department_id,))
@@ -185,11 +186,11 @@ def _load_exam_sets(cur, department_id=None):
             FROM exam_sets es
             JOIN departments d ON d.id = es.department_id
             LEFT JOIN exam_questions eq ON eq.exam_set_id = es.id
+            WHERE es.deleted_at IS NULL
             GROUP BY es.id, d.name
             ORDER BY es.created_at DESC
         """)
     return cur.fetchall()
-
 
 @exam_bp.route("/exams")
 def exam_list():
@@ -221,7 +222,8 @@ def exam_list():
         # SEARCH CONDITIONS
         # --------------------------------------------------
         where_conditions = """
-            WHERE (%s IS NULL OR es.department_id = %s)
+            WHERE es.deleted_at IS NULL 
+              AND (%s IS NULL OR es.department_id = %s)
               AND (
                   %s = ''
                   OR es.exam_title ILIKE %s
@@ -532,10 +534,11 @@ def exam_create():
                             FROM exam_sets es
                             JOIN departments d
                                 ON d.id = es.department_id
-                            WHERE LOWER(TRIM(d.name)) =
-                                  LOWER(TRIM(%s))
-                              AND LOWER(TRIM(es.sub_department)) =
-                                  LOWER(TRIM(%s))
+                            WHERE es.deleted_at IS NULL
+                            AND LOWER(TRIM(d.name)) =
+                                LOWER(TRIM(%s))
+                            AND LOWER(TRIM(es.sub_department)) =
+                                LOWER(TRIM(%s))
                         ) AS already_exists
                     """, (
                         department["name"],
@@ -718,7 +721,8 @@ def exam_edit(exam_set_id):
             SELECT *
             FROM exam_sets
             WHERE id = %s
-              AND (%s IS NULL OR department_id = %s)
+                AND deleted_at IS NULL
+                AND (%s IS NULL OR department_id = %s)
         """, (exam_set_id, dept_scope, dept_scope))
 
         exam_set = cur.fetchone()
@@ -876,6 +880,7 @@ def exam_edit(exam_set_id):
     finally:
         conn.close()
 
+
 @exam_bp.route("/exams/<int:exam_set_id>/delete", methods=["POST"])
 @super_admin_required
 def exam_delete(exam_set_id):
@@ -891,8 +896,9 @@ def exam_delete(exam_set_id):
 
         cur.execute("""
             SELECT id
-            FROM exam_sets
+            FROM public.exam_sets
             WHERE id = %s
+              AND deleted_at IS NULL
               AND (%s IS NULL OR department_id = %s)
         """, (exam_set_id, dept_scope, dept_scope))
 
@@ -901,7 +907,7 @@ def exam_delete(exam_set_id):
 
         cur.execute("""
             SELECT COUNT(*) AS total
-            FROM exam_assignments
+            FROM public.exam_assignments
             WHERE exam_set_id = %s
         """, (exam_set_id,))
 
@@ -912,14 +918,14 @@ def exam_delete(exam_set_id):
             )
             return redirect(url_for("exam.exam_list"))
 
+        # Soft delete exam set.
+        # Keep exam_questions in the database.
         cur.execute("""
-            DELETE FROM exam_questions
-            WHERE exam_set_id = %s
-        """, (exam_set_id,))
-
-        cur.execute("""
-            DELETE FROM exam_sets
+            UPDATE public.exam_sets
+            SET deleted_at = NOW(),
+                updated_at = NOW()
             WHERE id = %s
+              AND deleted_at IS NULL
               AND (%s IS NULL OR department_id = %s)
         """, (exam_set_id, dept_scope, dept_scope))
 
@@ -930,9 +936,13 @@ def exam_delete(exam_set_id):
         conn.commit()
         flash("Question bank deleted successfully.", "success")
 
+    except HTTPException:
+        conn.rollback()
+        raise
+
     except Exception:
         conn.rollback()
-        current_app.logger.exception("Question bank deletion failed")
+        current_app.logger.exception("Question bank soft deletion failed")
         flash("Unable to delete question bank.", "error")
 
     finally:
@@ -946,22 +956,37 @@ def exam_toggle(exam_set_id):
     denied = _require_exam_role()
     if denied:
         return denied
+
     conn = _db()
+
     try:
         cur = _dict_cursor(conn)
+        dept_scope = _scope_department()
+
         cur.execute("""
             UPDATE exam_sets
-            SET is_active = NOT is_active, updated_at = NOW()
-            WHERE id = %s AND (%s IS NULL OR department_id = %s)
-        """, (exam_set_id, _scope_department(), _scope_department()))
+            SET is_active = NOT is_active,
+                updated_at = NOW()
+            WHERE id = %s
+              AND deleted_at IS NULL
+              AND (%s IS NULL OR department_id = %s)
+        """, (exam_set_id, dept_scope, dept_scope))
+
         if cur.rowcount == 0:
             abort(404)
+
         conn.commit()
         flash("Exam status updated.", "success")
+
+    except Exception:
+        conn.rollback()
+        current_app.logger.exception("Exam status update failed")
+        flash("Unable to update exam status.", "error")
+
     finally:
         conn.close()
-    return redirect(url_for("exam.exam_list"))
 
+    return redirect(url_for("exam.exam_list"))
 
 @exam_bp.route("/exams/assign", methods=["GET", "POST"])
 def exam_assign():
@@ -975,68 +1000,195 @@ def exam_assign():
         cur = _dict_cursor(conn)
         dept_scope = _scope_department()
 
+        # -----------------------------------------
+        # LOAD TODAY'S SCHEDULED INTERVIEW CANDIDATES
+        # -----------------------------------------
+
         cur.execute("""
-            SELECT ci.id AS interview_id, ci.candidate_id,
-                   ci.interview_date, ci.interview_time, ci.interview_stage,
-                   c.name, c.email, c.phone, c.position, c.department_id,
-                   c.branch_id, d.name AS department_name
+            SELECT
+                ci.id AS interview_id,
+                ci.candidate_id,
+                ci.interview_date,
+                ci.interview_time,
+                ci.interview_stage,
+
+                c.name,
+                c.email,
+                c.phone,
+                c.position,
+                c.department_id,
+                c.branch_id,
+
+                d.name AS department_name
+
             FROM candidate_interviews ci
-            JOIN candidates c ON c.id = ci.candidate_id
-            JOIN departments d ON d.id = c.department_id
-            WHERE ci.interview_date =
-                (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Yangon')::date
+
+            JOIN candidates c
+                ON c.id = ci.candidate_id
+
+            JOIN departments d
+                ON d.id = c.department_id
+
+            WHERE c.deleted_at IS NULL
+
+              AND ci.interview_date =
+                  (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Yangon')::date
+
               AND ci.status = 'scheduled'
+
               AND (%s IS NULL OR c.department_id = %s)
+
               AND NOT EXISTS (
-                  SELECT 1 FROM exam_assignments ea
+                  SELECT 1
+                  FROM exam_assignments ea
                   WHERE ea.interview_id = ci.id
-                    AND ea.status IN ('ready','in_progress','submitted')
+                    AND ea.status IN (
+                        'ready',
+                        'in_progress',
+                        'submitted'
+                    )
               )
-            ORDER BY ci.interview_time ASC, c.name ASC
+
+            ORDER BY
+                ci.interview_time ASC,
+                c.name ASC
         """, (dept_scope, dept_scope))
 
         candidates = cur.fetchall()
 
+        # =========================================
+        # POST REQUEST
+        # =========================================
+
         if request.method == "POST":
 
-            interview_id = request.form.get("interview_id", type=int)
-            exam_set_id = request.form.get("exam_set_id", type=int)
-            count = request.form.get("question_count", type=int)
+            interview_id = request.form.get(
+                "interview_id",
+                type=int
+            )
+
+            exam_set_id = request.form.get(
+                "exam_set_id",
+                type=int
+            )
+
+            count = request.form.get(
+                "question_count",
+                type=int
+            )
+
             selection = request.form.get("selection_method")
             method = request.form.get("exam_method")
-            selected_ids = request.form.getlist("question_ids", type=int)
+
+            selected_ids = request.form.getlist(
+                "question_ids",
+                type=int
+            )
 
             # -----------------------------------------
             # BASIC VALIDATION
             # -----------------------------------------
 
-            if not interview_id or not exam_set_id or not count or count < 1:
-                flash("Please complete all exam assignment fields.", "error")
-                return redirect(url_for("exam.exam_assign"))
+            if (
+                not interview_id
+                or not exam_set_id
+                or not count
+                or count < 1
+            ):
+                flash(
+                    "Please complete all exam assignment fields.",
+                    "error"
+                )
 
-            if selection not in {"random", "manual"} or method not in {"direct", "qr"}:
-                flash("Invalid exam selection method.", "error")
-                return redirect(url_for("exam.exam_assign"))
+                return redirect(
+                    url_for("exam.exam_assign")
+                )
+
+            if (
+                selection not in {"random", "manual"}
+                or method not in {"direct", "qr"}
+            ):
+                flash(
+                    "Invalid exam selection method.",
+                    "error"
+                )
+
+                return redirect(
+                    url_for("exam.exam_assign")
+                )
 
             # -----------------------------------------
             # VALIDATE INTERVIEW
             # -----------------------------------------
 
             cur.execute("""
-                SELECT ci.id, ci.candidate_id, c.department_id
+                SELECT
+                    ci.id,
+                    ci.candidate_id,
+                    c.department_id
+
                 FROM candidate_interviews ci
-                JOIN candidates c ON c.id = ci.candidate_id
+
+                JOIN candidates c
+                    ON c.id = ci.candidate_id
+
                 WHERE ci.id = %s
+
+                  AND c.deleted_at IS NULL
+
                   AND ci.interview_date =
-                    (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Yangon')::date
+                      (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Yangon')::date
+
                   AND ci.status = 'scheduled'
+
                   AND (%s IS NULL OR c.department_id = %s)
-            """, (interview_id, dept_scope, dept_scope))
+
+                FOR UPDATE OF ci
+            """, (
+                interview_id,
+                dept_scope,
+                dept_scope
+            ))
 
             interview = cur.fetchone()
 
             if not interview:
-                abort(400)
+                flash(
+                    "Selected interview is unavailable or no longer valid.",
+                    "error"
+                )
+
+                return redirect(
+                    url_for("exam.exam_assign")
+                )
+
+            # -----------------------------------------
+            # PREVENT DUPLICATE ACTIVE ASSIGNMENT
+            # -----------------------------------------
+
+            cur.execute("""
+                SELECT id
+                FROM exam_assignments
+                WHERE interview_id = %s
+                  AND status IN (
+                      'ready',
+                      'in_progress',
+                      'submitted'
+                  )
+                LIMIT 1
+            """, (interview_id,))
+
+            existing_assignment = cur.fetchone()
+
+            if existing_assignment:
+                flash(
+                    "An exam has already been assigned to this interview.",
+                    "error"
+                )
+
+                return redirect(
+                    url_for("exam.exam_assign")
+                )
 
             # -----------------------------------------
             # VALIDATE EXAM DEPARTMENT
@@ -1044,37 +1196,64 @@ def exam_assign():
 
             cur.execute("""
                 SELECT es.*
+
                 FROM exam_sets es
+
                 JOIN departments exam_dept
                     ON exam_dept.id = es.department_id
+
                 JOIN departments candidate_dept
                     ON candidate_dept.id = %s
+
                 WHERE es.id = %s
+
+                  AND es.deleted_at IS NULL
+
                   AND es.is_active = TRUE
+
                   AND LOWER(TRIM(exam_dept.name))
-                    = LOWER(TRIM(candidate_dept.name))
+                      = LOWER(TRIM(candidate_dept.name))
+
+                  AND (
+                      %s IS NULL
+                      OR es.department_id = %s
+                  )
+
             """, (
                 interview["department_id"],
-                exam_set_id
+                exam_set_id,
+                dept_scope,
+                dept_scope
             ))
 
             exam_set = cur.fetchone()
 
             if not exam_set:
                 flash(
-                    "Selected exam does not belong to this candidate's department.",
+                    "Selected exam does not belong to this candidate's department or is no longer available.",
                     "error"
                 )
-                return redirect(url_for("exam.exam_assign"))
+
+                return redirect(
+                    url_for("exam.exam_assign")
+                )
 
             # -----------------------------------------
             # LOAD QUESTION BANK
             # -----------------------------------------
 
             cur.execute("""
-                SELECT id, question_text, options, correct_option, points
+                SELECT
+                    id,
+                    question_text,
+                    options,
+                    correct_option,
+                    points
+
                 FROM exam_questions
+
                 WHERE exam_set_id = %s
+
                 ORDER BY id
             """, (exam_set_id,))
 
@@ -1085,7 +1264,10 @@ def exam_assign():
                     "Question count exceeds the available question bank.",
                     "error"
                 )
-                return redirect(url_for("exam.exam_assign"))
+
+                return redirect(
+                    url_for("exam.exam_assign")
+                )
 
             # -----------------------------------------
             # VALIDATE PREVIEW QUESTION IDS
@@ -1099,7 +1281,10 @@ def exam_assign():
                     "Please select exactly the requested number of questions.",
                     "error"
                 )
-                return redirect(url_for("exam.exam_assign"))
+
+                return redirect(
+                    url_for("exam.exam_assign")
+                )
 
             by_id = {
                 q["id"]: q
@@ -1107,7 +1292,14 @@ def exam_assign():
             }
 
             if any(qid not in by_id for qid in selected_ids):
-                abort(400)
+                flash(
+                    "Invalid question selection. Please try again.",
+                    "error"
+                )
+
+                return redirect(
+                    url_for("exam.exam_assign")
+                )
 
             # -----------------------------------------
             # USE EXACT PREVIEWED QUESTIONS
@@ -1137,13 +1329,24 @@ def exam_assign():
             # QR TOKEN
             # -----------------------------------------
 
-            raw_token = secrets.token_urlsafe(32) if method == "qr" else None
+            raw_token = (
+                secrets.token_urlsafe(32)
+                if method == "qr"
+                else None
+            )
 
-            token_hash = _hash_token(raw_token) if raw_token else None
+            token_hash = (
+                _hash_token(raw_token)
+                if raw_token
+                else None
+            )
 
             link_expiry = (
-                _now() + timedelta(minutes=LINK_LIFETIME_MINUTES)
-                if raw_token else None
+                _now() + timedelta(
+                    minutes=LINK_LIFETIME_MINUTES
+                )
+                if raw_token
+                else None
             )
 
             # -----------------------------------------
@@ -1152,20 +1355,26 @@ def exam_assign():
 
             cur.execute("""
                 INSERT INTO exam_assignments
-                    (
-                        interview_id,
-                        candidate_id,
-                        exam_set_id,
-                        selection_method,
-                        exam_method,
-                        question_snapshot,
-                        token_hash,
-                        link_expires_at,
-                        total_questions,
-                        created_by
-                    )
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                (
+                    interview_id,
+                    candidate_id,
+                    exam_set_id,
+                    selection_method,
+                    exam_method,
+                    question_snapshot,
+                    token_hash,
+                    link_expires_at,
+                    total_questions,
+                    created_by
+                )
+
+                VALUES (
+                    %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s
+                )
+
                 RETURNING id
+
             """, (
                 interview_id,
                 interview["candidate_id"],
@@ -1203,17 +1412,24 @@ def exam_assign():
                 )
             )
 
-        # -----------------------------------------
+        # =========================================
         # GET REQUEST
-        # -----------------------------------------
+        # =========================================
 
-        exam_sets = _load_exam_sets(cur, dept_scope)
+        exam_sets = _load_exam_sets(
+            cur,
+            dept_scope
+        )
 
         return render_template(
             "exams/assign_exam.html",
             candidates=candidates,
             exam_sets=exam_sets
         )
+
+    except HTTPException:
+        conn.rollback()
+        raise
 
     except Exception:
         conn.rollback()
@@ -1227,11 +1443,12 @@ def exam_assign():
             "error"
         )
 
-        return redirect(url_for("exam.exam_assign"))
+        return redirect(
+            url_for("exam.exam_assign")
+        )
 
     finally:
         conn.close()
-
 
 @exam_bp.route("/exams/questions")
 def exam_questions_api():
@@ -1246,7 +1463,9 @@ def exam_questions_api():
         cur = _dict_cursor(conn)
         cur.execute("""
             SELECT es.department_id FROM exam_sets es
-            WHERE es.id=%s AND (%s IS NULL OR es.department_id=%s)
+            WHERE es.id=%s
+                AND es.deleted_at IS NULL
+                AND (%s IS NULL OR es.department_id=%s)
         """, (exam_set_id, _scope_department(), _scope_department()))
         if not cur.fetchone():
             return jsonify({"error": "Exam not found"}), 404
