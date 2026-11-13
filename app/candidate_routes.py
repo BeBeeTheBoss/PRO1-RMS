@@ -3431,13 +3431,6 @@ def interview_schedules():
 
             list_conditions.append("""
                 ci.status = 'scheduled'
-                AND (
-                    ci.interview_date,
-                    COALESCE(ci.interview_time, TIME '00:00')
-                ) >= (
-                    CURRENT_DATE,
-                    CURRENT_TIME
-                )
             """)
 
         elif status_filter in ("completed", "cancelled"):
@@ -3459,6 +3452,12 @@ def interview_schedules():
                     CURRENT_DATE,
                     CURRENT_TIME
                 )
+            """)
+
+        elif status_filter == "postpone":
+
+            list_conditions.append("""
+                COALESCE(ci.postpone, FALSE) = TRUE
             """)
 
         list_where = (
@@ -3536,6 +3535,8 @@ def interview_schedules():
                     ci.interviewer,
                     ci.meeting_link,
                     ci.created_at,
+                    ci.postpone,
+                    ci.postpone_reason,
 
                     c.name AS candidate_name,
                     c.email AS email,
@@ -3544,7 +3545,7 @@ def interview_schedules():
                     ci.status AS status,
                     c.department_id,
                     c.branch_id,
-
+                
                     b.name AS branch_name,
                     d.name AS department_name
 
@@ -3648,6 +3649,419 @@ def interview_schedules():
 
 
 @candidate_bp.route(
+    "/interview-schedules/<int:interview_id>/postpone",
+    methods=["POST"]
+)
+@login_required
+def postpone_interview(interview_id):
+
+    from flask import request, session, flash, redirect, url_for
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    from werkzeug.exceptions import HTTPException
+
+    conn = get_connection()
+
+    try:
+        # -----------------------------------------
+        # 1. FORM DATA
+        # -----------------------------------------
+
+        new_date_raw = (request.form.get("new_date") or "").strip()
+        new_time_raw = (request.form.get("new_time") or "").strip()
+        new_interviewer = (request.form.get("new_interviewer") or "").strip()
+
+        recipient = (request.form.get("email_to") or "").strip()
+        subject = (request.form.get("email_subject") or "").strip()
+        body = (request.form.get("email_body") or "").strip()
+        reason = (request.form.get("postpone_reason") or "").strip()
+
+        if not all([
+            new_date_raw,
+            new_time_raw,
+            new_interviewer,
+            recipient,
+            subject,
+            body,
+            reason
+        ]):
+            flash(
+                "Please complete all required postpone fields.",
+                "danger"
+            )
+            return redirect(url_for(
+                "candidate.interview_schedules",
+                stage=request.form.get("stage") or None,
+                search=request.form.get("search") or None,
+                branch_id=request.form.get("branch_id") or None,
+                department_id=request.form.get("department_id") or None,
+                from_date=request.form.get("from_date") or None,
+                to_date=request.form.get("to_date") or None,
+                status=request.form.get("status_filter") or None,
+                page=request.form.get("page") or 1
+            ))
+
+        if len(new_interviewer) > 150:
+            flash(
+                "Interviewer name must not exceed 150 characters.",
+                "danger"
+            )
+            return redirect(url_for(
+                "candidate.interview_schedules",
+                stage=request.form.get("stage") or None,
+                search=request.form.get("search") or None,
+                branch_id=request.form.get("branch_id") or None,
+                department_id=request.form.get("department_id") or None,
+                from_date=request.form.get("from_date") or None,
+                to_date=request.form.get("to_date") or None,
+                status=request.form.get("status_filter") or None,
+                page=request.form.get("page") or 1
+            ))
+
+        # -----------------------------------------
+        # 2. VALIDATE DATE AND TIME
+        # -----------------------------------------
+
+        try:
+            new_date = datetime.strptime(
+                new_date_raw,
+                "%Y-%m-%d"
+            ).date()
+
+            new_time = datetime.strptime(
+                new_time_raw,
+                "%H:%M"
+            ).time()
+
+        except ValueError:
+            flash(
+                "Invalid interview date or time.",
+                "danger"
+            )
+            return redirect(url_for(
+                "candidate.interview_schedules",
+                stage=request.form.get("stage") or None,
+                search=request.form.get("search") or None,
+                branch_id=request.form.get("branch_id") or None,
+                department_id=request.form.get("department_id") or None,
+                from_date=request.form.get("from_date") or None,
+                to_date=request.form.get("to_date") or None,
+                status=request.form.get("status_filter") or None,
+                page=request.form.get("page") or 1
+            ))
+
+        yangon_tz = ZoneInfo("Asia/Yangon")
+
+        new_datetime = datetime.combine(
+            new_date,
+            new_time
+        ).replace(tzinfo=yangon_tz)
+
+        if new_datetime <= datetime.now(yangon_tz):
+            flash(
+                "New interview date and time must be in the future.",
+                "danger"
+            )
+            return redirect(url_for(
+                "candidate.interview_schedules",
+                stage=request.form.get("stage") or None,
+                search=request.form.get("search") or None,
+                branch_id=request.form.get("branch_id") or None,
+                department_id=request.form.get("department_id") or None,
+                from_date=request.form.get("from_date") or None,
+                to_date=request.form.get("to_date") or None,
+                status=request.form.get("status_filter") or None,
+                page=request.form.get("page") or 1
+            ))
+
+        # -----------------------------------------
+        # 3. USER INFORMATION
+        # -----------------------------------------
+
+        user_role = session.get("role")
+        user_id = session.get("user_id")
+        session_department_id = session.get("department_id")
+
+        is_super_admin = user_role == "super_admin"
+
+        with conn.cursor() as cur:
+
+            # -------------------------------------
+            # 4. CHECK ACCESS AND LOCK INTERVIEW
+            # -------------------------------------
+
+            cur.execute("""
+                SELECT
+                    ci.id AS interview_id,
+                    ci.candidate_id,
+                    ci.interview_stage,
+                    ci.interview_date,
+                    ci.interview_time,
+                    ci.interviewer,
+                    ci.status,
+                    ci.postpone,
+                    c.name AS candidate_name,
+                    c.email AS candidate_email,
+                    c.department_id
+
+                FROM candidate_interviews ci
+
+                INNER JOIN candidates c
+                    ON c.id = ci.candidate_id
+
+                WHERE
+                    ci.id = %s
+                    AND c.deleted_at IS NULL
+
+                FOR UPDATE OF ci
+            """, (interview_id,))
+
+            rows = rows_as_dicts(cur)
+
+            if not rows:
+                conn.rollback()
+
+                flash(
+                    "Interview schedule not found.",
+                    "danger"
+                )
+
+                return redirect(url_for(
+                    "candidate.interview_schedules",
+                    stage=request.form.get("stage") or None,
+                    search=request.form.get("search") or None,
+                    branch_id=request.form.get("branch_id") or None,
+                    department_id=request.form.get("department_id") or None,
+                    from_date=request.form.get("from_date") or None,
+                    to_date=request.form.get("to_date") or None,
+                    status=request.form.get("status_filter") or None,
+                    page=request.form.get("page") or 1
+                ))
+
+            interview = rows[0]
+
+            # -------------------------------------
+            # PREVENT POSTPONING COMPLETED/CANCELLED
+            # -------------------------------------
+
+            current_status = (
+                interview.get("status") or ""
+            ).strip().lower()
+
+            if current_status != "scheduled":
+
+                conn.rollback()
+
+                flash(
+                    "This interview is no longer scheduled. "
+                    "Postponement is not allowed.",
+                    "warning"
+                )
+
+                return redirect(url_for(
+                    "candidate.interview_schedules",
+                    stage=request.form.get("stage") or None,
+                    search=request.form.get("search") or None,
+                    branch_id=request.form.get("branch_id") or None,
+                    department_id=request.form.get("department_id") or None,
+                    from_date=request.form.get("from_date") or None,
+                    to_date=request.form.get("to_date") or None,
+                    status=request.form.get("status_filter") or None,
+                    page=request.form.get("page") or 1
+                )) 
+            # -------------------------------------
+            # 5. DEPARTMENT PERMISSION
+            # -------------------------------------
+
+            if not is_super_admin:
+
+                available_departments = get_available_candidate_departments(
+                    user_role,
+                    session_department_id,
+                    user_id
+                )
+
+                available_department_ids = []
+
+                for department in available_departments:
+
+                    if isinstance(department, dict):
+
+                        department_id = (
+                            department.get("id")
+                            or department.get("department_id")
+                        )
+
+                    elif isinstance(department, (tuple, list)):
+
+                        department_id = department[0]
+
+                    else:
+
+                        department_id = department
+
+                    try:
+                        available_department_ids.append(
+                            int(department_id)
+                        )
+                    except (TypeError, ValueError):
+                        continue
+
+                try:
+                    candidate_department_id = int(
+                        interview["department_id"]
+                    )
+                except (TypeError, ValueError):
+                    candidate_department_id = None
+
+                if candidate_department_id not in available_department_ids:
+
+                    conn.rollback()
+
+                    flash(
+                        "You do not have permission to postpone this interview.",
+                        "danger"
+                    )
+
+                    return redirect(url_for(
+                        "candidate.interview_schedules",
+                        stage=request.form.get("stage") or None,
+                        search=request.form.get("search") or None,
+                        branch_id=request.form.get("branch_id") or None,
+                        department_id=request.form.get("department_id") or None,
+                        from_date=request.form.get("from_date") or None,
+                        to_date=request.form.get("to_date") or None,
+                        status=request.form.get("status_filter") or None,
+                        page=request.form.get("page") or 1
+                    ))
+
+            # -------------------------------------
+            # 6. VALIDATE CANDIDATE EMAIL
+            # -------------------------------------
+
+            if not interview.get("candidate_email"):
+
+                conn.rollback()
+
+                flash(
+                    "Candidate email address is not available.",
+                    "danger"
+                )
+
+                return redirect(url_for(
+                    "candidate.interview_schedules",
+                    stage=request.form.get("stage") or None,
+                    search=request.form.get("search") or None,
+                    branch_id=request.form.get("branch_id") or None,
+                    department_id=request.form.get("department_id") or None,
+                    from_date=request.form.get("from_date") or None,
+                    to_date=request.form.get("to_date") or None,
+                    status=request.form.get("status_filter") or None,
+                    page=request.form.get("page") or 1
+                ))
+
+            # -------------------------------------
+            # 7. SEND POSTPONE EMAIL FIRST
+            # -------------------------------------
+
+            # Email To, Subject and Body are editable.
+            # Meeting link is intentionally excluded.
+            #
+            # If email sending fails, database will
+            # not be updated.
+
+            _send_candidate_decision_email(
+                recipient,
+                subject,
+                body
+            )
+
+            # -------------------------------------
+            # 8. UPDATE INTERVIEW SCHEDULE
+            # -------------------------------------
+
+            cur.execute("""
+            UPDATE candidate_interviews
+            SET
+                interview_date = %s,
+                interview_time = %s,
+                interviewer = %s,
+
+                postpone = TRUE,
+                postpone_reason = %s,
+
+                reminder_sent_at = NULL,
+                overdue_reminder_sent_at = NULL,
+
+                updated_at = CURRENT_TIMESTAMP
+
+            WHERE
+                id = %s
+                AND status = 'scheduled'
+        """, (
+            new_date,
+            new_time,
+            new_interviewer,
+            reason,
+            interview_id
+        ))
+
+        if cur.rowcount != 1:
+            raise Exception(
+                "Interview is no longer scheduled or update failed."
+            )
+
+        # -----------------------------------------
+        # 9. COMMIT DATABASE
+        # -----------------------------------------
+
+        conn.commit()
+
+        flash(
+            "Postpone email sent successfully and interview schedule updated.",
+            "success"
+        )
+
+    except HTTPException:
+        conn.rollback()
+        raise
+
+    except Exception:
+
+        conn.rollback()
+
+        current_app.logger.exception(
+            "Failed to postpone interview ID %s",
+            interview_id
+        )
+
+        flash(
+            "Unable to postpone interview. Email or database update failed.",
+            "danger"
+        )
+
+    finally:
+        conn.close()
+
+    # -----------------------------------------
+    # 10. PRESERVE FILTERS AND PAGINATION
+    # -----------------------------------------
+
+    return redirect(url_for(
+        "candidate.interview_schedules",
+        stage=request.form.get("stage") or None,
+        search=request.form.get("search") or None,
+        branch_id=request.form.get("branch_id") or None,
+        department_id=request.form.get("department_id") or None,
+        from_date=request.form.get("from_date") or None,
+        to_date=request.form.get("to_date") or None,
+        status=request.form.get("status_filter") or None,
+        page=request.form.get("page") or 1
+    ))
+
+
+
+@candidate_bp.route(
     "/interview-schedules/<int:interview_id>/status",
     methods=["POST"]
 )
@@ -3660,26 +4074,44 @@ def update_interview_status(interview_id):
     conn = get_connection()
 
     try:
+        # -----------------------------------------
+        # 1. GET NEW STATUS
+        # -----------------------------------------
+
         new_status = (
             request.form.get("status") or ""
         ).strip().lower()
 
+        # Only allow Scheduled -> Completed.
+        # Cancelled is intentionally not available
+        # through this status update route.
+
         allowed_statuses = {
-            "scheduled",
-            "completed",
-            "cancelled"
+            "completed"
         }
 
         if new_status not in allowed_statuses:
 
             flash(
-                "Invalid interview status.",
+                "Invalid interview status. Only Completed is allowed.",
                 "danger"
             )
 
-            return redirect(
-                url_for("candidate.interview_schedules")
-            )
+            return redirect(url_for(
+                "candidate.interview_schedules",
+                stage=request.form.get("stage") or None,
+                search=request.form.get("search") or None,
+                branch_id=request.form.get("branch_id") or None,
+                department_id=request.form.get("department_id") or None,
+                from_date=request.form.get("from_date") or None,
+                to_date=request.form.get("to_date") or None,
+                status=request.form.get("status_filter") or None,
+                page=request.form.get("page") or 1
+            ))
+
+        # -----------------------------------------
+        # 2. USER INFORMATION
+        # -----------------------------------------
 
         user_role = session.get("role")
         user_id = session.get("user_id")
@@ -3689,14 +4121,15 @@ def update_interview_status(interview_id):
 
         with conn.cursor() as cur:
 
-            # ----------------------------------------------
-            # CHECK INTERVIEW EXISTS
-            # ----------------------------------------------
+            # -------------------------------------
+            # 3. GET INTERVIEW AND LOCK ROW
+            # -------------------------------------
 
             cur.execute("""
                 SELECT
                     ci.id,
                     ci.candidate_id,
+                    ci.status,
                     c.department_id
 
                 FROM candidate_interviews ci
@@ -3704,36 +4137,57 @@ def update_interview_status(interview_id):
                 INNER JOIN candidates c
                     ON c.id = ci.candidate_id
 
-                WHERE ci.id = %s
+                WHERE
+                    ci.id = %s
                     AND c.deleted_at IS NULL
+
+                FOR UPDATE OF ci
             """, (interview_id,))
 
             interview = cur.fetchone()
 
             if not interview:
 
+                conn.rollback()
+
                 flash(
                     "Interview schedule not found.",
                     "danger"
                 )
 
-                return redirect(
-                    url_for("candidate.interview_schedules")
-                )
+                return redirect(url_for(
+                    "candidate.interview_schedules",
+                    stage=request.form.get("stage") or None,
+                    search=request.form.get("search") or None,
+                    branch_id=request.form.get("branch_id") or None,
+                    department_id=request.form.get("department_id") or None,
+                    from_date=request.form.get("from_date") or None,
+                    to_date=request.form.get("to_date") or None,
+                    status=request.form.get("status_filter") or None,
+                    page=request.form.get("page") or 1
+                ))
+
+            # -------------------------------------
+            # 4. READ INTERVIEW DATA
+            # -------------------------------------
 
             if isinstance(interview, dict):
 
-                candidate_id = interview["candidate_id"]
+                current_status = interview["status"]
                 candidate_department_id = interview["department_id"]
 
             else:
 
-                candidate_id = interview[1]
-                candidate_department_id = interview[2]
+                current_status = interview[2]
+                candidate_department_id = interview[3]
 
-            # ----------------------------------------------
-            # CHECK PERMISSION
-            # ----------------------------------------------
+            current_status = (
+                current_status or ""
+            ).strip().lower()
+
+            # -------------------------------------
+            # 5. CHECK DEPARTMENT PERMISSION
+            # -------------------------------------
 
             if not is_super_admin:
 
@@ -3778,29 +4232,92 @@ def update_interview_status(interview_id):
 
                 if candidate_department_id not in available_department_ids:
 
+                    conn.rollback()
+
                     flash(
                         "You do not have permission to update this interview.",
                         "danger"
                     )
 
-                    return redirect(
-                        url_for("candidate.interview_schedules")
-                    )
+                    return redirect(url_for(
+                        "candidate.interview_schedules",
+                        stage=request.form.get("stage") or None,
+                        search=request.form.get("search") or None,
+                        branch_id=request.form.get("branch_id") or None,
+                        department_id=request.form.get("department_id") or None,
+                        from_date=request.form.get("from_date") or None,
+                        to_date=request.form.get("to_date") or None,
+                        status=request.form.get("status_filter") or None,
+                        page=request.form.get("page") or 1
+                    ))
 
-            # ----------------------------------------------
-            # UPDATE STATUS
-            # ----------------------------------------------
+            # -------------------------------------
+            # 6. PREVENT SECOND STATUS CHANGE
+            # -------------------------------------
+
+            if current_status != "scheduled":
+
+                conn.rollback()
+
+                flash(
+                    "This interview status has already been changed. Further status changes are not allowed.",
+                    "warning"
+                )
+
+                return redirect(url_for(
+                    "candidate.interview_schedules",
+                    stage=request.form.get("stage") or None,
+                    search=request.form.get("search") or None,
+                    branch_id=request.form.get("branch_id") or None,
+                    department_id=request.form.get("department_id") or None,
+                    from_date=request.form.get("from_date") or None,
+                    to_date=request.form.get("to_date") or None,
+                    status=request.form.get("status_filter") or None,
+                    page=request.form.get("page") or 1
+                ))
+
+            # -------------------------------------
+            # 7. UPDATE STATUS ONCE
+            # -------------------------------------
 
             cur.execute("""
                 UPDATE candidate_interviews
                 SET
                     status = %s,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE id = %s
+
+                WHERE
+                    id = %s
+                    AND status = 'scheduled'
             """, (
                 new_status,
                 interview_id
             ))
+
+            if cur.rowcount != 1:
+
+                conn.rollback()
+
+                flash(
+                    "Interview status could not be updated. Please refresh the page.",
+                    "warning"
+                )
+
+                return redirect(url_for(
+                    "candidate.interview_schedules",
+                    stage=request.form.get("stage") or None,
+                    search=request.form.get("search") or None,
+                    branch_id=request.form.get("branch_id") or None,
+                    department_id=request.form.get("department_id") or None,
+                    from_date=request.form.get("from_date") or None,
+                    to_date=request.form.get("to_date") or None,
+                    status=request.form.get("status_filter") or None,
+                    page=request.form.get("page") or 1
+                ))
+
+        # -----------------------------------------
+        # 8. COMMIT
+        # -----------------------------------------
 
         conn.commit()
 
@@ -3810,6 +4327,7 @@ def update_interview_status(interview_id):
         )
 
     except HTTPException:
+        conn.rollback()
         raise
 
     except Exception:
@@ -3817,7 +4335,8 @@ def update_interview_status(interview_id):
         conn.rollback()
 
         current_app.logger.exception(
-            "Error updating interview status"
+            "Error updating interview status for interview ID %s",
+            interview_id
         )
 
         flash(
@@ -3828,23 +4347,20 @@ def update_interview_status(interview_id):
     finally:
         conn.close()
 
-    # --------------------------------------------------
-    # PRESERVE ALL FILTERS AFTER STATUS UPDATE
-    # --------------------------------------------------
+    # -----------------------------------------
+    # 9. PRESERVE FILTERS AND PAGINATION
+    # -----------------------------------------
 
     return redirect(url_for(
         "candidate.interview_schedules",
-
         stage=request.form.get("stage") or None,
         search=request.form.get("search") or None,
-
         branch_id=request.form.get("branch_id") or None,
         department_id=request.form.get("department_id") or None,
-
         from_date=request.form.get("from_date") or None,
         to_date=request.form.get("to_date") or None,
-
-        status=request.form.get("status_filter") or None
+        status=request.form.get("status_filter") or None,
+        page=request.form.get("page") or 1
     ))
 
 # --------------------------------------------------
@@ -4215,12 +4731,15 @@ def skip_candidate(candidate_id):
 # CANCEL CANDIDATE FROM A PIPELINE STAGE
 # URL: /candidates/<id>/cancel (POST)
 # --------------------------------------------------
+
+
 @candidate_bp.route(
     "/candidates/<int:candidate_id>/cancel",
     methods=["POST"],
 )
 @login_required
 def cancel_candidate(candidate_id):
+
     active_tab = (
         request.form.get("tab") or "candidates"
     ).strip()
@@ -4239,10 +4758,24 @@ def cancel_candidate(candidate_id):
         request.form.get("remarks") or ""
     ).strip() or None
 
+    # Map the actual Pipeline tab to the exact
+    # candidate_interviews.interview_stage value.
+    schedule_stage_map = {
+        "first_interview": "first_interview",
+        "second_interview": "second_interview",
+    }
+
+    schedule_stage = schedule_stage_map.get(active_tab)
+
     conn = get_connection()
 
     try:
         with conn.cursor() as cur:
+
+            # -----------------------------------------
+            # 1. GET CANDIDATE AND LOCK ROW
+            # -----------------------------------------
+
             candidate = candidate_is_accessible(
                 cur,
                 candidate_id,
@@ -4259,42 +4792,147 @@ def cancel_candidate(candidate_id):
 
                 return _candidate_list_redirect(active_tab)
 
+            old_status = candidate["status"]
+
+            # -----------------------------------------
+            # 2. UPDATE CANDIDATE STATUS
+            # -----------------------------------------
+
             cur.execute(
                 """
-                UPDATE candidates
-                SET status = %s,
+                UPDATE public.candidates
+                SET
+                    status = %s,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = %s
                 """,
-                (cancel_status, candidate_id),
+                (
+                    cancel_status,
+                    candidate_id,
+                ),
             )
+
+            # -----------------------------------------
+            # 3. AUTO CANCEL MATCHING INTERVIEW SCHEDULE
+            # -----------------------------------------
+
+            schedule_cancelled = 0
+
+            current_app.logger.info(
+                "[CANCEL DEBUG] candidate_id=%s, active_tab=%s, schedule_stage=%s",
+                candidate_id,
+                active_tab,
+                schedule_stage,
+            )
+
+            if schedule_stage:
+
+                cur.execute(
+                    """
+                    UPDATE public.candidate_interviews
+                    SET
+                        status = 'cancelled',
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE
+                        candidate_id = %s
+                        AND interview_stage = %s
+                        AND status = 'scheduled'
+                    """,
+                    (
+                        candidate_id,
+                        schedule_stage,
+                    ),
+                )
+
+                schedule_cancelled = cur.rowcount
+
+                current_app.logger.info(
+                    "[CANCEL DEBUG] Updated schedule rows: %s",
+                    schedule_cancelled,
+                )
+
+                # Verify the schedule status before commit
+                cur.execute(
+                    """
+                    SELECT
+                        id,
+                        candidate_id,
+                        interview_stage,
+                        status
+                    FROM public.candidate_interviews
+                    WHERE
+                        candidate_id = %s
+                        AND interview_stage = %s
+                    """,
+                    (
+                        candidate_id,
+                        schedule_stage,
+                    ),
+                )
+
+                schedule_record = cur.fetchone()
+
+                current_app.logger.info(
+                    "[CANCEL DEBUG] Schedule after update: %s",
+                    schedule_record,
+                )
+
+            # -----------------------------------------
+            # 4. RECORD CANDIDATE STATUS HISTORY
+            # -----------------------------------------
 
             record_status_history(
                 cur,
                 candidate_id,
-                candidate["status"],
+                old_status,
                 cancel_status,
                 "cancel",
                 remarks=remarks,
             )
 
+        # -----------------------------------------
+        # 5. COMMIT BOTH UPDATES
+        # -----------------------------------------
+
         conn.commit()
 
-        flash(
-            "Candidate status changed to "
-            + cancel_status.replace("_", " ").title()
-            + ".",
-            "success",
-        )
+        if schedule_stage and schedule_cancelled > 0:
+
+            flash(
+                "Candidate cancelled successfully. "
+                "The related interview schedule was also cancelled.",
+                "success",
+            )
+
+        elif schedule_stage:
+
+            flash(
+                "Candidate cancelled successfully. "
+                "No scheduled interview record was found to cancel.",
+                "success",
+            )
+
+        else:
+
+            flash(
+                "Candidate status changed to "
+                + cancel_status.replace("_", " ").title()
+                + ".",
+                "success",
+            )
 
     except HTTPException:
         conn.rollback()
         raise
 
     except Exception:
+
         conn.rollback()
 
-        current_app.logger.exception("Failed to cancel candidate")
+        current_app.logger.exception(
+            "Failed to cancel candidate ID %s",
+            candidate_id,
+        )
 
         flash(
             "Could not cancel candidate. Please check the server log.",

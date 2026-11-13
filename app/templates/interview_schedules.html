@@ -10,626 +10,653 @@ Manage interview appointments, schedules and candidate progress.
 {% block extra_css %}
 <style>
 .interview-page {
-    --primary: #4f46e5;
-    --primary-light: #eef2ff;
-    --text: #1e293b;
-    --muted: #64748b;
-    --border: #e2e8f0;
-    color: var(--text);
-    font-family: Inter, 'Poppins', "Segoe UI", Arial, sans-serif;
+    --primary:#4f46e5;
+    --primary-light:#eef2ff;
+    --text:#1e293b;
+    --muted:#64748b;
+    --border:#e2e8f0;
+    color:var(--text);
+    font-family:Inter,'Poppins',"Segoe UI",Arial,sans-serif;
 }
+.interview-page *,
+.postpone-modal,
+.postpone-modal * { box-sizing:border-box; }
 
-.interview-page * {
-    box-sizing: border-box;
-}
-
-/* ==============================
-   STATISTICS CARDS (Gradient Colors)
-============================== */
-
+/* STATISTICS */
 .interview-stats {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 17px;
-    margin-bottom: 22px;
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:17px;
+    margin-bottom:22px;
 }
-
 .interview-stat {
-    position: relative;
-    overflow: hidden;
-    display: block;
-    padding: 21px;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 17px;
-    color: #ffffff;
-    text-decoration: none;
-    cursor: pointer;
-    box-shadow: 0 6px 18px rgba(30, 41, 59, 0.10);
-    transition: transform .22s ease, box-shadow .22s ease;
+    position:relative;
+    overflow:hidden;
+    display:block;
+    padding:21px;
+    border:1px solid rgba(255,255,255,.25);
+    border-radius:17px;
+    color:#fff;
+    text-decoration:none;
+    cursor:pointer;
+    box-shadow:0 6px 18px rgba(30,41,59,.10);
+    transition:transform .22s ease,box-shadow .22s ease;
 }
-
 .interview-stat::after {
-    content: "";
-    position: absolute;
-    width: 150px;
-    height: 150px;
-    right: -45px;
-    top: -75px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.12);
-    pointer-events: none;
+    content:"";
+    position:absolute;
+    width:150px;height:150px;
+    right:-45px;top:-75px;
+    border-radius:50%;
+    background:rgba(255,255,255,.12);
+    pointer-events:none;
 }
-
 .interview-stat:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 26px rgba(30, 41, 59, 0.15);
+    transform:translateY(-4px);
+    box-shadow:0 12px 26px rgba(30,41,59,.15);
 }
-
 .interview-stat:focus-visible {
-    outline: 3px solid #818cf8;
-    outline-offset: 3px;
+    outline:3px solid #818cf8;
+    outline-offset:3px;
 }
-
-/* Stat Gradients */
-.stat-total {
-    background: linear-gradient(135deg, #7669ed, #5148c7);
-}
-.stat-upcoming {
-    background: linear-gradient(135deg, #35c78b, #159b68);
-}
-.stat-completed {
-    background: linear-gradient(135deg, #55a4f5, #3474d5);
-}
-.stat-cancelled {
-    background: linear-gradient(135deg, #f5ad55, #e27b32);
-}
-
+.stat-total {background:linear-gradient(135deg,#7669ed,#5148c7);}
+.stat-upcoming {background:linear-gradient(135deg,#35c78b,#159b68);}
+.stat-completed {background:linear-gradient(135deg,#55a4f5,#3474d5);}
+.stat-cancelled {background:linear-gradient(135deg,#f5ad55,#e27b32);}
 .stat-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    position: relative;
-    z-index: 1;
+    display:flex;justify-content:space-between;align-items:center;
+    gap:10px;position:relative;z-index:1;
 }
-
 .stat-label {
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    color:rgba(255,255,255,.85);
+    font-size:11px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.5px;
 }
-
 .stat-icon {
-    width: 42px;
-    height: 42px;
-    display: grid;
-    place-items: center;
-    border-radius: 13px;
-    font-size: 17px;
-    background: rgba(255, 255, 255, 0.19);
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    backdrop-filter: blur(4px);
+    width:42px;height:42px;
+    display:grid;place-items:center;
+    border-radius:13px;font-size:17px;
+    background:rgba(255,255,255,.19);
+    color:#fff;border:1px solid rgba(255,255,255,.22);
+    backdrop-filter:blur(4px);
 }
-
 .stat-number {
-    position: relative;
-    z-index: 1;
-    margin-top: 15px;
-    font-size: 29px;
-    line-height: 1.2;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    color: #ffffff;
+    position:relative;z-index:1;
+    margin-top:15px;font-size:29px;
+    line-height:1.2;font-weight:800;
+    letter-spacing:-.5px;color:#fff;
 }
-
 .stat-bottom {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    margin-top: 12px;
-    color: rgba(255, 255, 255, 0.82);
-    font-size: 11px;
-    font-weight: 600;
+    position:relative;z-index:1;
+    display:flex;justify-content:space-between;
+    align-items:center;gap:8px;
+    margin-top:12px;color:rgba(255,255,255,.82);
+    font-size:11px;font-weight:600;
 }
-
-.stat-bottom i {
-    font-size: 11px;
-    transition: transform .2s ease;
-}
-
-.interview-stat:hover .stat-bottom i {
-    transform: translateX(4px);
-}
-
+.stat-bottom i {font-size:11px;transition:transform .2s ease;}
+.interview-stat:hover .stat-bottom i {transform:translateX(4px);}
 .stat-active {
-    border-color: #ffffff;
-    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+    border-color:#fff;
+    box-shadow:0 0 0 4px rgba(255,255,255,.2);
 }
 
-/* ==============================
-   MAIN PANEL
-============================== */
-
+/* MAIN PANEL */
 .interview-panel {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 17px;
-    overflow: hidden;
-    box-shadow: 0 4px 18px rgba(31, 45, 90, .035);
+    background:#fff;border:1px solid var(--border);
+    border-radius:17px;overflow:hidden;
+    box-shadow:0 4px 18px rgba(31,45,90,.035);
 }
-
 .panel-heading {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    padding: 22px 24px;
-    border-bottom: 1px solid var(--border);
+    display:flex;justify-content:space-between;
+    align-items:center;gap:15px;
+    padding:22px 24px;border-bottom:1px solid var(--border);
 }
+.panel-title {font-size:17px;font-weight:800;margin:0;color:#1e293b;}
+.panel-description {margin-top:5px;color:var(--muted);font-size:12px;}
 
-.panel-title {
-    font-size: 17px;
-    font-weight: 800;
-    margin: 0;
-    color: #1e293b;
-}
-
-.panel-description {
-    margin-top: 5px;
-    color: var(--muted);
-    font-size: 12px;
-}
-
-/* ==============================
-   STAGE TABS
-============================== */
-
+/* STAGE TABS */
 .schedule-tabs {
-    display: flex;
-    gap: 8px;
-    padding: 17px 24px 0;
-    border-bottom: 1px solid var(--border);
-    overflow-x: auto;
+    display:flex;gap:8px;padding:17px 24px 0;
+    border-bottom:1px solid var(--border);overflow-x:auto;
 }
-
 .schedule-tab {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 11px 15px;
-    color: #64748b;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 650;
-    border-bottom: 2px solid transparent;
-    white-space: nowrap;
-    transition: .2s;
+    display:inline-flex;align-items:center;gap:8px;
+    padding:11px 15px;color:#64748b;text-decoration:none;
+    font-size:13px;font-weight:650;
+    border-bottom:2px solid transparent;
+    white-space:nowrap;transition:.2s;
 }
+.schedule-tab:hover,.schedule-tab.active {color:var(--primary);}
+.schedule-tab.active {border-bottom-color:var(--primary);}
 
-.schedule-tab:hover,
-.schedule-tab.active {
-    color: var(--primary);
-}
-
-.schedule-tab.active {
-    border-bottom-color: var(--primary);
-}
-
-/* ==============================
-   FILTERS (UPDATED WITH LABELS)
-============================== */
-
+/* FILTERS */
 .schedule-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    align-items: flex-end;
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--border);
-    background: #fff;
+    display:flex;flex-wrap:wrap;gap:15px;
+    align-items:flex-end;padding:20px 24px;
+    border-bottom:1px solid var(--border);background:#fff;
 }
-
 .filter-control {
-    position: relative;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 130px;
+    position:relative;min-width:0;
+    display:flex;flex-direction:column;flex:1 1 130px;
 }
-
-.filter-search {
-    flex: 1 1 200px;
-}
-
+.filter-search {flex:1 1 200px;}
 .filter-control label {
-    display: block;
-    margin-bottom: 6px;
-    color: #475569;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    display:block;margin-bottom:6px;color:#475569;
+    font-size:11px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.5px;
 }
-
-.filter-control input,
-.filter-control select {
-    width: 100%;
-    height: 40px;
-    padding: 0 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    outline: none;
-    background: #f8fafc;
-    color: #1e293b;
-    font-family: inherit;
-    font-size: 13px;
-    transition: .2s;
+.filter-control input,.filter-control select {
+    width:100%;height:40px;padding:0 12px;
+    border:1px solid #cbd5e1;border-radius:8px;
+    outline:none;background:#f8fafc;color:#1e293b;
+    font-family:inherit;font-size:13px;transition:.2s;
 }
-
-.filter-control input:focus,
-.filter-control select:focus {
-    border-color: #818cf8;
-    background: #fff;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, .12);
+.filter-control input:focus,.filter-control select:focus {
+    border-color:#818cf8;background:#fff;
+    box-shadow:0 0 0 3px rgba(99,102,241,.12);
 }
-
-.filter-control select {
-    cursor: pointer;
-}
-
+.filter-control select {cursor:pointer;}
 .filter-control select:disabled {
-    background: #f1f5f9;
-    color: #94a3b8;
-    cursor: not-allowed;
-    border-color: #e2e8f0;
-    opacity: 1;
+    background:#f1f5f9;color:#94a3b8;
+    cursor:not-allowed;border-color:#e2e8f0;opacity:1;
 }
-
-/* Search Icon နေရာချခြင်း */
-.filter-search input {
-    padding-left: 36px;
+.filter-search input {padding-left:36px;}
+.filter-search>i {
+    position:absolute;top:36px;left:13px;
+    color:#94a3b8;font-size:13px;pointer-events:none;
 }
-
-.filter-search > i {
-    position: absolute;
-    top: 36px;
-    left: 13px;
-    color: #94a3b8;
-    font-size: 13px;
-    pointer-events: none;
-}
-
-.filter-actions {
-    display: flex;
-    gap: 8px;
-    flex: 0 0 auto;
-    height: 40px;
-}
-
+.filter-actions {display:flex;gap:8px;flex:0 0 auto;height:40px;}
 .filter-btn {
-    height: 40px;
-    padding: 0 16px;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    gap: 7px;
-    border-radius: 8px;
-    border: 1px solid #cbd5e1;
-    background: #fff;
-    color: #475569;
-    text-decoration: none;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: .2s;
+    height:40px;padding:0 16px;
+    display:inline-flex;justify-content:center;align-items:center;
+    gap:7px;border-radius:8px;border:1px solid #cbd5e1;
+    background:#fff;color:#475569;text-decoration:none;
+    font-family:inherit;font-size:13px;font-weight:700;
+    cursor:pointer;white-space:nowrap;transition:.2s;
 }
-
 .filter-btn.primary {
-    color: #fff;
-    background: linear-gradient(135deg, #4f46e5, #6366f1);
-    border-color: transparent;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, .2);
+    color:#fff;background:linear-gradient(135deg,#4f46e5,#6366f1);
+    border-color:transparent;box-shadow:0 4px 12px rgba(79,70,229,.2);
 }
-
 .filter-btn.primary:hover {
-    background: linear-gradient(135deg, #4338ca, #4f46e5);
-    box-shadow: 0 6px 14px rgba(79, 70, 229, .25);
+    background:linear-gradient(135deg,#4338ca,#4f46e5);
+    box-shadow:0 6px 14px rgba(79,70,229,.25);
 }
+.filter-btn:not(.primary):hover {background:#f1f5f9;}
 
-.filter-btn:not(.primary):hover {
-    background: #f1f5f9;
-}
-
-/* ==============================
-   TABLE
-============================== */
-
+/* TABLE */
 .table-wrapper {
-    width: 100%;
-    overflow-x: auto;
-    scroll-margin-top: 100px;
-    outline: none;
-    border: none;
-    box-shadow: none;
+    width:100%;overflow-x:auto;
+    scroll-margin-top:100px;outline:none;
+    border:0;box-shadow:none;
 }
-
 .interview-page #scheduleTableSection:focus,
 .interview-page #scheduleTableSection:focus-visible,
 .interview-page #scheduleTableSection:target {
-    outline: none !important;
-    border: none !important;
-    box-shadow: none !important;
+    outline:none!important;border:0!important;box-shadow:none!important;
 }
-
-.interview-page .schedule-table {
-    border: none;
-    outline: none;
-    box-shadow: none;
-}
-
+.interview-page .schedule-table {border:0;outline:none;box-shadow:none;}
 .schedule-table {
-    width: 100%;
-    min-width: 1150px;
-    border-collapse: collapse;
+    width:100%;min-width:1150px;border-collapse:collapse;
 }
-
 .schedule-table thead th {
-    padding: 14px 17px;
-    background: #f8f9fc;
-    color: #64748b;
-    font-size: 10px;
-    font-weight: 800;
-    text-align: left;
-    text-transform: uppercase;
-    letter-spacing: .55px;
-    white-space: nowrap;
-    border-bottom: 1px solid #e2e8f0;
+    padding:14px 17px;background:#f8f9fc;color:#64748b;
+    font-size:10px;font-weight:800;text-align:left;
+    text-transform:uppercase;letter-spacing:.55px;
+    white-space:nowrap;border-bottom:1px solid #e2e8f0;
 }
-
 .schedule-table tbody td {
-    padding: 16px 17px;
-    border-bottom: 1px solid #f0f2f7;
-    color: #334155;
-    font-size: 13px;
-    vertical-align: middle;
+    padding:16px 17px;border-bottom:1px solid #f0f2f7;
+    color:#334155;font-size:13px;vertical-align:middle;
+}
+.schedule-table tbody tr {transition:background .15s;}
+.schedule-table tbody tr:hover {background:#f8faff;}
+.candidate-info {display:flex;align-items:center;gap:11px;min-width:180px;}
+.candidate-avatar {
+    width:38px;height:38px;flex-shrink:0;
+    display:grid;place-items:center;border-radius:12px;
+    background:#eef2ff;border:1px solid #e0e7ff;
+    color:#4338ca;font-size:13px;font-weight:800;
+}
+.candidate-name {color:#1e293b;font-size:13px;font-weight:700;}
+.candidate-sub {margin-top:4px;color:#64748b;font-size:11px;}
+.stage-badge,.status-badge {
+    display:inline-flex;align-items:center;gap:6px;
+    padding:6px 10px;border-radius:20px;
+    font-size:10px;font-weight:700;white-space:nowrap;
+}
+.stage-first {color:#4338ca;background:#eef2ff;border:1px solid #e0e7ff;}
+.stage-second {color:#6d28d9;background:#f5f3ff;border:1px solid #ddd6fe;}
+.date-cell {color:#1e293b;font-weight:650;white-space:nowrap;}
+.time-cell {color:#4f46e5;font-weight:750;white-space:nowrap;}
+
+/* STATUS BADGES */
+.status-scheduled {
+    color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;
+}
+.status-completed {
+    color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;
+}
+.status-cancelled {
+    color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;
+}
+.status-postponed {
+    color:#c2410c;background:#fff7ed;border:1px solid #fed7aa;
+}
+.postponed-badge {
+    display:inline-flex;align-items:center;gap:6px;
+    padding:6px 10px;border-radius:20px;
+    color:#c2410c;background:#fff7ed;
+    border:1px solid #fed7aa;
+    font-size:10px;font-weight:750;white-space:nowrap;
+}
+.status-cell {
+    display:flex;flex-direction:column;
+    align-items:flex-start;gap:7px;min-width:110px;
+}
+.status-update-form {
+    display:flex;align-items:center;gap:6px;min-width:165px;
+}
+.status-update-form select {
+    min-width:112px;height:34px;padding:0 8px;
+    border:1px solid #cbd5e1;border-radius:8px;
+    outline:none;background:#fff;color:#334155;
+    font-family:inherit;font-size:11px;font-weight:650;cursor:pointer;
+}
+.status-update-form select:focus {
+    border-color:#818cf8;box-shadow:0 0 0 3px rgba(99,102,241,.12);
+}
+.status-save-btn {
+    width:32px;height:34px;flex-shrink:0;
+    display:inline-grid;place-items:center;border:0;
+    border-radius:8px;background:#4f46e5;color:#fff;
+    cursor:pointer;transition:.2s;
+}
+.status-save-btn:hover {background:#4338ca;transform:translateY(-1px);}
+.status-static {
+    display:inline-flex;align-items:center;gap:6px;
+    padding:7px 11px;border-radius:20px;
+    font-size:11px;font-weight:750;white-space:nowrap;
 }
 
-.schedule-table tbody tr {
-    transition: background .15s;
+/* ACTIONS */
+.action-buttons {display:flex;align-items:center;gap:7px;}
+.action-btn,.postpone-btn {
+    width:32px;height:32px;display:inline-grid;
+    place-items:center;border-radius:9px;cursor:pointer;
+    transition:.2s;
+}
+.action-btn {
+    border:1px solid #e5e2ff;color:#635bdb;
+    background:#f2f0ff;text-decoration:none;
+}
+.action-btn:hover {
+    color:#fff;background:#635bdb;border-color:#635bdb;
+    transform:translateY(-1px);
+}
+.postpone-btn {
+    border:1px solid #fed7aa;color:#ea580c;background:#fff7ed;
+}
+.postpone-btn:hover {
+    color:#fff;background:#ea580c;border-color:#ea580c;
+    transform:translateY(-1px);
 }
 
-.schedule-table tbody tr:hover {
-    background: #f8faff;
+/* EMPTY STATE */
+.empty-state {padding:55px 20px!important;text-align:center;}
+.empty-icon {
+    width:55px;height:55px;display:grid;place-items:center;
+    margin:0 auto 13px;border-radius:17px;
+    background:#f1f0ff;color:#756ce1;font-size:21px;
+}
+.empty-title {color:#1e293b;font-size:14px;font-weight:750;}
+.empty-text {margin-top:6px;color:#64748b;font-size:12px;}
+
+/* PAGINATION */
+.pagination-footer {
+    display:flex;justify-content:space-between;align-items:center;
+    flex-wrap:wrap;gap:15px;padding:16px 24px;
+    border-top:1px solid #e2e8f0;background:#fafbff;
+}
+.pagination-info {color:#64748b;font-size:12px;font-weight:600;}
+.pagination-info strong {color:#334155;}
+.pagination-controls {display:flex;align-items:center;flex-wrap:wrap;gap:6px;}
+.pagination-btn {
+    min-width:34px;height:34px;padding:0 10px;
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    border:1px solid #e2e8f0;border-radius:8px;background:#fff;
+    color:#475569;text-decoration:none;font-size:12px;font-weight:700;
+    transition:all .2s ease;
+}
+.pagination-btn:hover {color:#4f46e5;border-color:#818cf8;background:#eef2ff;}
+.pagination-btn.active {
+    color:#fff;background:#4f46e5;border-color:#4f46e5;
+    box-shadow:0 3px 8px rgba(79,70,229,.2);
+}
+.pagination-btn.disabled {
+    color:#cbd5e1;background:#f8fafc;border-color:#e2e8f0;
+    pointer-events:none;cursor:not-allowed;
+}
+.pagination-dots {padding:0 4px;color:#94a3b8;font-size:12px;}
+
+/* POSTPONE MODAL */
+.postpone-modal {
+    display:none;position:fixed;inset:0;z-index:9999;
+    align-items:center;justify-content:center;padding:20px;
+    background:rgba(15,23,42,.62);backdrop-filter:blur(4px);
+}
+.postpone-modal.show {display:flex;}
+/* POSTPONE MODAL */
+.postpone-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15,23,42,.62);
+    backdrop-filter: blur(4px);
+
+    /* Modal viewport */
+    overflow: hidden;
 }
 
-.candidate-info {
+.postpone-modal.show {
+    display: flex;
+}
+
+.postpone-dialog {
+    width: 100%;
+    max-width: 760px;
+
+    /* Limit modal height to screen height */
+    height: auto;
+    max-height: 92vh;
+    max-height: 92dvh;
+
+    display: flex;
+    flex-direction: column;
+
+    /* Important: prevent content from expanding the dialog */
+    min-height: 0;
+    overflow: hidden;
+
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 25px 70px rgba(15,23,42,.25);
+
+    animation: postponeModalIn .2s ease;
+}
+
+@keyframes postponeModalIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px) scale(.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* MODAL FORM - IMPORTANT */
+#postponeForm {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+
+    overflow: hidden;
+}
+
+/* HEADER */
+.postpone-header {
     display: flex;
     align-items: center;
-    gap: 11px;
-    min-width: 180px;
+    justify-content: space-between;
+    gap: 15px;
+
+    padding: 21px 24px;
+
+    border-bottom: 1px solid #e2e8f0;
+    background: #fff;
+
+    flex: 0 0 auto;
 }
 
-.candidate-avatar {
-    width: 38px;
-    height: 38px;
-    flex-shrink: 0;
+.postpone-header-left {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.postpone-header-icon {
+    width: 43px;
+    height: 43px;
     display: grid;
     place-items: center;
-    border-radius: 12px;
-    background: #eef2ff;
-    border: 1px solid #e0e7ff;
-    color: #4338ca;
-    font-size: 13px;
+    border-radius: 13px;
+    color: #ea580c;
+    background: #fff7ed;
+    font-size: 18px;
+}
+
+.postpone-header h3 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 17px;
     font-weight: 800;
 }
 
-.candidate-name {
-    color: #1e293b;
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.candidate-sub {
-    margin-top: 4px;
+.postpone-header p {
+    margin: 4px 0 0;
     color: #64748b;
     font-size: 11px;
 }
 
-.stage-badge,
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 700;
-    white-space: nowrap;
-}
-
-.stage-first {
-    color: #4338ca;
-    background: #eef2ff;
-    border: 1px solid #e0e7ff;
-}
-
-.stage-second {
-    color: #6d28d9;
-    background: #f5f3ff;
-    border: 1px solid #ddd6fe;
-}
-
-.date-cell {
-    color: #1e293b;
-    font-weight: 650;
-    white-space: nowrap;
-}
-
-.time-cell {
-    color: #4f46e5;
-    font-weight: 750;
-    white-space: nowrap;
-}
-
-/* ==============================
-   STATUS UPDATE
-============================== */
-
-.status-update-form {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    min-width: 165px;
-}
-
-.status-update-form select {
-    min-width: 112px;
-    height: 34px;
-    padding: 0 8px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    outline: none;
-    background: #fff;
-    color: #334155;
-    font-family: inherit;
-    font-size: 11px;
-    font-weight: 650;
-    cursor: pointer;
-    transition: .2s;
-}
-
-.status-update-form select:focus {
-    border-color: #818cf8;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, .12);
-}
-
-.status-save-btn {
-    width: 32px;
-    height: 34px;
-    flex-shrink: 0;
-    display: inline-grid;
-    place-items: center;
-    border: 0;
-    border-radius: 8px;
-    background: #4f46e5;
-    color: #fff;
-    cursor: pointer;
-    transition: .2s;
-}
-
-.status-save-btn:hover {
-    background: #4338ca;
-    transform: translateY(-1px);
-}
-
-/* ==============================
-   ACTION BUTTONS
-============================== */
-
-.action-buttons {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-}
-
-.action-btn {
-    width: 32px;
-    height: 32px;
-    display: inline-grid;
-    place-items: center;
-    border: 1px solid #e5e2ff;
-    border-radius: 9px;
-    color: #635bdb;
-    background: #f2f0ff;
-    text-decoration: none;
-    cursor: pointer;
-    transition: .2s;
-}
-
-.action-btn:hover {
-    color: #fff;
-    background: #635bdb;
-    border-color: #635bdb;
-    transform: translateY(-1px);
-}
-
-/* ==============================
-   EMPTY STATE
-============================== */
-
-.empty-state {
-    padding: 55px 20px !important;
-    text-align: center;
-}
-
-.empty-icon {
-    width: 55px;
-    height: 55px;
+.postpone-close {
+    width: 35px;
+    height: 35px;
     display: grid;
     place-items: center;
-    margin: 0 auto 13px;
-    border-radius: 17px;
-    background: #f1f0ff;
-    color: #756ce1;
-    font-size: 21px;
-}
+    flex-shrink: 0;
 
-.empty-title {
-    color: #1e293b;
-    font-size: 14px;
-    font-weight: 750;
-}
-
-.empty-text {
-    margin-top: 6px;
+    border: 0;
+    border-radius: 9px;
+    background: #f1f5f9;
     color: #64748b;
-    font-size: 12px;
+
+    cursor: pointer;
+    font-size: 15px;
 }
 
-/* ==============================
-   TABLE FOOTER
-============================== */
+.postpone-close:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
 
-.table-footer {
+/* SCROLLABLE MODAL BODY */
+.postpone-body {
+    padding: 22px 24px;
+
+    /* This is the actual scrolling area */
+    flex: 1 1 0%;
+    min-height: 0;
+    height: 0;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #c7d2fe #f1f5f9;
+}
+
+/* Chrome / Edge / Safari scrollbar */
+.postpone-body::-webkit-scrollbar {
+    width: 9px;
+}
+
+.postpone-body::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+}
+
+.postpone-body::-webkit-scrollbar-thumb {
+    background: #c7d2fe;
+    border-radius: 10px;
+    border: 2px solid #f1f5f9;
+}
+
+.postpone-body::-webkit-scrollbar-thumb:hover {
+    background: #a5b4fc;
+}
+.postpone-section {margin-bottom:22px;}
+.postpone-section:last-child {margin-bottom:0;}
+.postpone-section-title {
+    display:flex;align-items:center;gap:8px;
+    margin:0 0 13px;color:#334155;font-size:12px;
+    font-weight:800;text-transform:uppercase;letter-spacing:.4px;
+}
+.postpone-section-title i {color:#6366f1;}
+.postpone-form-grid {
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;
+}
+.postpone-field {display:flex;flex-direction:column;min-width:0;}
+.postpone-field.full {grid-column:1/-1;}
+.postpone-field label {
+    margin-bottom:6px;color:#475569;font-size:11px;font-weight:750;
+}
+.postpone-field label .required {color:#dc2626;}
+.postpone-field input,.postpone-field textarea {
+    width:100%;border:1px solid #cbd5e1;border-radius:9px;
+    outline:none;background:#fff;color:#1e293b;
+    font-family:inherit;font-size:13px;transition:.2s;
+}
+.postpone-field input {height:42px;padding:0 12px;}
+.postpone-field textarea {
+    min-height:90px;padding:11px 12px;line-height:1.6;resize:vertical;
+}
+.postpone-field input:focus,.postpone-field textarea:focus {
+    border-color:#818cf8;box-shadow:0 0 0 3px rgba(99,102,241,.12);
+}
+.postpone-divider {height:1px;margin:20px 0;background:#e2e8f0;}
+.postpone-email-note {
+    display:flex;align-items:flex-start;gap:9px;
+    padding:11px 13px;margin-bottom:14px;
+    border:1px solid #c7d2fe;border-radius:9px;
+    background:#eef2ff;color:#4338ca;font-size:11px;line-height:1.6;
+}
+.postpone-email-note i {margin-top:2px;}
+.postpone-footer {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
-    gap: 12px;
+    gap: 9px;
+
     padding: 16px 24px;
-    color: #64748b;
-    font-size: 11px;
+
     border-top: 1px solid #e2e8f0;
     background: #fafbff;
+
+    /* Footer stays visible */
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 2;
 }
 
-/* ==============================
-   RESPONSIVE
-============================== */
+.postpone-footer button {
+    height: 40px;
+    padding: 0 17px;
 
-@media (max-width: 1200px) {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.postpone-cancel {
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #475569;
+}
+
+.postpone-cancel:hover {
+    background: #f1f5f9;
+}
+
+.postpone-submit {
+    border: 1px solid #ea580c;
+    background: linear-gradient(135deg,#f97316,#ea580c);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(234,88,12,.18);
+}
+
+.postpone-submit:hover {
+    background: linear-gradient(135deg,#ea580c,#c2410c);
+    transform: translateY(-1px);
+}
+
+.postpone-submit:disabled {
+    opacity: .65;
+    cursor: not-allowed;
+    transform: none;
+}
+/* SCROLLABLE EMAIL PREVIEW */
+.email-preview-textarea {
+    width:100%;
+    height:240px;
+    min-height:180px;
+    max-height:320px;
+    padding:14px;
+    border:1px solid #dbe2ea;
+    border-radius:10px;
+    background:#fff;
+    color:#334155;
+    font-family:'Poppins',sans-serif;
+    font-size:13px;
+    line-height:1.7;
+    overflow-y:auto;
+    overflow-x:hidden;
+    resize:vertical;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+    scrollbar-width:thin;
+    scrollbar-color:#c7d2fe #f1f5f9;
+}
+.email-preview-textarea::-webkit-scrollbar {width:10px;}
+.email-preview-textarea::-webkit-scrollbar-track {background:#f1f5f9;border-radius:10px;}
+.email-preview-textarea::-webkit-scrollbar-thumb {background:#c7d2fe;border-radius:10px;border:2px solid #f1f5f9;}
+.email-preview-textarea::-webkit-scrollbar-thumb:hover {background:#a5b4fc;}
+.email-preview-textarea:focus {outline:none;border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.10);}
+
+/* RESPONSIVE */
+@media(max-width:1200px) {
+    .interview-stats {grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:700px) {
+    .schedule-filters {padding:15px;}
+}
+@media(max-width:600px) {
+    .pagination-footer {padding:14px 15px;flex-direction:column;align-items:flex-start;}
+    .pagination-controls {width:100%;justify-content:center;}
+    .pagination-btn {min-width:32px;height:32px;padding:0 8px;}
+}
+@media(max-width:480px) {
+
     .interview-stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 700px) {
-    .schedule-filters {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        padding: 15px;
-    }
-}
-
-@media (max-width: 480px) {
-    .interview-stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2,minmax(0,1fr));
         gap: 10px;
     }
 
@@ -667,6 +694,7 @@ Manage interview appointments, schedules and candidate progress.
     }
 
     .schedule-filters {
+        display: grid;
         grid-template-columns: 1fr;
     }
 
@@ -674,107 +702,56 @@ Manage interview appointments, schedules and candidate progress.
         flex: 1;
     }
 
-    .table-footer {
+    /* MOBILE MODAL */
+    .postpone-modal {
+        padding: 8px;
+        align-items: center;
+        overflow: hidden;
+    }
+
+    .postpone-dialog {
+        width: 100%;
+        max-height: 96vh;
+        max-height: 96dvh;
+        min-height: 0;
+        border-radius: 13px;
+    }
+
+    #postponeForm {
+        min-height: 0;
+        flex: 1 1 auto;
+    }
+
+    .postpone-header {
         padding: 14px 16px;
     }
-}
 
-/* ==============================
-   PAGINATION
-============================== */
-
-.pagination-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-    padding: 16px 24px;
-    border-top: 1px solid #e2e8f0;
-    background: #fafbff;
-}
-
-.pagination-info {
-    color: #64748b;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.pagination-info strong {
-    color: #334155;
-}
-
-.pagination-controls {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-
-.pagination-btn {
-    min-width: 34px;
-    height: 34px;
-    padding: 0 10px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    background: #fff;
-    color: #475569;
-    text-decoration: none;
-    font-size: 12px;
-    font-weight: 700;
-    transition: all .2s ease;
-}
-
-.pagination-btn:hover {
-    color: #4f46e5;
-    border-color: #818cf8;
-    background: #eef2ff;
-}
-
-.pagination-btn.active {
-    color: #fff;
-    background: #4f46e5;
-    border-color: #4f46e5;
-    box-shadow: 0 3px 8px rgba(79, 70, 229, .2);
-}
-
-.pagination-btn.disabled {
-    color: #cbd5e1;
-    background: #f8fafc;
-    border-color: #e2e8f0;
-    pointer-events: none;
-    cursor: not-allowed;
-}
-
-.pagination-dots {
-    padding: 0 4px;
-    color: #94a3b8;
-    font-size: 12px;
-}
-
-@media (max-width: 600px) {
-    .pagination-footer {
-        padding: 14px 15px;
-        flex-direction: column;
-        align-items: flex-start;
+    .postpone-body {
+        padding: 16px;
+        min-height: 0;
+        flex: 1 1 0%;
+        height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
-    .pagination-controls {
-        width: 100%;
-        justify-content: center;
+    .postpone-footer {
+        padding: 13px 16px;
     }
 
-    .pagination-btn {
-        min-width: 32px;
-        height: 32px;
-        padding: 0 8px;
+    .postpone-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .postpone-field.full {
+        grid-column: auto;
+    }
+
+    .postpone-footer button {
+        flex: 1;
+        padding: 0 10px;
     }
 }
-
 </style>
 {% endblock %}
 
@@ -782,153 +759,96 @@ Manage interview appointments, schedules and candidate progress.
 {% block content %}
 <div class="interview-page">
 
-    <!-- ==============================
-         OVERVIEW CARDS
-    =============================== -->
-
+    <!-- STATISTICS -->
     <div class="interview-stats">
 
-        <!-- TOTAL -->
-        <a href="{{ url_for(
-            'candidate.interview_schedules',
+        <a href="{{ url_for('candidate.interview_schedules',
             stage=selected_stage or None,
             branch_id=branch_filter or None,
             department_id=department_filter or None,
             search=search or None,
             from_date=from_date_filter or None,
-            to_date=to_date_filter or None
-        ) }}#scheduleTableSection"
+            to_date=to_date_filter or None) }}#scheduleTableSection"
            class="interview-stat stat-total {% if not status_filter %}stat-active{% endif %}">
-
             <div class="stat-top">
                 <span class="stat-label">Total Interviews</span>
-                <span class="stat-icon">
-                    <i class="fa-solid fa-calendar-days"></i>
-                </span>
+                <span class="stat-icon"><i class="fa-solid fa-calendar-days"></i></span>
             </div>
-
-            <div class="stat-number">
-                {{ total_interviews|default(0) }}
-            </div>
-
+            <div class="stat-number">{{ total_interviews|default(0) }}</div>
             <div class="stat-bottom">
                 <span>All interview appointments</span>
                 <i class="fa-solid fa-arrow-right"></i>
             </div>
-
         </a>
 
-
-        <!-- UPCOMING -->
-        <a href="{{ url_for(
-            'candidate.interview_schedules',
+        <a href="{{ url_for('candidate.interview_schedules',
             stage=selected_stage or None,
             branch_id=branch_filter or None,
             department_id=department_filter or None,
             search=search or None,
             from_date=from_date_filter or None,
             to_date=to_date_filter or None,
-            status='scheduled'
-        ) }}#scheduleTableSection"
+            status='scheduled') }}#scheduleTableSection"
            class="interview-stat stat-upcoming {% if status_filter == 'scheduled' %}stat-active{% endif %}">
-
             <div class="stat-top">
                 <span class="stat-label">Upcoming</span>
-                <span class="stat-icon">
-                    <i class="fa-regular fa-clock"></i>
-                </span>
+                <span class="stat-icon"><i class="fa-regular fa-clock"></i></span>
             </div>
-
-            <div class="stat-number">
-                {{ upcoming_interviews|default(0) }}
-            </div>
-
+            <div class="stat-number">{{ upcoming_interviews|default(0) }}</div>
             <div class="stat-bottom">
                 <span>Waiting for interview</span>
                 <i class="fa-solid fa-arrow-right"></i>
             </div>
-
         </a>
 
-
-        <!-- COMPLETED -->
-        <a href="{{ url_for(
-            'candidate.interview_schedules',
+        <a href="{{ url_for('candidate.interview_schedules',
             stage=selected_stage or None,
             branch_id=branch_filter or None,
             department_id=department_filter or None,
             search=search or None,
             from_date=from_date_filter or None,
             to_date=to_date_filter or None,
-            status='completed'
-        ) }}#scheduleTableSection"
+            status='completed') }}#scheduleTableSection"
            class="interview-stat stat-completed {% if status_filter == 'completed' %}stat-active{% endif %}">
-
             <div class="stat-top">
                 <span class="stat-label">Completed</span>
-                <span class="stat-icon">
-                    <i class="fa-solid fa-circle-check"></i>
-                </span>
+                <span class="stat-icon"><i class="fa-solid fa-circle-check"></i></span>
             </div>
-
-            <div class="stat-number">
-                {{ completed_interviews|default(0) }}
-            </div>
-
+            <div class="stat-number">{{ completed_interviews|default(0) }}</div>
             <div class="stat-bottom">
                 <span>Successfully completed</span>
                 <i class="fa-solid fa-arrow-right"></i>
             </div>
-
         </a>
 
-
-        <!-- CANCELLED -->
-        <a href="{{ url_for(
-            'candidate.interview_schedules',
+        <a href="{{ url_for('candidate.interview_schedules',
             stage=selected_stage or None,
             branch_id=branch_filter or None,
             department_id=department_filter or None,
             search=search or None,
             from_date=from_date_filter or None,
             to_date=to_date_filter or None,
-            status='cancelled'
-        ) }}#scheduleTableSection"
+            status='cancelled') }}#scheduleTableSection"
            class="interview-stat stat-cancelled {% if status_filter == 'cancelled' %}stat-active{% endif %}">
-
             <div class="stat-top">
                 <span class="stat-label">Cancelled</span>
-                <span class="stat-icon">
-                    <i class="fa-solid fa-calendar-xmark"></i>
-                </span>
+                <span class="stat-icon"><i class="fa-solid fa-calendar-xmark"></i></span>
             </div>
-
-            <div class="stat-number">
-                {{ cancelled_interviews|default(0) }}
-            </div>
-
+            <div class="stat-number">{{ cancelled_interviews|default(0) }}</div>
             <div class="stat-bottom">
                 <span>Cancelled appointments</span>
                 <i class="fa-solid fa-arrow-right"></i>
             </div>
-
         </a>
 
     </div>
 
 
-    <!-- ==============================
-         MAIN SCHEDULE PANEL
-    =============================== -->
-
     <div class="interview-panel">
 
         <div class="panel-heading">
             <div>
-                <h3 class="panel-title">
-                    Interview Calendar &amp; Schedule
-                </h3>
-
+                <h3 class="panel-title">Interview Calendar &amp; Schedule</h3>
                 <div class="panel-description">
                     View and manage all candidate interview appointments.
                 </div>
@@ -936,175 +856,121 @@ Manage interview appointments, schedules and candidate progress.
         </div>
 
 
-        <!-- ==============================
-             INTERVIEW STAGE TABS
-        =============================== -->
-
+        <!-- STAGE TABS -->
         <div class="schedule-tabs">
 
-            <a href="{{ url_for(
-                'candidate.interview_schedules',
+            <a href="{{ url_for('candidate.interview_schedules',
                 branch_id=branch_filter or None,
                 department_id=department_filter or None,
                 search=search or None,
                 from_date=from_date_filter or None,
                 to_date=to_date_filter or None,
-                status=status_filter or None
-            ) }}"
+                status=status_filter or None) }}"
                class="schedule-tab {% if not selected_stage %}active{% endif %}">
-
                 <i class="fa-solid fa-calendar-days"></i>
                 All Interviews
-
             </a>
 
-
-            <a href="{{ url_for(
-                'candidate.interview_schedules',
+            <a href="{{ url_for('candidate.interview_schedules',
                 stage='first_interview',
                 branch_id=branch_filter or None,
                 department_id=department_filter or None,
                 search=search or None,
                 from_date=from_date_filter or None,
                 to_date=to_date_filter or None,
-                status=status_filter or None
-            ) }}"
+                status=status_filter or None) }}"
                class="schedule-tab {% if selected_stage == 'first_interview' %}active{% endif %}">
-
                 <i class="fa-solid fa-user-tie"></i>
                 First Interview
-
             </a>
 
-
-            <a href="{{ url_for(
-                'candidate.interview_schedules',
+            <a href="{{ url_for('candidate.interview_schedules',
                 stage='second_interview',
                 branch_id=branch_filter or None,
                 department_id=department_filter or None,
                 search=search or None,
                 from_date=from_date_filter or None,
                 to_date=to_date_filter or None,
-                status=status_filter or None
-            ) }}"
+                status=status_filter or None) }}"
                class="schedule-tab {% if selected_stage == 'second_interview' %}active{% endif %}">
-
                 <i class="fa-solid fa-users"></i>
                 Second Interview
-
             </a>
 
         </div>
 
 
-        <!-- ==============================
-             FILTERS (UPDATED WITH LABELS)
-        =============================== -->
-
+        <!-- FILTERS -->
         <form method="GET"
               action="{{ url_for('candidate.interview_schedules') }}"
               class="schedule-filters"
               id="scheduleFilterForm">
 
             {% if selected_stage %}
-                <input type="hidden"
-                       name="stage"
-                       value="{{ selected_stage }}">
+                <input type="hidden" name="stage" value="{{ selected_stage }}">
             {% endif %}
 
-
-            <!-- SEARCH -->
             <div class="filter-control filter-search">
                 <label for="scheduleSearch">Search</label>
                 <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text"
-                       id="scheduleSearch"
-                       name="search"
+                <input type="text" id="scheduleSearch" name="search"
                        value="{{ search or '' }}"
                        placeholder="Candidate, position..."
                        aria-label="Search candidate or position">
             </div>
 
-
-            <!-- BRANCH -->
-            
             <div class="filter-control">
                 <label for="scheduleBranch">Branch</label>
-                <select name="branch_id"
-                        id="scheduleBranch"
-                        aria-label="Select Branch">
-
+                <select name="branch_id" id="scheduleBranch">
                     <option value="">All Branches</option>
-
                     {% for branch in branches %}
                         <option value="{{ branch.id }}"
                             {% if branch_filter|string == branch.id|string %}selected{% endif %}>
                             {{ branch.name }}
                         </option>
                     {% endfor %}
-
                 </select>
             </div>
 
-            <!-- DEPARTMENT -->
             <div class="filter-control">
                 <label for="scheduleDepartment">Department</label>
-
-                <select name="department_id"
-                        id="scheduleDepartment"
-                        aria-label="Select Department"
+                <select name="department_id" id="scheduleDepartment"
                         {% if not branch_filter %}disabled{% endif %}>
-
                     <option value="">
-                        {% if branch_filter %}
-                            All Departments
-                        {% else %}
-                            Select Branch First
-                        {% endif %}
+                        {% if branch_filter %}All Departments{% else %}Select Branch First{% endif %}
                     </option>
-
                     {% for department in departments %}
                         <option value="{{ department.id }}"
                             {% if department_filter|string == department.id|string %}selected{% endif %}>
                             {{ department.name }}
                         </option>
                     {% endfor %}
-
                 </select>
             </div>
 
-
-            <!-- FROM DATE -->
             <div class="filter-control">
                 <label for="scheduleFromDate">From Date</label>
-                <input type="date"
-                    name="from_date"
-                    id="scheduleFromDate"
-                    value="{{ from_date_filter or '' }}"
-                    aria-label="From date">
+                <input type="date" name="from_date" id="scheduleFromDate"
+                       value="{{ from_date_filter or '' }}">
             </div>
 
-            <!-- TO DATE -->
             <div class="filter-control">
                 <label for="scheduleToDate">To Date</label>
-                <input type="date"
-                    name="to_date"
-                    id="scheduleToDate"
-                    value="{{ to_date_filter or '' }}"
-                    aria-label="To date">
+                <input type="date" name="to_date" id="scheduleToDate"
+                       value="{{ to_date_filter or '' }}">
             </div>
 
-
-            <!-- STATUS -->
             <div class="filter-control">
                 <label for="scheduleStatus">Status</label>
-                <select name="status"
-                        id="scheduleStatus"
-                        aria-label="Interview status">
+                <select name="status" id="scheduleStatus">
                     <option value="">All Status</option>
                     <option value="scheduled"
                         {% if status_filter == 'scheduled' %}selected{% endif %}>
-                        Scheduled / Upcoming
+                        Scheduled
+                    </option>
+                    <option value="postpone"
+                        {% if status_filter == 'postpone' %}selected{% endif %}>
+                        Postponed
                     </option>
                     <option value="completed"
                         {% if status_filter == 'completed' %}selected{% endif %}>
@@ -1117,34 +983,21 @@ Manage interview appointments, schedules and candidate progress.
                 </select>
             </div>
 
-
-            <!-- FILTER ACTIONS -->
             <div class="filter-actions">
-                <button type="submit"
-                        class="filter-btn primary">
-                    <i class="fas fa-search"></i>
-                    Search
+                <button type="submit" class="filter-btn primary">
+                    <i class="fas fa-search"></i> Search
                 </button>
-
-                <a href="{{ url_for(
-                    'candidate.interview_schedules',
-                    stage=selected_stage or None
-                ) }}"
-                   class="filter-btn">
-                    <i class="fa-solid fa-rotate-left"></i>
-                    Reset
+                <a href="{{ url_for('candidate.interview_schedules',
+                    stage=selected_stage or None) }}" class="filter-btn">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
                 </a>
             </div>
 
         </form>
 
 
-        <!-- ==============================
-             SCHEDULE TABLE
-        =============================== -->
-
+        <!-- SCHEDULE TABLE -->
         <div class="table-wrapper" id="scheduleTableSection">
-
             <table class="schedule-table">
 
                 <thead>
@@ -1163,193 +1016,133 @@ Manage interview appointments, schedules and candidate progress.
                     </tr>
                 </thead>
 
-
                 <tbody>
 
                     {% for item in schedules %}
-
                     <tr>
-                        <!-- CANDIDATE ID -->
+
                         <td>
-                            <span style="font-weight: 700; color: #635bdb;">{{ item.candidate_id }}</span>
+                            <span style="font-weight:700;color:#635bdb;">
+                                {{ item.candidate_id }}
+                            </span>
                         </td>
-                        
-                        <!-- CANDIDATE -->
+
                         <td>
-
                             <div class="candidate-info">
-
                                 <div class="candidate-avatar">
                                     {{ (item.candidate_name or 'C')[:1]|upper }}
                                 </div>
-
                                 <div>
-
-                                    <div class="candidate-name">
-                                        {{ item.candidate_name }}
-                                    </div>
-
+                                    <div class="candidate-name">{{ item.candidate_name }}</div>
                                     <div class="candidate-sub">
                                         {{ item.email or 'No email available' }}
                                     </div>
-
                                 </div>
-
                             </div>
-
                         </td>
 
+                        <td>{{ item.position or '-' }}</td>
+                        <td>{{ item.branch_name or '-' }}</td>
+                        <td>{{ item.department_name or '-' }}</td>
 
-                        <!-- POSITION -->
                         <td>
-                            {{ item.position or '-' }}
-                        </td>
-
-
-                        <!-- BRANCH -->
-                        <td>
-                            {{ item.branch_name or '-' }}
-                        </td>
-
-
-                        <!-- DEPARTMENT -->
-                        <td>
-                            {{ item.department_name or '-' }}
-                        </td>
-
-
-                        <!-- INTERVIEW STAGE -->
-                        <td>
-
                             {% if item.interview_stage == 'first_interview' %}
-
                                 <span class="stage-badge stage-first">
                                     <i class="fa-solid fa-user-tie"></i>
                                     First Interview
                                 </span>
-
                             {% else %}
-
                                 <span class="stage-badge stage-second">
                                     <i class="fa-solid fa-users"></i>
                                     Second Interview
                                 </span>
-
                             {% endif %}
-
                         </td>
 
-
-                        <!-- DATE -->
                         <td class="date-cell">
-
                             {{ item.interview_date.strftime('%d %b %Y') if item.interview_date else '-' }}
-
                         </td>
 
-
-                        <!-- TIME -->
                         <td class="time-cell">
-
                             {{ item.interview_time.strftime('%I:%M %p') if item.interview_time else '-' }}
-
                         </td>
 
+                        <td>{{ item.interviewer or 'Not assigned' }}</td>
 
-                        <!-- INTERVIEWER -->
+
+                        <!-- STATUS -->
                         <td>
-                            {{ item.interviewer or 'Not assigned' }}
-                        </td>
+                            <div class="status-cell">
 
+                                {% if item.status == 'scheduled' %}
 
-                        <!-- STATUS UPDATE -->
-                        <td>
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for('candidate.update_interview_status', interview_id=item.interview_id) }}"
+                                        class="status-update-form"
+                                    >
+                                        <input type="hidden" name="stage" value="{{ selected_stage or '' }}">
+                                        <input type="hidden" name="search" value="{{ search or '' }}">
+                                        <input type="hidden" name="branch_id" value="{{ branch_filter or '' }}">
+                                        <input type="hidden" name="department_id" value="{{ department_filter or '' }}">
+                                        <input type="hidden" name="from_date" value="{{ from_date_filter or '' }}">
+                                        <input type="hidden" name="to_date" value="{{ to_date_filter or '' }}">
+                                        <input type="hidden" name="status_filter" value="{{ status_filter or '' }}">
+                                        <input type="hidden" name="page" value="{{ page or 1 }}">
 
-                            <form method="POST"
-                                action="{{ url_for(
-                                    'candidate.update_interview_status',
-                                    interview_id=item.interview_id
-                                ) }}"
-                                class="status-update-form">
+                                        <select name="status" required>
+                                            <option value="scheduled" selected>Scheduled</option>
+                                            <option value="completed">Completed</option>
+                                        </select>
 
-                                {% if csrf_token is defined %}
-                                    <input type="hidden"
-                                           name="csrf_token"
-                                           value="{{ csrf_token() }}">
+                                        <button type="submit" class="status-save-btn" title="Update Status">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                    </form>
+
+                                    {% if item.postpone %}
+                                        <span class="postponed-badge">
+                                            <i class="fa-solid fa-calendar-plus"></i>
+                                            Postponed
+                                        </span>
+                                    {% endif %}
+
+                                {% elif item.status == 'completed' %}
+
+                                    <span class="status-badge status-completed">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        Completed
+                                    </span>
+
+                                    {% if item.postpone %}
+                                        <span class="postponed-badge">
+                                            <i class="fa-solid fa-calendar-plus"></i>
+                                            Postponed
+                                        </span>
+                                    {% endif %}
+
+                                {% elif item.status == 'cancelled' %}
+
+                                    <span class="status-badge status-cancelled">
+                                        <i class="fa-solid fa-circle-xmark"></i>
+                                        Cancelled
+                                    </span>
+
+                                    {% if item.postpone %}
+                                        <span class="postponed-badge">
+                                            <i class="fa-solid fa-calendar-plus"></i>
+                                            Postponed
+                                        </span>
+                                    {% endif %}
+
                                 {% endif %}
 
-                                <input type="hidden"
-                                       name="interview_id"
-                                       value="{{ item.interview_id }}">
-
-                                <input type="hidden"
-                                       name="stage"
-                                       value="{{ selected_stage or '' }}">
-
-                                <input type="hidden"
-                                       name="search"
-                                       value="{{ search or '' }}">
-
-                                <input type="hidden"
-                                       name="branch_id"
-                                       value="{{ branch_filter or '' }}">
-
-                                <input type="hidden"
-                                       name="department_id"
-                                       value="{{ department_filter or '' }}">
-
-                                <input type="hidden"
-                                        name="from_date"
-                                        value="{{ from_date_filter or '' }}">
-
-                                <input type="hidden"
-                                        name="to_date"
-                                        value="{{ to_date_filter or '' }}">
-
-                                <input type="hidden"
-                                       name="status_filter"
-                                       value="{{ status_filter or '' }}">
-
-
-                                <select name="status"
-                                        aria-label="Change interview status"
-                                        required>
-
-                                    <option value="scheduled"
-                                        {% if item.status == 'scheduled' %}selected{% endif %}>
-                                        Scheduled
-                                    </option>
-
-                                    <option value="completed"
-                                        {% if item.status == 'completed' %}selected{% endif %}>
-                                        Completed
-                                    </option>
-
-                                    <option value="cancelled"
-                                        {% if item.status == 'cancelled' %}selected{% endif %}>
-                                        Cancelled
-                                    </option>
-
-                                </select>
-
-
-                                <button type="submit"
-                                        class="status-save-btn"
-                                        title="Save Status"
-                                        aria-label="Save Status">
-
-                                    <i class="fa-solid fa-check"></i>
-
-                                </button>
-
-                            </form>
-
+                            </div>
                         </td>
 
 
-                        <!-- ACTION -->
+                        <!-- ACTION BUTTONS -->
                         <td>
-
                             <div class="action-buttons">
 
                                 <a href="{{ url_for(
@@ -1357,280 +1150,366 @@ Manage interview appointments, schedules and candidate progress.
                                     candidate_id=item.candidate_id,
                                     return_to='interview_schedules'
                                 ) }}"
-                                class="action-btn"
-                                title="View Candidate"
-                                aria-label="View Candidate">
-
+                                   class="action-btn"
+                                   title="View Candidate"
+                                   aria-label="View Candidate">
                                     <i class="fa-regular fa-eye"></i>
-
                                 </a>
 
-                            </div>
+                                {% if item.status == 'scheduled' %}
+                                    <button type="button"
+                                            class="postpone-btn"
+                                            data-interview-id="{{ item.interview_id }}"
+                                            data-candidate-name="{{ item.candidate_name|default('', true)|e }}"
+                                            data-candidate-email="{{ item.email|default('', true)|e }}"
+                                            data-current-date="{{ item.interview_date.strftime('%Y-%m-%d') if item.interview_date else '' }}"
+                                            data-current-time="{{ item.interview_time.strftime('%H:%M') if item.interview_time else '' }}"
+                                            data-current-interviewer="{{ item.interviewer|default('', true)|e }}"
+                                            data-stage="{{ item.interview_stage|e }}"
+                                            data-postpone-url="{{ url_for('candidate.postpone_interview', interview_id=item.interview_id) }}"
+                                            title="Postpone Interview"
+                                            aria-label="Postpone Interview">
+                                        <i class="fa-solid fa-calendar-plus"></i>
+                                    </button>
+                                {% endif %}
 
+                            </div>
                         </td>
 
                     </tr>
 
-
                     {% else %}
-
                     <tr>
-
                         <td colspan="11" class="empty-state">
-
                             <div class="empty-icon">
                                 <i class="fa-regular fa-calendar-xmark"></i>
                             </div>
-
-                            <div class="empty-title">
-                                No Interview Schedules Found
-                            </div>
-
+                            <div class="empty-title">No Interview Schedules Found</div>
                             <div class="empty-text">
                                 There are no interview appointments matching your filters.
                             </div>
-
                         </td>
-
                     </tr>
-
                     {% endfor %}
 
                 </tbody>
-
             </table>
+        </div>
+
+
+        <!-- PAGINATION -->
+        <div class="pagination-footer">
+
+            <div class="pagination-info">
+                Showing <strong>{{ start_record }}</strong> -
+                <strong>{{ end_record }}</strong> of
+                <strong>{{ total_records }}</strong> interview schedules
+            </div>
+
+            {% if total_records > 0 %}
+            <div class="pagination-controls">
+
+                <a href="{{ url_for('candidate.interview_schedules',
+                    stage=selected_stage or None,
+                    search=search or None,
+                    branch_id=branch_filter or None,
+                    department_id=department_filter or None,
+                    from_date=from_date_filter or None,
+                    to_date=to_date_filter or None,
+                    status=status_filter or None,
+                    page=1) }}#scheduleTableSection"
+                   class="pagination-btn {% if not has_prev %}disabled{% endif %}"
+                   aria-label="First page">
+                    <i class="fa-solid fa-angles-left"></i>
+                </a>
+
+                <a href="{{ url_for('candidate.interview_schedules',
+                    stage=selected_stage or None,
+                    search=search or None,
+                    branch_id=branch_filter or None,
+                    department_id=department_filter or None,
+                    from_date=from_date_filter or None,
+                    to_date=to_date_filter or None,
+                    status=status_filter or None,
+                    page=prev_page) }}#scheduleTableSection"
+                   class="pagination-btn {% if not has_prev %}disabled{% endif %}">
+                    <i class="fa-solid fa-chevron-left"></i> Previous
+                </a>
+
+                {% set page_start = [1, page - 2]|max %}
+                {% set page_end = [total_pages, page + 2]|min %}
+
+                {% if page_start > 1 %}
+                    <a href="{{ url_for('candidate.interview_schedules',
+                        stage=selected_stage or None,
+                        search=search or None,
+                        branch_id=branch_filter or None,
+                        department_id=department_filter or None,
+                        from_date=from_date_filter or None,
+                        to_date=to_date_filter or None,
+                        status=status_filter or None,
+                        page=1) }}#scheduleTableSection"
+                       class="pagination-btn">1</a>
+
+                    {% if page_start > 2 %}
+                        <span class="pagination-dots">...</span>
+                    {% endif %}
+                {% endif %}
+
+                {% for page_num in range(page_start, page_end + 1) %}
+                    <a href="{{ url_for('candidate.interview_schedules',
+                        stage=selected_stage or None,
+                        search=search or None,
+                        branch_id=branch_filter or None,
+                        department_id=department_filter or None,
+                        from_date=from_date_filter or None,
+                        to_date=to_date_filter or None,
+                        status=status_filter or None,
+                        page=page_num) }}#scheduleTableSection"
+                       class="pagination-btn {% if page_num == page %}active{% endif %}"
+                       {% if page_num == page %}aria-current="page"{% endif %}>
+                        {{ page_num }}
+                    </a>
+                {% endfor %}
+
+                {% if page_end < total_pages %}
+                    {% if page_end < total_pages - 1 %}
+                        <span class="pagination-dots">...</span>
+                    {% endif %}
+
+                    <a href="{{ url_for('candidate.interview_schedules',
+                        stage=selected_stage or None,
+                        search=search or None,
+                        branch_id=branch_filter or None,
+                        department_id=department_filter or None,
+                        from_date=from_date_filter or None,
+                        to_date=to_date_filter or None,
+                        status=status_filter or None,
+                        page=total_pages) }}#scheduleTableSection"
+                       class="pagination-btn">{{ total_pages }}</a>
+                {% endif %}
+
+                <a href="{{ url_for('candidate.interview_schedules',
+                    stage=selected_stage or None,
+                    search=search or None,
+                    branch_id=branch_filter or None,
+                    department_id=department_filter or None,
+                    from_date=from_date_filter or None,
+                    to_date=to_date_filter or None,
+                    status=status_filter or None,
+                    page=next_page) }}#scheduleTableSection"
+                   class="pagination-btn {% if not has_next %}disabled{% endif %}">
+                    Next <i class="fa-solid fa-chevron-right"></i>
+                </a>
+
+                <a href="{{ url_for('candidate.interview_schedules',
+                    stage=selected_stage or None,
+                    search=search or None,
+                    branch_id=branch_filter or None,
+                    department_id=department_filter or None,
+                    from_date=from_date_filter or None,
+                    to_date=to_date_filter or None,
+                    status=status_filter or None,
+                    page=total_pages) }}#scheduleTableSection"
+                   class="pagination-btn {% if not has_next %}disabled{% endif %}"
+                   aria-label="Last page">
+                    <i class="fa-solid fa-angles-right"></i>
+                </a>
+
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+
+<!-- POSTPONE MODAL -->
+<div class="postpone-modal" id="postponeModal" aria-hidden="true">
+
+    <div class="postpone-dialog"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="postponeModalTitle">
+
+        <div class="postpone-header">
+
+            <div class="postpone-header-left">
+                <div class="postpone-header-icon">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                </div>
+                <div>
+                    <h3 id="postponeModalTitle">Postpone Interview</h3>
+                    <p>Update the interview schedule and send an email notification.</p>
+                </div>
+            </div>
+
+            <button type="button" class="postpone-close"
+                    id="closePostponeModal" aria-label="Close modal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
 
         </div>
 
 
-        
-<!-- ==============================
-     PAGINATION FOOTER
-============================== -->
+        <form method="POST" id="postponeForm" action="">
 
-<div class="pagination-footer">
-
-    <!-- RECORD INFORMATION -->
-    <div class="pagination-info">
-
-        Showing
-        <strong>{{ start_record }}</strong>
-        -
-        <strong>{{ end_record }}</strong>
-
-        of
-
-        <strong>{{ total_records }}</strong>
-
-        interview schedules
-
-    </div>
-
-
-    <!-- PAGINATION CONTROLS -->
-    {% if total_records > 0 %}
-
-    <div class="pagination-controls">
-
-        <!-- FIRST PAGE -->
-        <a href="{{ url_for(
-            'candidate.interview_schedules',
-            stage=selected_stage or None,
-            search=search or None,
-            branch_id=branch_filter or None,
-            department_id=department_filter or None,
-            from_date=from_date_filter or None,
-            to_date=to_date_filter or None,
-            status=status_filter or None,
-            page=1
-        ) }}#scheduleTableSection"
-           class="pagination-btn {% if not has_prev %}disabled{% endif %}"
-           aria-label="First page">
-
-            <i class="fa-solid fa-angles-left"></i>
-
-        </a>
-
-
-        <!-- PREVIOUS PAGE -->
-        <a href="{{ url_for(
-            'candidate.interview_schedules',
-            stage=selected_stage or None,
-            search=search or None,
-            branch_id=branch_filter or None,
-            department_id=department_filter or None,
-            from_date=from_date_filter or None,
-            to_date=to_date_filter or None,
-            status=status_filter or None,
-            page=prev_page
-        ) }}#scheduleTableSection"
-           class="pagination-btn {% if not has_prev %}disabled{% endif %}">
-
-            <i class="fa-solid fa-chevron-left"></i>
-
-            Previous
-
-        </a>
-
-
-        <!-- PAGE NUMBERS -->
-
-        {% set page_start = [1, page - 2]|max %}
-        {% set page_end = [total_pages, page + 2]|min %}
-
-
-        {% if page_start > 1 %}
-
-            <a href="{{ url_for(
-                'candidate.interview_schedules',
-                stage=selected_stage or None,
-                search=search or None,
-                branch_id=branch_filter or None,
-                department_id=department_filter or None,
-                from_date=from_date_filter or None,
-                to_date=to_date_filter or None,
-                status=status_filter or None,
-                page=1
-            ) }}#scheduleTableSection"
-               class="pagination-btn">
-
-                1
-
-            </a>
-
-            {% if page_start > 2 %}
-                <span class="pagination-dots">...</span>
+            {% if csrf_token is defined %}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             {% endif %}
 
-        {% endif %}
+            <!-- Preserve filters and pagination -->
+            <input type="hidden" name="stage" value="{{ selected_stage or '' }}">
+            <input type="hidden" name="search" value="{{ search or '' }}">
+            <input type="hidden" name="branch_id" value="{{ branch_filter or '' }}">
+            <input type="hidden" name="department_id" value="{{ department_filter or '' }}">
+            <input type="hidden" name="from_date" value="{{ from_date_filter or '' }}">
+            <input type="hidden" name="to_date" value="{{ to_date_filter or '' }}">
+            <input type="hidden" name="status_filter" value="{{ status_filter or '' }}">
+            <input type="hidden" name="page" value="{{ page or 1 }}">
 
+            <div class="postpone-body">
 
-        {% for page_num in range(page_start, page_end + 1) %}
+                <!-- NEW SCHEDULE -->
+                <div class="postpone-section">
 
-            <a href="{{ url_for(
-                'candidate.interview_schedules',
-                stage=selected_stage or None,
-                search=search or None,
-                branch_id=branch_filter or None,
-                department_id=department_filter or None,
-                from_date=from_date_filter or None,
-                to_date=to_date_filter or None,
-                status=status_filter or None,
-                page=page_num
-            ) }}#scheduleTableSection"
-               class="pagination-btn {% if page_num == page %}active{% endif %}"
-               {% if page_num == page %}aria-current="page"{% endif %}>
+                    <h4 class="postpone-section-title">
+                        <i class="fa-solid fa-calendar-day"></i>
+                        New Interview Schedule
+                    </h4>
 
-                {{ page_num }}
+                    <div class="postpone-form-grid">
 
-            </a>
+                        <div class="postpone-field">
+                            <label for="newDate">
+                                New Interview Date <span class="required">*</span>
+                            </label>
+                            <input type="date" id="newDate" name="new_date" required>
+                        </div>
 
-        {% endfor %}
+                        <div class="postpone-field">
+                            <label for="newTime">
+                                New Interview Time <span class="required">*</span>
+                            </label>
+                            <input type="time" id="newTime" name="new_time" required>
+                        </div>
 
+                        <div class="postpone-field full">
+                            <label for="newInterviewer">
+                                New Interviewer <span class="required">*</span>
+                            </label>
+                            <input type="text" id="newInterviewer"
+                                   name="new_interviewer" maxlength="150"
+                                   placeholder="Enter interviewer name" required>
+                        </div>
 
-        {% if page_end < total_pages %}
+                        <div class="postpone-field full">
+                            <label for="postponeReason">
+                                Postpone Reason <span class="required">*</span>
+                            </label>
+                            <textarea id="postponeReason"
+                                      name="postpone_reason"
+                                      rows="3"
+                                      placeholder="Enter the reason for postponing this interview..."
+                                      required></textarea>
+                        </div>
 
-            {% if page_end < total_pages - 1 %}
-                <span class="pagination-dots">...</span>
-            {% endif %}
+                    </div>
+                </div>
 
-            <a href="{{ url_for(
-                'candidate.interview_schedules',
-                stage=selected_stage or None,
-                search=search or None,
-                branch_id=branch_filter or None,
-                department_id=department_filter or None,
-                from_date=from_date_filter or None,
-                to_date=to_date_filter or None,
-                status=status_filter or None,
-                page=total_pages
-            ) }}#scheduleTableSection"
-               class="pagination-btn">
+                <div class="postpone-divider"></div>
 
-                {{ total_pages }}
+                <!-- EMAIL PREVIEW -->
+                <div class="postpone-section">
 
-            </a>
+                    <h4 class="postpone-section-title">
+                        <i class="fa-solid fa-envelope"></i>
+                        Email Notification
+                    </h4>
 
-        {% endif %}
+                    <div class="postpone-email-note">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>
+                            Review and edit the email before sending.
+                            The candidate will receive the updated interview schedule.
+                            Meeting links are not included in this email.
+                        </span>
+                    </div>
 
+                    <div class="postpone-form-grid">
 
-        <!-- NEXT PAGE -->
-        <a href="{{ url_for(
-            'candidate.interview_schedules',
-            stage=selected_stage or None,
-            search=search or None,
-            branch_id=branch_filter or None,
-            department_id=department_filter or None,
-            from_date=from_date_filter or None,
-            to_date=to_date_filter or None,
-            status=status_filter or None,
-            page=next_page
-        ) }}#scheduleTableSection"
-           class="pagination-btn {% if not has_next %}disabled{% endif %}">
+                        <div class="postpone-field full">
+                            <label for="emailTo">
+                                Email To <span class="required">*</span>
+                            </label>
+                            <input type="email" id="emailTo" name="email_to"
+                                   placeholder="candidate@example.com" required>
+                        </div>
 
-            Next
+                        <div class="postpone-field full">
+                            <label for="emailSubject">
+                                Email Subject <span class="required">*</span>
+                            </label>
+                            <input type="text" id="emailSubject"
+                                   name="email_subject"
+                                   placeholder="Interview Schedule Update" required>
+                        </div>
 
-            <i class="fa-solid fa-chevron-right"></i>
+                        <div class="postpone-field full">
+                            <label for="emailBody">
+                                Email Message <span class="required">*</span>
+                            </label>
+                            <textarea
+                                id="emailBody"
+                                name="email_body"
+                                class="email-preview-textarea"
+                                rows="10"
+                                required
+                            ></textarea>
+                        </div>
 
-        </a>
+                    </div>
+                </div>
 
+            </div>
 
-        <!-- LAST PAGE -->
-        <a href="{{ url_for(
-            'candidate.interview_schedules',
-            stage=selected_stage or None,
-            search=search or None,
-            branch_id=branch_filter or None,
-            department_id=department_filter or None,
-            from_date=from_date_filter or None,
-            to_date=to_date_filter or None,
-            status=status_filter or None,
-            page=total_pages
-        ) }}#scheduleTableSection"
-           class="pagination-btn {% if not has_next %}disabled{% endif %}"
-           aria-label="Last page">
+            <div class="postpone-footer">
 
-            <i class="fa-solid fa-angles-right"></i>
+                <button type="button" class="postpone-cancel"
+                        id="cancelPostponeModal">
+                    <i class="fa-solid fa-xmark"></i> Close
+                </button>
 
-        </a>
+                <button type="submit" class="postpone-submit"
+                        id="submitPostponeBtn">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    Send Email &amp; Postpone
+                </button>
 
+            </div>
+
+        </form>
     </div>
-
-    {% endif %}
-
 </div>
 
 
-    </div>
-
-</div>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
     const filterForm = document.getElementById("scheduleFilterForm");
     const branchSelect = document.getElementById("scheduleBranch");
     const departmentSelect = document.getElementById("scheduleDepartment");
-
     const fromDate = document.getElementById("scheduleFromDate");
     const toDate = document.getElementById("scheduleToDate");
-    
-    // -----------------------------------------
-    // SCROLL TO TABLE AFTER SEARCH / FILTER
-    // -----------------------------------------
     const tableSection = document.getElementById("scheduleTableSection");
 
+    // SCROLL TO TABLE AFTER FILTERING
     if (tableSection) {
-
         const params = new URLSearchParams(window.location.search);
 
         const filterParams = [
-            "search",
-            "stage",
-            "branch_id",
-            "department_id",
-            "from_date",
-            "to_date",
-            "status"
+            "search", "stage", "branch_id", "department_id",
+            "from_date", "to_date", "status"
         ];
 
         const hasActiveFilter = filterParams.some(function (param) {
@@ -1638,120 +1517,353 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         if (hasActiveFilter) {
-
             setTimeout(function () {
-
                 tableSection.scrollIntoView({
                     behavior: "smooth",
                     block: "start"
                 });
-
             }, 300);
         }
     }
 
-    // -----------------------------------------
     // BRANCH CHANGE
-    // Clear old department and reload departments
-    // for the newly selected branch.
-    // -----------------------------------------
     if (branchSelect && departmentSelect && filterForm) {
-
         branchSelect.addEventListener("change", function () {
-
             departmentSelect.value = "";
-
-            // Submit the GET form so the backend
-            // can load departments for this branch.
             filterForm.requestSubmit();
-
         });
     }
 
-
-    // -----------------------------------------
-    // DATE VALIDATION
-    // Supports:
-    // 1. From Date only
-    // 2. To Date only
-    // 3. Both dates
-    // -----------------------------------------
+    // DATE FILTER VALIDATION
     if (fromDate && toDate) {
 
         fromDate.addEventListener("change", function () {
-
             if (this.value) {
                 toDate.min = this.value;
             } else {
                 toDate.removeAttribute("min");
             }
 
-            // If From Date is later than To Date,
-            // clear the old To Date constraint.
-            if (
-                toDate.value &&
-                this.value &&
-                toDate.value < this.value
-            ) {
+            if (toDate.value && this.value && toDate.value < this.value) {
                 toDate.value = "";
             }
         });
 
-
         toDate.addEventListener("change", function () {
-
             if (this.value) {
                 fromDate.max = this.value;
             } else {
                 fromDate.removeAttribute("max");
             }
 
-            if (
-                fromDate.value &&
-                this.value &&
-                fromDate.value > this.value
-            ) {
+            if (fromDate.value && this.value && fromDate.value > this.value) {
                 fromDate.value = "";
             }
         });
 
-
-        // Restore date constraints after page reload.
-        if (fromDate.value) {
-            toDate.min = fromDate.value;
-        }
-
-        if (toDate.value) {
-            fromDate.max = toDate.value;
-        }
+        if (fromDate.value) toDate.min = fromDate.value;
+        if (toDate.value) fromDate.max = toDate.value;
     }
 
-
-    // -----------------------------------------
-    // FORM SUBMIT VALIDATION
-    // Only compare when both dates are provided.
-    // -----------------------------------------
     if (filterForm && fromDate && toDate) {
-
         filterForm.addEventListener("submit", function (event) {
-
-            if (
-                fromDate.value &&
-                toDate.value &&
-                fromDate.value > toDate.value
-            ) {
+            if (fromDate.value && toDate.value && fromDate.value > toDate.value) {
                 event.preventDefault();
-
-                alert(
-                    "To Date must be later than or equal to From Date."
-                );
-
+                alert("To Date must be later than or equal to From Date.");
                 toDate.focus();
-                return false;
             }
         });
     }
 
+
+    // POSTPONE MODAL ELEMENTS
+    const postponeModal = document.getElementById("postponeModal");
+    const postponeForm = document.getElementById("postponeForm");
+
+    const closePostponeBtn = document.getElementById("closePostponeModal");
+    const cancelPostponeBtn = document.getElementById("cancelPostponeModal");
+    const submitPostponeBtn = document.getElementById("submitPostponeBtn");
+
+    const newDate = document.getElementById("newDate");
+    const newTime = document.getElementById("newTime");
+    const newInterviewer = document.getElementById("newInterviewer");
+    const postponeReason = document.getElementById("postponeReason");
+
+    const emailTo = document.getElementById("emailTo");
+    const emailSubject = document.getElementById("emailSubject");
+    const emailBody = document.getElementById("emailBody");
+
+    let activeInterviewData = null;
+    let emailBodyEdited = false;
+
+
+    // DATE / TIME HELPERS
+    function formatDate(dateString) {
+        if (!dateString) return "-";
+
+        const parts = dateString.split("-");
+        if (parts.length !== 3) return dateString;
+
+        const date = new Date(
+            Number(parts[0]),
+            Number(parts[1]) - 1,
+            Number(parts[2])
+        );
+
+        return date.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        });
+    }
+
+    function formatTime(timeString) {
+        if (!timeString) return "-";
+
+        const parts = timeString.split(":");
+        if (parts.length < 2) return timeString;
+
+        let hours = Number(parts[0]);
+        const minutes = parts[1];
+        const suffix = hours >= 12 ? "PM" : "AM";
+
+        hours = hours % 12;
+        hours = hours || 12;
+
+        return String(hours).padStart(2, "0") + ":" + minutes + " " + suffix;
+    }
+
+    function safeText(value) {
+        return value && value.trim() ? value.trim() : "-";
+    }
+
+
+    // EMAIL BODY GENERATOR
+    function buildEmailBody() {
+
+        if (!activeInterviewData) return "";
+
+        const oldDate = formatDate(activeInterviewData.currentDate);
+        const oldTime = formatTime(activeInterviewData.currentTime);
+
+        const updatedDate = formatDate(newDate.value);
+        const updatedTime = formatTime(newTime.value);
+
+        const oldInterviewer = safeText(
+            activeInterviewData.currentInterviewer
+        );
+
+        const updatedInterviewer = safeText(
+            newInterviewer.value
+        );
+
+        const reason = postponeReason.value.trim();
+
+        return [
+            "Dear " + activeInterviewData.candidateName + ",",
+            "",
+            "We would like to inform you that your interview schedule has been postponed.",
+            "",
+            "Previous Interview Schedule:",
+            "Date: " + oldDate,
+            "Time: " + oldTime,
+            "Interviewer: " + oldInterviewer,
+            "",
+            "Updated Interview Schedule:",
+            "Date: " + updatedDate,
+            "Time: " + updatedTime,
+            "Interviewer: " + updatedInterviewer,
+            "",
+            "Reason for Postponement:",
+            reason || "The interview schedule has been changed.",
+            "",
+            "We apologize for any inconvenience caused and appreciate your understanding.",
+            "",
+            "Best regards,",
+            "Recruitment Team"
+        ].join("\n");
+    }
+
+
+    // REFRESH EMAIL BODY WITHOUT OVERWRITING MANUAL EDITS
+    function refreshEmailBody() {
+        if (!emailBodyEdited && activeInterviewData) {
+            emailBody.value = buildEmailBody();
+            emailBody.scrollTop = 0;
+        }
+    }
+
+
+    // OPEN POSTPONE MODAL
+    document.querySelectorAll(".postpone-btn").forEach(function (button) {
+
+        button.addEventListener("click", function () {
+
+            activeInterviewData = {
+                interviewId: this.dataset.interviewId,
+                candidateName: this.dataset.candidateName || "Candidate",
+                candidateEmail: this.dataset.candidateEmail || "",
+                currentDate: this.dataset.currentDate || "",
+                currentTime: this.dataset.currentTime || "",
+                currentInterviewer: this.dataset.currentInterviewer || "",
+                stage: this.dataset.stage || "",
+                postponeUrl: this.dataset.postponeUrl || ""
+            };
+
+            postponeForm.action = activeInterviewData.postponeUrl;
+
+            /*
+             * Reset form first (so no stale values remain),
+             * then fill the values that must be prefilled.
+             */
+            postponeForm.reset();
+
+            // Date/Time MUST be blank — user must pick new ones.
+            newDate.value = "";
+            newTime.value = "";
+
+            // Interviewer — prefill with the previous interviewer.
+            newInterviewer.value = activeInterviewData.currentInterviewer || "";
+
+            emailTo.value = activeInterviewData.candidateEmail || "";
+
+            emailSubject.value =
+                "Interview Schedule Update - " +
+                activeInterviewData.candidateName;
+
+            postponeReason.value = "";
+            emailBodyEdited = false;
+
+            // Build the initial preview.
+            emailBody.value = buildEmailBody();
+            emailBody.scrollTop = 0;
+
+            postponeModal.classList.add("show");
+            postponeModal.setAttribute("aria-hidden", "false");
+            document.body.style.overflow = "hidden";
+
+            setTimeout(function () {
+                newDate.focus();
+            }, 100);
+        });
+    });
+
+
+    // UPDATE EMAIL BODY WHEN SCHEDULE OR REASON CHANGES
+    [newDate, newTime, newInterviewer, postponeReason].forEach(function (element) {
+        element.addEventListener("input", refreshEmailBody);
+        element.addEventListener("change", refreshEmailBody);
+    });
+
+
+    // TRACK MANUAL EMAIL BODY EDITING
+    emailBody.addEventListener("input", function () {
+        emailBodyEdited = true;
+    });
+
+
+    // CLOSE MODAL
+    function closePostponeModal() {
+
+        postponeModal.classList.remove("show");
+        postponeModal.setAttribute("aria-hidden", "true");
+
+        document.body.style.overflow = "";
+
+        activeInterviewData = null;
+        emailBodyEdited = false;
+
+        postponeForm.reset();
+        postponeForm.action = "";
+
+        // Explicitly clear fields so the next open starts clean.
+        newDate.value = "";
+        newTime.value = "";
+        newInterviewer.value = "";
+        postponeReason.value = "";
+        emailTo.value = "";
+        emailSubject.value = "";
+        emailBody.value = "";
+
+        submitPostponeBtn.disabled = false;
+        submitPostponeBtn.innerHTML =
+            '<i class="fa-solid fa-paper-plane"></i> Send Email &amp; Postpone';
+    }
+
+    if (closePostponeBtn) {
+        closePostponeBtn.addEventListener("click", closePostponeModal);
+    }
+
+    if (cancelPostponeBtn) {
+        cancelPostponeBtn.addEventListener("click", closePostponeModal);
+    }
+
+    postponeModal.addEventListener("click", function (event) {
+        if (event.target === postponeModal) {
+            closePostponeModal();
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (
+            event.key === "Escape" &&
+            postponeModal.classList.contains("show")
+        ) {
+            closePostponeModal();
+        }
+    });
+
+
+    // POSTPONE FORM VALIDATION
+    postponeForm.addEventListener("submit", function (event) {
+
+        if (!activeInterviewData || !postponeForm.action) {
+            event.preventDefault();
+            alert("Unable to identify the selected interview.");
+            return;
+        }
+
+        if (
+            !newDate.value ||
+            !newTime.value ||
+            !newInterviewer.value.trim() ||
+            !postponeReason.value.trim() ||
+            !emailTo.value.trim() ||
+            !emailSubject.value.trim() ||
+            !emailBody.value.trim()
+        ) {
+            event.preventDefault();
+            alert("Please complete all required fields before submitting.");
+            return;
+        }
+
+        // Validate selected date/time using Myanmar UTC+06:30.
+        const selectedDateTime = new Date(
+            newDate.value + "T" + newTime.value + ":00+06:30"
+        );
+
+        const now = new Date();
+
+        if (
+            Number.isNaN(selectedDateTime.getTime()) ||
+            selectedDateTime <= now
+        ) {
+            event.preventDefault();
+            alert("New interview date and time must be in the future.");
+            newDate.focus();
+            return;
+        }
+
+        // No confirmation popup.
+        // Immediately show loading spinner and submit.
+        submitPostponeBtn.disabled = true;
+
+        submitPostponeBtn.innerHTML =
+            '<i class="fa-solid fa-spinner fa-spin"></i> Sending Email...';
+
+    });
+
 });
 </script>
+
 {% endblock %}
