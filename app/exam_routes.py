@@ -707,6 +707,7 @@ def exam_create():
 @exam_bp.route("/exams/<int:exam_set_id>/edit", methods=["GET", "POST"])
 @super_admin_required
 def exam_edit(exam_set_id):
+    user_id = session.get("user_id")
     denied = _require_exam_role()
     if denied:
         return denied
@@ -801,12 +802,15 @@ def exam_edit(exam_set_id):
                 SET exam_title = %s,
                     sub_department = %s,
                     description = %s,
+                    updated_by = %s,
                     updated_at = NOW()
                 WHERE id = %s
+                AND deleted_at IS NULL
             """, (
                 title,
                 sub_department,
                 description,
+                user_id,
                 exam_set_id
             ))
 
@@ -879,7 +883,6 @@ def exam_edit(exam_set_id):
 
     finally:
         conn.close()
-
 
 
 @exam_bp.route("/exams/<int:exam_set_id>/delete", methods=["POST"])

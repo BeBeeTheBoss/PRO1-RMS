@@ -1449,6 +1449,10 @@ def add_candidate():
             # 10.6 Insert candidate
             # ------------------------------------------
 
+            # ------------------------------------------
+            # 10.6 Insert candidate
+            # ------------------------------------------
+
             cur.execute(
                 """
                 INSERT INTO public.candidates (
@@ -1464,12 +1468,14 @@ def add_candidate():
                     branch_id,
                     cv_file_path,
                     other_attachment_path,
-                    status
+                    status,
+                    created_by,
+                    updated_by
                 )
                 VALUES (
                     %s, %s, %s, %s, %s,
                     %s, %s, %s, %s, %s,
-                    %s, %s, 'applied'
+                    %s, %s, 'applied', %s, %s
                 )
                 RETURNING id
                 """,
@@ -1486,6 +1492,8 @@ def add_candidate():
                     branch_id,
                     cv_path,
                     attachment_path,
+                    user_id,
+                    user_id,
                 ),
             )
 
@@ -5604,6 +5612,7 @@ def edit_candidate(candidate_id):
             # ------------------------------------------
             # Update candidate
             # ------------------------------------------
+
             new_department_id = int(department_raw)
             new_branch_id = int(branch_raw)
 
@@ -5621,9 +5630,10 @@ def edit_candidate(candidate_id):
                     branch_id = %s,
                     cv_file_path = %s,
                     other_attachment_path = %s,
+                    updated_by = %s,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = %s
-                    AND deleted_at IS NULL
+                AND deleted_at IS NULL
                 """,
                 (
                     name,
@@ -5636,10 +5646,10 @@ def edit_candidate(candidate_id):
                     new_branch_id,
                     new_cv_path,
                     new_attachment_path,
+                    user_id,
                     candidate_id,
                 ),
             )
-
             # ------------------------------------------
             # Build changed fields
             # ------------------------------------------
