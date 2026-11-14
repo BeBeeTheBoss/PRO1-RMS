@@ -1046,8 +1046,8 @@
                                 <label for="auto_phone">
                                     Phone number <span class="required">*</span>
                                 </label>
-                                <input id="auto_phone" name="phone" type="tel" maxlength="30" required inputmode="tel"
-                                    pattern="[+0-9()\- ]{7,30}" placeholder="09xxxxxxxxx"
+                                <input id="auto_phone" name="phone" type="tel" maxlength="15" required inputmode="tel"
+                                    pattern="[+0-9()\- ]{7,15}" placeholder="09xxxxxxxxx"
                                     value="{{ auto_form_data.get('phone', '') if auto_form_data else '' }}">
                                 <p class="hint">Use 7–15 digits; country code is allowed.</p>
                             </div>

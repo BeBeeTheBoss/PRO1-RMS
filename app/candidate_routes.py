@@ -267,7 +267,7 @@ def row_as_dict(cursor):
 
 def validate_phone(phone):
     """Allow common phone formatting and require 7-15 digits."""
-    if not phone or not re.fullmatch(r"[+0-9()\-\s]{7,30}", phone):
+    if not phone or not re.fullmatch(r"[+0-9()\-\s]{7,15}", phone):
         return False
 
     digit_count = len(re.sub(r"\D", "", phone))
@@ -3563,8 +3563,8 @@ def interview_schedules():
                 {list_where}
 
                 ORDER BY
-                    ci.interview_date ASC,
-                    ci.interview_time ASC,
+                    -- ci.interview_date ASC,
+                    -- ci.interview_time ASC,
                     ci.id DESC
 
                 LIMIT %s
