@@ -5843,6 +5843,7 @@ def check_delete_permission(candidate_id):
 # URL: /candidates/<id>/delete (POST)
 # --------------------------------------------------
 
+
 @candidate_bp.route(
     "/candidates/<int:candidate_id>/delete",
     methods=["POST"],
@@ -5909,17 +5910,22 @@ def delete_candidate(candidate_id):
             if row is None:
                 abort(404)
 
-            # Soft delete candidate only.
+            # Soft delete candidate and record who deleted it.
             # Keep CV, attachments and all related history.
             cur.execute(
                 """
                 UPDATE public.candidates
-                SET deleted_at = CURRENT_TIMESTAMP,
+                SET
+                    deleted_at = CURRENT_TIMESTAMP,
+                    deleted_by = %s,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = %s
                   AND deleted_at IS NULL
                 """,
-                (candidate_id,),
+                (
+                    session.get("user_id"),
+                    candidate_id,
+                ),
             )
 
         conn.commit()
@@ -5936,7 +5942,9 @@ def delete_candidate(candidate_id):
     except Exception:
         conn.rollback()
 
-        current_app.logger.exception("Failed to soft delete candidate")
+        current_app.logger.exception(
+            "Failed to soft delete candidate"
+        )
 
         flash(
             "Could not delete candidate.",

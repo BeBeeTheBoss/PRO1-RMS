@@ -881,6 +881,7 @@ def exam_edit(exam_set_id):
         conn.close()
 
 
+
 @exam_bp.route("/exams/<int:exam_set_id>/delete", methods=["POST"])
 @super_admin_required
 def exam_delete(exam_set_id):
@@ -900,6 +901,7 @@ def exam_delete(exam_set_id):
             WHERE id = %s
               AND deleted_at IS NULL
               AND (%s IS NULL OR department_id = %s)
+            FOR UPDATE
         """, (exam_set_id, dept_scope, dept_scope))
 
         if not cur.fetchone():
@@ -912,28 +914,37 @@ def exam_delete(exam_set_id):
         """, (exam_set_id,))
 
         if cur.fetchone()["total"] > 0:
+            conn.rollback()
             flash(
                 "This question bank cannot be deleted because it has exam assignments.",
                 "error"
             )
             return redirect(url_for("exam.exam_list"))
 
-        # Soft delete exam set.
+        # Soft delete exam set and record deleted user.
         # Keep exam_questions in the database.
         cur.execute("""
             UPDATE public.exam_sets
-            SET deleted_at = NOW(),
+            SET
+                deleted_at = NOW(),
+                deleted_by = %s,
                 updated_at = NOW()
             WHERE id = %s
               AND deleted_at IS NULL
               AND (%s IS NULL OR department_id = %s)
-        """, (exam_set_id, dept_scope, dept_scope))
+        """, (
+            session.get("user_id"),
+            exam_set_id,
+            dept_scope,
+            dept_scope
+        ))
 
         if cur.rowcount == 0:
             conn.rollback()
             abort(404)
 
         conn.commit()
+
         flash("Question bank deleted successfully.", "success")
 
     except HTTPException:
@@ -942,7 +953,9 @@ def exam_delete(exam_set_id):
 
     except Exception:
         conn.rollback()
-        current_app.logger.exception("Question bank soft deletion failed")
+        current_app.logger.exception(
+            "Question bank soft deletion failed"
+        )
         flash("Unable to delete question bank.", "error")
 
     finally:
