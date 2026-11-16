@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -25,7 +26,7 @@
         }
 
         body {
-            font-family: "Segoe UI",'Poppins', Arial, sans-serif;
+            font-family: "Segoe UI", "Poppins", Arial, sans-serif;
             min-height: 100vh;
             background: var(--background);
             display: flex;
@@ -120,7 +121,6 @@
             height: 60px;
             border-radius: 13px;
             background: white;
-            /* background: linear-gradient(135deg, #8b80ff, #5d4df0); */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -416,6 +416,51 @@
             font-weight: 600;
         }
 
+        /* ===== Login Lock State ===== */
+        .form-input:disabled {
+            background: #f0f1f5;
+            color: #9297a8;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .toggle-password:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+
+        .login-button:disabled {
+            background: #a5a5b5;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.65;
+            transform: none;
+        }
+
+        .lock-countdown {
+            display: none;
+            padding: 12px 14px;
+            margin: 0 0 20px;
+            border-radius: 9px;
+            font-size: 13px;
+            line-height: 1.5;
+            background: #fff0f0;
+            color: #b42332;
+            border: 1px solid #ffd6d9;
+        }
+
+        .lock-countdown.active {
+            display: block;
+        }
+
+        .lock-countdown strong {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .login-form-locked .form-options {
+            opacity: 0.55;
+        }
+
         /* ===== Responsive ===== */
         @media (max-width: 760px) {
             body {
@@ -473,7 +518,6 @@
         }
 
         @media (prefers-reduced-motion: reduce) {
-
             *,
             *::before,
             *::after {
@@ -495,10 +539,17 @@
         <section class="welcome-panel">
 
             <div class="brand">
-                <div class="brand-icon"><img class="logo" src="https://portal.sdpghc.net/assets/img/finallogo.png" alt=""></div>
+                <div class="brand-icon">
+                    <img class="logo"
+                         src="https://portal.sdpghc.net/assets/img/finallogo.png"
+                         alt="">
+                </div>
+
                 <div>
                     <div class="brand-name">Pro1 Global Home Center</div>
-                    <div class="brand-subtitle">RECRUITMENT CANDIDATE TRACKING SYSTEM</div>
+                    <div class="brand-subtitle">
+                        RECRUITMENT CANDIDATE TRACKING SYSTEM
+                    </div>
                 </div>
             </div>
 
@@ -528,99 +579,188 @@
         <section class="login-panel">
 
             <div class="mobile-brand">
-                <div class="brand-icon"><img class="logo" src="https://portal.sdpghc.net/assets/img/finallogo.png" alt=""></div>
+                <div class="brand-icon">
+                    <img class="logo"
+                         src="https://portal.sdpghc.net/assets/img/finallogo.png"
+                         alt="">
+                </div>
+
                 <div>
                     <div class="brand-name">Pro1 Global Home Center</div>
-                    <div class="brand-subtitle">RECRUITMENT CANDIDATE TRACKING SYSTEM</div>
+                    <div class="brand-subtitle">
+                        RECRUITMENT CANDIDATE TRACKING SYSTEM
+                    </div>
                 </div>
             </div>
 
             <div class="login-heading">
                 <h2>Welcome back</h2>
-                <p>Enter your employee credentials to access your account.</p>
+                <p>
+                    Enter your employee credentials to access your account.
+                </p>
             </div>
 
             <!-- Flask backend error message -->
-            <div id="serverMessage" class="server-message {% if error %}error{% endif %}" role="alert"
-                aria-live="polite">{% if error %}{{ error }}{% endif %}</div>
+            <div id="serverMessage"
+                 class="server-message {% if error %}error{% endif %}"
+                 role="alert"
+                 aria-live="polite">
+                {% if error %}{{ error }}{% endif %}
+            </div>
 
-            <!--
-                Flask route should handle POST /login.
-                Do not validate passwords in JavaScript.
-            -->
-            <form id="loginForm" action="{{ url_for('main.login') }}" method="POST" autocomplete="on" novalidate>
+            <!-- Account lock countdown -->
+            <div id="lockCountdown"
+                 class="lock-countdown {% if locked_until %}active{% endif %}"
+                 data-lock-until="{{ locked_until or '' }}"
+                 role="alert"
+                 aria-live="assertive">
+
+                Too many failed login attempts. Please wait
+                <strong id="countdownTime">60</strong>
+                seconds before trying again.
+
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm"
+                  action="{{ url_for('main.login') }}"
+                  method="POST"
+                  autocomplete="on"
+                  novalidate>
 
                 <!-- Employee Code -->
                 <div class="form-group">
+
                     <label class="form-label" for="employee_code">
                         Employee Code
                     </label>
 
                     <div class="input-wrapper">
-                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                            aria-hidden="true">
+
+                        <svg class="input-icon"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             aria-hidden="true">
+
                             <rect x="3" y="5" width="18" height="14" rx="3"></rect>
                             <circle cx="9" cy="11" r="2"></circle>
                             <path d="M6 16c.7-2 5.3-2 6 0M14 10h4M14 14h4"></path>
+
                         </svg>
 
-                        <input type="text" id="employee_code" name="employee_code" class="form-input"
-                            placeholder="e.g. EMP001" autocomplete="username" maxlength="30" required autofocus
-                            aria-describedby="employeeError">
+                        <input
+                            type="text"
+                            id="employee_code"
+                            name="employee_code"
+                            class="form-input"
+                            placeholder="e.g. EMP001"
+                            autocomplete="username"
+                            maxlength="30"
+                            required
+                            autofocus
+                            aria-describedby="employeeError"
+                            {% if locked_until %}disabled{% endif %}
+                        >
+
                     </div>
 
                     <div id="employeeError" class="field-error">
                         Please enter your employee code.
                     </div>
+
                 </div>
 
                 <!-- Password -->
                 <div class="form-group">
+
                     <label class="form-label" for="password">
                         Password
                     </label>
 
                     <div class="input-wrapper">
-                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                            aria-hidden="true">
+
+                        <svg class="input-icon"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             aria-hidden="true">
+
                             <rect x="4" y="10" width="16" height="11" rx="2"></rect>
                             <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
                             <path d="M12 14v3"></path>
+
                         </svg>
 
-                        <input type="password" id="password" name="password" class="form-input"
-                            placeholder="Enter your password" autocomplete="current-password" maxlength="256" required
-                            aria-describedby="passwordError">
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            class="form-input"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            maxlength="256"
+                            required
+                            aria-describedby="passwordError"
+                            {% if locked_until %}disabled{% endif %}
+                        >
 
-                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Show password"
-                            aria-pressed="false">
-                            <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <button
+                            type="button"
+                            class="toggle-password"
+                            id="togglePassword"
+                            aria-label="Show password"
+                            aria-pressed="false"
+                            {% if locked_until %}disabled{% endif %}
+                        >
+
+                            <svg id="eyeIcon"
+                                 width="20"
+                                 height="20"
+                                 viewBox="0 0 24 24"
+                                 fill="none"
+                                 stroke="currentColor"
+                                 stroke-width="1.8"
+                                 aria-hidden="true">
+
                                 <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
                                 <circle cx="12" cy="12" r="3"></circle>
+
                             </svg>
+
                         </button>
+
                     </div>
 
                     <div id="passwordError" class="field-error">
                         Please enter your password.
                     </div>
+
                 </div>
 
                 <!-- Login Button -->
-                <button type="submit" class="login-button" id="loginButton">
+                <button
+                    type="submit"
+                    class="login-button"
+                    id="loginButton"
+                    {% if locked_until %}disabled{% endif %}
+                >
+
                     <span class="button-content">
                         <span class="spinner" id="spinner"></span>
                         <span id="buttonText">Sign In</span>
-                        <!-- <span id="buttonArrow" aria-hidden="true">→</span> -->
                     </span>
+
                 </button>
 
             </form>
 
             <div class="login-bottom">
-                Authorized adminstrator only.<br>
-                Need access? Contact your <strong>Human Resources</strong>.
+                Authorized administrator only.<br>
+                Need access? Contact your
+                <strong>Human Resources</strong>.
             </div>
 
         </section>
@@ -630,83 +770,173 @@
     <script>
         "use strict";
 
-        // ===== Current Year =====
+        // ==================================================
+        // CURRENT YEAR
+        // ==================================================
+
         document.getElementById("currentYear").textContent =
             new Date().getFullYear();
 
-        // ===== Elements =====
+
+        // ==================================================
+        // ELEMENTS
+        // ==================================================
+
         const loginForm = document.getElementById("loginForm");
-        const employeeInput = document.getElementById("employee_code");
-        const passwordInput = document.getElementById("password");
 
-        const employeeError = document.getElementById("employeeError");
-        const passwordError = document.getElementById("passwordError");
+        const employeeInput =
+            document.getElementById("employee_code");
 
-        const loginButton = document.getElementById("loginButton");
-        const buttonText = document.getElementById("buttonText");
-        const buttonArrow = document.getElementById("buttonArrow");
-        const spinner = document.getElementById("spinner");
+        const passwordInput =
+            document.getElementById("password");
 
-        const togglePassword = document.getElementById("togglePassword");
-        const serverMessage = document.getElementById("serverMessage");
+        const employeeError =
+            document.getElementById("employeeError");
 
-        // ===== Clear Error =====
+        const passwordError =
+            document.getElementById("passwordError");
+
+        const loginButton =
+            document.getElementById("loginButton");
+
+        const buttonText =
+            document.getElementById("buttonText");
+
+        const spinner =
+            document.getElementById("spinner");
+
+        const togglePassword =
+            document.getElementById("togglePassword");
+
+        const serverMessage =
+            document.getElementById("serverMessage");
+
+
+        // ==================================================
+        // CLEAR FIELD ERROR
+        // ==================================================
+
         function clearFieldError(input, errorElement) {
+
             input.classList.remove("invalid");
+
             errorElement.classList.remove("show");
+
             input.removeAttribute("aria-invalid");
         }
 
-        // ===== Validate Required Fields =====
+
+        // ==================================================
+        // VALIDATE EMPLOYEE CODE
+        // ==================================================
+
         function validateEmployeeCode() {
+
             if (!employeeInput.value.trim()) {
+
                 employeeInput.classList.add("invalid");
-                employeeInput.setAttribute("aria-invalid", "true");
+
+                employeeInput.setAttribute(
+                    "aria-invalid",
+                    "true"
+                );
+
                 employeeError.classList.add("show");
-                employeeError.textContent = "Please enter your employee code.";
+
+                employeeError.textContent =
+                    "Please enter your employee code.";
+
                 return false;
             }
 
-            clearFieldError(employeeInput, employeeError);
+            clearFieldError(
+                employeeInput,
+                employeeError
+            );
+
             return true;
         }
 
+
+        // ==================================================
+        // VALIDATE PASSWORD
+        // ==================================================
+
         function validatePassword() {
+
             if (!passwordInput.value) {
+
                 passwordInput.classList.add("invalid");
-                passwordInput.setAttribute("aria-invalid", "true");
+
+                passwordInput.setAttribute(
+                    "aria-invalid",
+                    "true"
+                );
+
                 passwordError.classList.add("show");
-                passwordError.textContent = "Please enter your password.";
+
+                passwordError.textContent =
+                    "Please enter your password.";
+
                 return false;
             }
 
-            clearFieldError(passwordInput, passwordError);
+            clearFieldError(
+                passwordInput,
+                passwordError
+            );
+
             return true;
+        }
+
+
+        // ==================================================
+        // CLEAR SERVER ERROR WHEN USER TYPES
+        // ==================================================
+
+        function clearServerError() {
+
+            if (serverMessage.classList.contains("error")) {
+
+                serverMessage.className = "server-message";
+
+                serverMessage.textContent = "";
+            }
         }
 
         employeeInput.addEventListener("input", function () {
-            clearFieldError(employeeInput, employeeError);
 
-            if (serverMessage.classList.contains("error")) {
-                serverMessage.className = "server-message";
-                serverMessage.textContent = "";
-            }
+            clearFieldError(
+                employeeInput,
+                employeeError
+            );
+
+            clearServerError();
         });
+
 
         passwordInput.addEventListener("input", function () {
-            clearFieldError(passwordInput, passwordError);
 
-            if (serverMessage.classList.contains("error")) {
-                serverMessage.className = "server-message";
-                serverMessage.textContent = "";
-            }
+            clearFieldError(
+                passwordInput,
+                passwordError
+            );
+
+            clearServerError();
         });
 
-        // ===== Show / Hide Password =====
-        togglePassword.addEventListener("click", function () {
-            const isPasswordHidden = passwordInput.type === "password";
 
-            passwordInput.type = isPasswordHidden ? "text" : "password";
+        // ==================================================
+        // SHOW / HIDE PASSWORD
+        // ==================================================
+
+        togglePassword.addEventListener("click", function () {
+
+            const isPasswordHidden =
+                passwordInput.type === "password";
+
+            passwordInput.type =
+                isPasswordHidden ? "text" : "password";
 
             togglePassword.setAttribute(
                 "aria-label",
@@ -719,40 +949,202 @@
             );
 
             document.getElementById("eyeIcon").innerHTML =
+
                 isPasswordHidden
+
                     ? '<path d="M3 3l18 18"></path>' +
-                    '<path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path>' +
-                    '<path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c6.5 0 10 7 10 7a15 15 0 0 1-3 3.9"></path>' +
-                    '<path d="M6.2 6.2C3.5 8 2 12 2 12s3.5 7 10 7c1.2 0 2.3-.2 3.3-.6"></path>'
+                      '<path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path>' +
+                      '<path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c6.5 0 10 7 10 7a15 15 0 0 1-3 3.9"></path>' +
+                      '<path d="M6.2 6.2C3.5 8 2 12 2 12s3.5 7 10 7c1.2 0 2.3-.2 3.3-.6"></path>'
+
                     : '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>' +
-                    '<circle cx="12" cy="12" r="3"></circle>';
+                      '<circle cx="12" cy="12" r="3"></circle>';
+
         });
 
-        // ===== Submit Form =====
+
+        // ==================================================
+        // SUBMIT FORM
+        // ==================================================
+
         loginForm.addEventListener("submit", function (event) {
-            const employeeValid = validateEmployeeCode();
-            const passwordValid = validatePassword();
+
+            const employeeValid =
+                validateEmployeeCode();
+
+            const passwordValid =
+                validatePassword();
 
             if (!employeeValid || !passwordValid) {
+
                 event.preventDefault();
 
                 if (!employeeValid) {
+
                     employeeInput.focus();
+
                 } else {
+
                     passwordInput.focus();
                 }
 
                 return;
             }
 
-            // Allow the real POST request to Flask.
+            // Allow real POST request to Flask
             loginButton.disabled = true;
+
             buttonText.textContent = "Signing in...";
-            buttonArrow.style.display = "none";
+
             spinner.style.display = "inline-block";
+
         });
+
+
+        // ==================================================
+        // SERVER-SIDE ACCOUNT LOCK COUNTDOWN
+        // ==================================================
+
+        const lockCountdown =
+            document.getElementById("lockCountdown");
+
+        const countdownTime =
+            document.getElementById("countdownTime");
+
+        // Read lock time from HTML data attribute.
+        // No Jinja syntax inside JavaScript.
+        const lockUntil =
+            lockCountdown.dataset.lockUntil || null;
+
+        let lockTimer = null;
+
+        let accountIsLocked = false;
+
+
+        // ==================================================
+        // ENABLE / DISABLE LOGIN FORM
+        // ==================================================
+
+        function setLoginLocked(locked) {
+
+            accountIsLocked = locked;
+
+            employeeInput.disabled = locked;
+
+            passwordInput.disabled = locked;
+
+            togglePassword.disabled = locked;
+
+            loginButton.disabled = locked;
+
+            if (locked) {
+
+                loginForm.classList.add(
+                    "login-form-locked"
+                );
+
+                lockCountdown.classList.add("active");
+
+                buttonText.textContent = "Account Locked";
+
+                spinner.style.display = "none";
+
+            } else {
+
+                loginForm.classList.remove(
+                    "login-form-locked"
+                );
+
+                lockCountdown.classList.remove("active");
+
+                buttonText.textContent = "Sign In";
+
+                spinner.style.display = "none";
+            }
+        }
+
+
+        // ==================================================
+        // COUNTDOWN TIMER
+        // ==================================================
+
+        if (lockUntil) {
+
+            const lockEndTime =
+                new Date(lockUntil).getTime();
+
+            if (Number.isFinite(lockEndTime)) {
+
+                function updateLockCountdown() {
+
+                    const remainingMilliseconds =
+                        lockEndTime - Date.now();
+
+                    const remainingSeconds = Math.max(
+                        0,
+                        Math.ceil(remainingMilliseconds / 1000)
+                    );
+
+                    countdownTime.textContent =
+                        remainingSeconds;
+
+                    if (remainingSeconds <= 0) {
+
+                        if (lockTimer !== null) {
+
+                            clearInterval(lockTimer);
+
+                            lockTimer = null;
+                        }
+
+                        setLoginLocked(false);
+
+                        serverMessage.className =
+                            "server-message";
+
+                        serverMessage.textContent = "";
+
+                    }
+                }
+
+                // Immediately lock the form
+                setLoginLocked(true);
+
+                // Update countdown immediately
+                updateLockCountdown();
+
+                // Start timer only when still locked
+                if (Date.now() < lockEndTime) {
+
+                    lockTimer = setInterval(
+                        updateLockCountdown,
+                        1000
+                    );
+                }
+            }
+        }
+
+
+        // ==================================================
+        // PREVENT SUBMISSION WHILE ACCOUNT IS LOCKED
+        // ==================================================
+
+        loginForm.addEventListener(
+            "submit",
+            function (event) {
+
+                if (accountIsLocked) {
+
+                    event.preventDefault();
+
+                    event.stopImmediatePropagation();
+                }
+
+            },
+            true
+        );
+
     </script>
 
 </body>
-
 </html>

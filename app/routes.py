@@ -16,6 +16,7 @@ from werkzeug.security import (
     check_password_hash,
     generate_password_hash,
 )
+from datetime import datetime, timezone
 from psycopg2.extras import RealDictCursor
 from app.db import get_connection
 
@@ -68,13 +69,62 @@ def home():
 
 @main.route("/login", methods=["GET", "POST"])
 def login():
+
     if session.get("user_id"):
         return redirect(url_for("main.dashboard"))
 
+    # --------------------------------------------------
+    # GET REQUEST: Check active account lock
+    # --------------------------------------------------
     if request.method == "GET":
+
+        lock_user_id = session.get("login_lock_user_id")
+
+        if lock_user_id:
+            conn = get_connection()
+
+            try:
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        SELECT locked_until
+                        FROM users
+                        WHERE id = %s
+                    """, (lock_user_id,))
+
+                    lock_data = cur.fetchone()
+
+                if lock_data and lock_data[0]:
+                    locked_until = lock_data[0]
+
+                    if locked_until.tzinfo is None:
+                        locked_until = locked_until.replace(
+                            tzinfo=timezone.utc
+                        )
+
+                    now = datetime.now(timezone.utc)
+
+                    if locked_until > now:
+                        # IMPORTANT: Do not pass error here.
+                        # The countdown message will be displayed only.
+                        return render_template(
+                            "login.html",
+                            locked_until=locked_until.isoformat()
+                        )
+
+                session.pop("login_lock_user_id", None)
+
+            finally:
+                conn.close()
+
         return render_template("login.html")
 
-    employee_code = request.form.get("employee_code", "").strip()
+    # --------------------------------------------------
+    # POST REQUEST
+    # --------------------------------------------------
+    employee_code = (
+        request.form.get("employee_code", "").strip()
+    )
+
     password = request.form.get("password", "")
 
     if not employee_code or not password:
@@ -83,12 +133,21 @@ def login():
             error="Please enter your employee code and password."
         )
 
+    if len(employee_code) > 30 or len(password) > 256:
+        return render_template(
+            "login.html",
+            error="Invalid employee code or password."
+        )
+
     conn = get_connection()
 
     try:
         with conn.cursor() as cur:
-            cur.execute(
-                """
+
+            # --------------------------------------------------
+            # 1. Get user and lock database row
+            # --------------------------------------------------
+            cur.execute("""
                 SELECT
                     id,
                     name,
@@ -96,25 +155,173 @@ def login():
                     password_hash,
                     role,
                     department_id,
-                    is_active
+                    is_active,
+                    failed_login_attempts,
+                    locked_until,
+                    lock_count
                 FROM users
                 WHERE employee_code = %s
-                """,
-                (employee_code,)
-            )
+                FOR UPDATE
+            """, (employee_code,))
+
             user = cur.fetchone()
 
-        if (
-            user is None
-            or not user[6]
-            or not check_password_hash(user[3], password)
-        ):
-            return render_template(
-                "login.html",
-                error="Invalid employee code or password."
+            # --------------------------------------------------
+            # 2. Unknown employee code
+            # --------------------------------------------------
+            if user is None:
+                conn.commit()
+
+                return render_template(
+                    "login.html",
+                    error="Invalid employee code or password."
+                )
+
+            user_id = user[0]
+            password_hash = user[3]
+            is_active = user[6]
+            failed_attempts = user[7] or 0
+            locked_until = user[8]
+            lock_count = user[9] or 0
+
+            now = datetime.now(timezone.utc)
+
+            # --------------------------------------------------
+            # 3. Check existing lock
+            # --------------------------------------------------
+            if locked_until:
+
+                if locked_until.tzinfo is None:
+                    locked_until = locked_until.replace(
+                        tzinfo=timezone.utc
+                    )
+
+                if locked_until > now:
+
+                    conn.commit()
+
+                    session["login_lock_user_id"] = user_id
+
+                    # Do not pass error: avoid duplicate messages
+                    return render_template(
+                        "login.html",
+                        locked_until=locked_until.isoformat()
+                    )
+
+                else:
+                    # Lock expired: reset failed attempts.
+                    # Keep lock_count for the next lock duration.
+                    cur.execute("""
+                        UPDATE users
+                        SET
+                            failed_login_attempts = 0,
+                            locked_until = NULL
+                        WHERE id = %s
+                    """, (user_id,))
+
+                    failed_attempts = 0
+
+            # --------------------------------------------------
+            # 4. Verify password
+            # --------------------------------------------------
+            password_valid = check_password_hash(
+                password_hash,
+                password
             )
 
+            if not password_valid or not is_active:
+
+                failed_attempts += 1
+
+                # --------------------------------------------------
+                # 5. Lock after 5 failed attempts
+                # --------------------------------------------------
+                if failed_attempts >= 5:
+
+                    new_lock_count = lock_count + 1
+
+                    # Increasing lock duration
+                    lock_durations = {
+                        1: 1,
+                        2: 3,
+                        3: 10,
+                        4: 30
+                    }
+
+                    lock_minutes = lock_durations.get(
+                        new_lock_count,
+                        60
+                    )
+
+                    cur.execute("""
+                        UPDATE users
+                        SET
+                            failed_login_attempts = 0,
+                            lock_count = %s,
+                            locked_until = NOW() + (
+                                %s * INTERVAL '1 minute'
+                            )
+                        WHERE id = %s
+                        RETURNING locked_until
+                    """, (
+                        new_lock_count,
+                        lock_minutes,
+                        user_id
+                    ))
+
+                    lock_result = cur.fetchone()
+                    locked_until = lock_result[0]
+
+                    conn.commit()
+
+                    session["login_lock_user_id"] = user_id
+
+                    # Only countdown message will be shown
+                    return render_template(
+                        "login.html",
+                        locked_until=locked_until.isoformat()
+                    )
+
+                # --------------------------------------------------
+                # 6. Save failed attempt
+                # --------------------------------------------------
+                cur.execute("""
+                    UPDATE users
+                    SET failed_login_attempts = %s
+                    WHERE id = %s
+                """, (failed_attempts, user_id))
+
+                conn.commit()
+
+                remaining_attempts = 5 - failed_attempts
+
+                return render_template(
+                    "login.html",
+                    error=(
+                        "Invalid employee code or password. "
+                        f"{remaining_attempts} attempt(s) remaining."
+                    )
+                )
+
+            # --------------------------------------------------
+            # 7. Successful login: reset counters
+            # --------------------------------------------------
+            cur.execute("""
+                UPDATE users
+                SET
+                    failed_login_attempts = 0,
+                    locked_until = NULL,
+                    lock_count = 0
+                WHERE id = %s
+            """, (user_id,))
+
+            conn.commit()
+
+        # --------------------------------------------------
+        # 8. Create authenticated session
+        # --------------------------------------------------
         session.clear()
+
         session["user_id"] = user[0]
         session["user_name"] = user[1]
         session["employee_code"] = user[2]
@@ -125,7 +332,6 @@ def login():
 
     finally:
         conn.close()
-
 
 # State pages and the corresponding database statuses.
 STAGE_CONFIG = {
