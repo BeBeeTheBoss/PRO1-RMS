@@ -8237,7 +8237,7 @@ def export_records():
 OLLAMA_URL = "http://127.0.0.1:11434/api/chat"
 
 # Use the model that is actually installed in Ollama.
-OLLAMA_MODEL = "llama3.1:8b"
+OLLAMA_MODEL = "gemma4:e2b"
 
 MAX_CV_BYTES = 10 * 1024 * 1024
 
