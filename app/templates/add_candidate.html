@@ -1068,16 +1068,6 @@
                                     value="{{ auto_form_data.get('nrc', '') if auto_form_data else '' }}">
                             </div>
 
-                            <div class="field" data-field="position">
-                                <label for="auto_position">
-                                    Position <span class="required">*</span>
-                                </label>
-                                <input id="auto_position" name="position" type="text" maxlength="150" required
-                                    placeholder="Enter position"
-                                    value="{{ auto_form_data.get('position', '') if auto_form_data else '' }}">
-                                <p class="hint">Position applied for</p>
-                            </div>
-
                             <div class="field" data-field="channel">
                                 <label for="auto_channel">
                                     Channel <span class="required">*</span>
@@ -1128,7 +1118,23 @@
                                 <p class="hint">No active departments found. Add or activate a department first.</p>
                                 {% endif %}
                             </div>
+                            <div class="field" data-field="position">
+                                <label for="auto_position_id">
+                                    Position <span class="required">*</span>
+                                </label>
 
+                                <select id="auto_position_id" name="position_id" required>
+                                    <option value="">Select position</option>
+
+                                    {% for position in positions %}
+                                    <option
+                                        value="{{ position.id }}"
+                                        data-department-id="{{ position.department_id }}">
+                                        {{ position.position_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                             <div class="field" data-field="cv_file">
                                 <label for="auto_cv_file">
                                     CV / Resume <span class="required">*</span>
@@ -1222,8 +1228,8 @@
                                 <label for="manual_phone">
                                     Phone number <span class="required">*</span>
                                 </label>
-                                <input id="manual_phone" name="phone" type="tel" maxlength="30" required inputmode="tel"
-                                    pattern="[+0-9()\- ]{7,30}" placeholder="09xxxxxxxxx"
+                                <input id="manual_phone" name="phone" type="tel" maxlength="15" required inputmode="tel"
+                                    pattern="[+0-9()\- ]{7,15}" placeholder="09xxxxxxxxx"
                                     value="{{ manual_form_data.get('phone', '') if manual_form_data else '' }}">
                                 <p class="hint">Use 7–15 digits; country code is allowed.</p>
                             </div>
@@ -1242,15 +1248,6 @@
                                 <input id="manual_nrc" name="nrc" type="text" maxlength="50"
                                     placeholder="Enter NRC number"
                                     value="{{ manual_form_data.get('nrc', '') if manual_form_data else '' }}">
-                            </div>
-
-                            <div class="field">
-                                <label for="manual_position">
-                                    Position <span class="required">*</span>
-                                </label>
-                                <input id="manual_position" name="position" type="text" maxlength="150" required
-                                    placeholder="Enter position"
-                                    value="{{ manual_form_data.get('position', '') if manual_form_data else '' }}">
                             </div>
 
                             <div class="field">
@@ -1301,6 +1298,23 @@
                                 {% endif %}
                             </div>
 
+                            <div class="field" data-field="position">
+                                <label for="manual_position_id">
+                                    Position <span class="required">*</span>
+                                </label>
+
+                                <select id="manual_position_id" name="position_id" required>
+                                    <option value="">Select position</option>
+
+                                    {% for position in positions %}
+                                    <option
+                                        value="{{ position.id }}"
+                                        data-department-id="{{ position.department_id }}">
+                                        {{ position.position_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                             <div class="field">
                                 <label for="manual_cv_file">
                                     CV / Resume <span class="required">*</span>
@@ -1665,7 +1679,6 @@
                 'phone',
                 'email',
                 'nrc',
-                'position',
                 'address'
             ].forEach(key => {
                 if (setFormField(autoForm, key, fields[key])) {
@@ -1683,7 +1696,6 @@
                     'phone',
                     'email',
                     'nrc',
-                    'position',
                     'address'
                 ].forEach(key => {
                     autoForm.querySelector(
@@ -2054,6 +2066,96 @@
             'manual_branch_id',
             'manual_department_id',
             manualSelectedDepartment
+        );
+
+        function setupDepartmentPosition(
+            branchSelectId,
+            departmentSelectId,
+            positionSelectId
+        ) {
+            const branchSelect = document.getElementById(branchSelectId);
+            const departmentSelect = document.getElementById(departmentSelectId);
+            const positionSelect = document.getElementById(positionSelectId);
+
+            if (!branchSelect || !departmentSelect || !positionSelect) {
+                return;
+            }
+
+            const originalOptions = Array.from(positionSelect.options).map(option => ({
+                value: option.value,
+                text: option.textContent,
+                departmentId: option.dataset.departmentId || ''
+            }));
+
+            function filterPositions(resetSelection = true) {
+                const selectedDepartmentId = departmentSelect.value;
+                const previousPosition = resetSelection
+                    ? ''
+                    : positionSelect.value;
+
+                positionSelect.innerHTML = '';
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+
+                if (!selectedDepartmentId) {
+                    defaultOption.textContent = 'Select department first';
+                    positionSelect.appendChild(defaultOption);
+                    positionSelect.disabled = true;
+                    return;
+                }
+
+                defaultOption.textContent = 'Select position';
+                positionSelect.appendChild(defaultOption);
+
+                const filteredPositions = originalOptions.filter(position =>
+                    position.value !== '' &&
+                    String(position.departmentId) === String(selectedDepartmentId)
+                );
+
+                filteredPositions.forEach(position => {
+                    const option = document.createElement('option');
+
+                    option.value = position.value;
+                    option.textContent = position.text;
+                    option.dataset.departmentId = position.departmentId;
+
+                    if (String(position.value) === String(previousPosition)) {
+                        option.selected = true;
+                    }
+
+                    positionSelect.appendChild(option);
+                });
+
+                if (filteredPositions.length === 0) {
+                    defaultOption.textContent = 'No positions available';
+                    positionSelect.disabled = true;
+                } else {
+                    positionSelect.disabled = false;
+                }
+            }
+
+            departmentSelect.addEventListener('change', function () {
+                filterPositions(true);
+            });
+
+            branchSelect.addEventListener('change', function () {
+                filterPositions(true);
+            });
+
+            filterPositions(false);
+        }
+
+        setupDepartmentPosition(
+            'auto_branch_id',
+            'auto_department_id',
+            'auto_position_id'
+        );
+
+        setupDepartmentPosition(
+            'manual_branch_id',
+            'manual_department_id',
+            'manual_position_id'
         );
 
         // -----------------------------------------
@@ -2704,7 +2806,7 @@
                 { keys: ['phone'], selector: 'input[name="phone"]' },
                 { keys: ['email'], selector: 'input[name="email"]' },
                 { keys: ['nrc'], selector: 'input[name="nrc"]' },
-                { keys: ['position'], selector: 'input[name="position"]' },
+                { keys: ['position'], selector: 'select[name="position_id"]' },
                 { keys: ['channel'], selector: 'input[name="channel"]' },
                 { keys: ['cv', 'resume'], selector: 'input[name="cv_file"]' },
                 { keys: ['address'], selector: 'textarea[name="address"]' },

@@ -385,7 +385,7 @@
             </h3>
 
             <div class="ec-muted">
-                Candidate #{{ candidate.id }} · Current status:
+                Candidate {{ candidate.id }} · Current status:
                 <strong>
                     {{ candidate.status|replace('_',' ')|title }}
                 </strong>.
@@ -513,16 +513,29 @@
                             Position <span class="ec-required">*</span>
                         </label>
 
-                        <input id="position"
-                            name="position"
-                            type="text"
-                            maxlength="150"
-                            required
-                            placeholder="Enter candidate position"
-                            value="{{ candidate.position or '' }}">
+                        <select id="position"
+                                name="position"
+                                data-current-position="{{ candidate.position or '' }}"
+                                required>
+
+                            <option value="">Select position</option>
+
+                            {% for position in positions %}
+                            <option
+                                value="{{ position.position_name }}"
+                                data-department-id="{{ position.department_id }}"
+                                {% if position.department_id|string == candidate.department_id|string
+                                    and position.position_name == candidate.position %}selected{% endif %}>
+
+                                {{ position.position_name }}
+
+                            </option>
+                            {% endfor %}
+
+                        </select>
 
                         <p class="ec-hint">
-                            Position applied for by the candidate is required.
+                            Select the candidate's position.
                         </p>
                     </div>
 
@@ -624,72 +637,168 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const branchSelect = document.getElementById("branch_id");
     const departmentSelect = document.getElementById("department_id");
+    const positionSelect = document.getElementById("position");
     const phoneInput = document.getElementById("phone");
 
     // ------------------------------------------
-    // Branch + Department filtering
+    // Store original options before filtering
     // ------------------------------------------
-    if (branchSelect && departmentSelect) {
 
-        const allDepartmentOptions = Array.from(
-            departmentSelect.querySelectorAll("option[data-branch-id]")
-        );
+    const allDepartmentOptions = Array.from(
+        departmentSelect.querySelectorAll("option[data-branch-id]")
+    );
 
-        function filterDepartments(resetSelection = false) {
+    const allPositionOptions = Array.from(
+        positionSelect.querySelectorAll("option[data-department-id]")
+    );
 
-            const selectedBranch = branchSelect.value;
-            const previousDepartment = departmentSelect.value;
+    // Save original candidate values
+    const originalDepartment = departmentSelect.value;
+    const originalPosition = positionSelect.dataset.currentPosition || "";
 
-            departmentSelect.innerHTML = "";
+    // ------------------------------------------
+    // Branch -> Department filtering
+    // ------------------------------------------
 
-            const placeholder = document.createElement("option");
+    function filterDepartments(resetSelection = false) {
 
-            placeholder.value = "";
-            placeholder.textContent = selectedBranch
-                ? "Select department"
-                : "Select branch first";
+        const selectedBranch = branchSelect.value;
 
-            departmentSelect.appendChild(placeholder);
+        const previousDepartment = resetSelection
+            ? ""
+            : departmentSelect.value;
 
-            let departmentExists = false;
+        departmentSelect.innerHTML = "";
 
-            allDepartmentOptions.forEach(function (option) {
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = selectedBranch
+            ? "Select department"
+            : "Select branch first";
 
-                if (option.dataset.branchId === selectedBranch) {
+        departmentSelect.appendChild(placeholder);
 
-                    const clonedOption = option.cloneNode(true);
+        let departmentExists = false;
 
-                    if (
-                        !resetSelection &&
-                        clonedOption.value === previousDepartment
-                    ) {
-                        clonedOption.selected = true;
-                        departmentExists = true;
-                    }
+        allDepartmentOptions.forEach(function (option) {
 
-                    departmentSelect.appendChild(clonedOption);
+            if (String(option.dataset.branchId) === String(selectedBranch)) {
+
+                const clonedOption = option.cloneNode(true);
+
+                departmentSelect.appendChild(clonedOption);
+
+                if (
+                    previousDepartment &&
+                    String(clonedOption.value) === String(previousDepartment)
+                ) {
+                    clonedOption.selected = true;
+                    departmentExists = true;
                 }
-            });
-
-            if (!departmentExists) {
-                departmentSelect.value = "";
             }
+        });
 
-            departmentSelect.disabled = !selectedBranch;
+        if (!departmentExists) {
+            departmentSelect.value = "";
         }
 
-        // Initial load
-        filterDepartments(false);
-
-        // Branch change
-        branchSelect.addEventListener("change", function () {
-            filterDepartments(true);
-        });
+        departmentSelect.disabled = !selectedBranch;
     }
+
+    // ------------------------------------------
+    // Department -> Position filtering
+    // ------------------------------------------
+
+    function filterPositions(resetSelection = false) {
+
+        const selectedDepartment = departmentSelect.value;
+
+        const previousPosition = resetSelection
+            ? ""
+            : (positionSelect.value || originalPosition);
+
+        positionSelect.innerHTML = "";
+
+        const placeholder = document.createElement("option");
+
+        placeholder.value = "";
+        placeholder.textContent = selectedDepartment
+            ? "Select position"
+            : "Select department first";
+
+        positionSelect.appendChild(placeholder);
+
+        let positionExists = false;
+
+        allPositionOptions.forEach(function (option) {
+
+            if (
+                String(option.dataset.departmentId) ===
+                String(selectedDepartment)
+            ) {
+
+                const clonedOption = option.cloneNode(true);
+
+                positionSelect.appendChild(clonedOption);
+
+                if (
+                    previousPosition &&
+                    clonedOption.value === previousPosition
+                ) {
+                    clonedOption.selected = true;
+                    positionExists = true;
+                }
+            }
+        });
+
+        if (!positionExists) {
+            positionSelect.value = "";
+        }
+
+        positionSelect.disabled = !selectedDepartment;
+    }
+
+    // ------------------------------------------
+    // Initial page load
+    // ------------------------------------------
+
+    filterDepartments(false);
+
+    // Restore original department if available
+    if (
+        originalDepartment &&
+        departmentSelect.value !== originalDepartment
+    ) {
+        departmentSelect.value = originalDepartment;
+    }
+
+    filterPositions(false);
+
+    // ------------------------------------------
+    // Branch change
+    // ------------------------------------------
+
+    branchSelect.addEventListener("change", function () {
+
+        filterDepartments(true);
+
+        // Clear old position when branch changes
+        filterPositions(true);
+    });
+
+    // ------------------------------------------
+    // Department change
+    // ------------------------------------------
+
+    departmentSelect.addEventListener("change", function () {
+
+        filterPositions(true);
+    });
 
     // ------------------------------------------
     // Phone validation
     // ------------------------------------------
+
     if (phoneInput) {
 
         phoneInput.addEventListener("input", function () {

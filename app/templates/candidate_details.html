@@ -925,7 +925,7 @@ endblock %} {% block extra_css %}
               <div class="label">Created Date</div>
 
               <div class="value">
-                {{ candidate.created_at.strftime( '%d %B %Y, %I:%M %p' ) if
+                {{ candidate.created_at.strftime( '%d %B %Y' ) if
                 candidate.created_at else '—' }}
               </div>
             </div>
@@ -936,7 +936,7 @@ endblock %} {% block extra_css %}
                 <div class="label">Joined Date</div>
 
                 <div class="value">
-                    {{ candidate.joined_date.strftime('%d %B %Y, %I:%M %p')
+                    {{ candidate.joined_date.strftime('%d %B %Y')
                       if candidate.joined_date else '—' }}
                 </div>
             </div>
@@ -945,7 +945,7 @@ endblock %} {% block extra_css %}
                 <div class="label">Resigned Date</div>
 
                 <div class="value">
-                    {{ candidate.resigned_date.strftime('%d %B %Y, %I:%M %p')
+                    {{ candidate.resigned_date.strftime('%d %B %Y')
                       if candidate.resigned_date else '—' }}
                 </div>
             </div>
@@ -956,7 +956,7 @@ endblock %} {% block extra_css %}
               <div class="label">Last Updated</div>
 
               <div class="value">
-                {{ candidate.updated_at.strftime( '%d %B %Y, %I:%M %p' ) if
+                {{ candidate.updated_at.strftime( '%d %B %Y' ) if
                 candidate.updated_at else '—' }}
               </div>
             </div>

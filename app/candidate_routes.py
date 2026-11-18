@@ -752,6 +752,11 @@ def render_add_candidate_form(
 # URL: /candidates/add (POST)
 # --------------------------------------------------
 
+
+# ======================================================
+# POST: ADD CANDIDATE
+# ======================================================
+
 @candidate_bp.route("/candidates/add", methods=["POST"])
 @login_required
 def add_candidate():
@@ -784,6 +789,67 @@ def add_candidate():
     user_id = session.get("user_id")
 
     # --------------------------------------------------
+    # 2. Read submitted information
+    # --------------------------------------------------
+
+    name = (request.form.get("name") or "").strip()
+    phone = (request.form.get("phone") or "").strip()
+    email = (request.form.get("email") or "").strip()
+
+    address = (
+        request.form.get("address") or ""
+    ).strip() or None
+
+    nrc = (
+        request.form.get("nrc") or ""
+    ).strip() or None
+
+    position_id_raw = (
+        request.form.get("position_id") or ""
+    ).strip()
+
+    channel = (request.form.get("channel") or "").strip()
+
+    additional_data = (
+        request.form.get("additional_data") or ""
+    ).strip() or None
+
+    department_id_raw = (
+        request.form.get("department_id") or ""
+    ).strip()
+
+    branch_id_raw = (
+        request.form.get("branch_id") or ""
+    ).strip()
+
+    cv_file = request.files.get("cv_file")
+    attachment_file = request.files.get("other_attachment")
+
+    errors = []
+    duplicate_candidates = []
+    duplicate_detected = False
+
+    department_id = None
+    branch_id = None
+    position_id = None
+    position_name = None
+
+    if not department_id_raw.isdigit() or int(department_id_raw) <= 0:
+        errors.append("Please select a valid department.")
+    else:
+        department_id = int(department_id_raw)
+
+    if not branch_id_raw.isdigit() or int(branch_id_raw) <= 0:
+        errors.append("Please select a valid branch.")
+    else:
+        branch_id = int(branch_id_raw)
+
+    if not position_id_raw.isdigit() or int(position_id_raw) <= 0:
+        errors.append("Please select a valid position.")
+    else:
+        position_id = int(position_id_raw)
+
+    # --------------------------------------------------
     # Helper: JSON response
     # --------------------------------------------------
 
@@ -805,7 +871,7 @@ def add_candidate():
         }), status
 
     # --------------------------------------------------
-    # Helper: Re-render form (normal non-AJAX request)
+    # Helper: Load form data for normal re-render
     # --------------------------------------------------
 
     def render_form(
@@ -818,6 +884,7 @@ def add_candidate():
         conn = get_connection()
 
         try:
+
             with conn.cursor() as cur:
 
                 departments = get_available_candidate_departments(
@@ -830,6 +897,8 @@ def add_candidate():
                     int(department["id"])
                     for department in departments
                 ]
+
+                department_branch_map = {}
 
                 if department_ids:
 
@@ -853,6 +922,29 @@ def add_candidate():
                                 int(department["id"])
                             )
                         )
+
+                    # Load positions for available departments
+                    cur.execute(
+                        """
+                        SELECT
+                            id,
+                            department_id,
+                            position_name
+                        FROM public.positions
+                        WHERE department_id = ANY(%s)
+                          AND is_active = TRUE
+                          AND deleted_at IS NULL
+                        ORDER BY position_name ASC
+                        """,
+                        (department_ids,)
+                    )
+
+                    positions = rows_as_dicts(cur)
+
+                else:
+                    positions = []
+
+                # Branches
 
                 if role == "super_admin":
 
@@ -897,6 +989,7 @@ def add_candidate():
                 "add_candidate.html",
                 departments=departments,
                 branches=branches,
+                positions=positions,
                 role=role,
                 form_mode=form_mode,
                 auto_form_data=auto_form_data,
@@ -911,62 +1004,7 @@ def add_candidate():
             conn.close()
 
     # --------------------------------------------------
-    # 2. Read submitted candidate information
-    # --------------------------------------------------
-
-    name = (request.form.get("name") or "").strip()
-    phone = (request.form.get("phone") or "").strip()
-    email = (request.form.get("email") or "").strip()
-
-    address = (
-        request.form.get("address") or ""
-    ).strip() or None
-
-    nrc = (
-        request.form.get("nrc") or ""
-    ).strip() or None
-
-    position = (request.form.get("position") or "").strip()
-    channel = (request.form.get("channel") or "").strip()
-
-    additional_data = (
-        request.form.get("additional_data") or ""
-    ).strip() or None
-
-    department_id_raw = (
-        request.form.get("department_id") or ""
-    ).strip()
-
-    branch_id_raw = (
-        request.form.get("branch_id") or ""
-    ).strip()
-
-    cv_file = request.files.get("cv_file")
-    attachment_file = request.files.get("other_attachment")
-
-    errors = []
-    duplicate_candidates = []
-    duplicate_detected = False
-
-    # --------------------------------------------------
-    # 3. Validate department and branch IDs
-    # --------------------------------------------------
-
-    department_id = None
-    branch_id = None
-
-    if not department_id_raw.isdigit() or int(department_id_raw) <= 0:
-        errors.append("Please select a valid department.")
-    else:
-        department_id = int(department_id_raw)
-
-    if not branch_id_raw.isdigit() or int(branch_id_raw) <= 0:
-        errors.append("Please select a valid branch.")
-    else:
-        branch_id = int(branch_id_raw)
-
-    # --------------------------------------------------
-    # 4. EARLY ADD PERMISSION CHECK
+    # 3. EARLY ADD PERMISSION CHECK
     # --------------------------------------------------
 
     if role != "super_admin":
@@ -974,6 +1012,7 @@ def add_candidate():
         permission_conn = None
 
         try:
+
             permission_conn = get_connection()
 
             with permission_conn.cursor() as cur:
@@ -1068,7 +1107,7 @@ def add_candidate():
                 permission_conn.close()
 
     # --------------------------------------------------
-    # 5. Validate candidate information
+    # 4. Validate candidate information
     # --------------------------------------------------
 
     if not name or len(name) > 150:
@@ -1095,18 +1134,16 @@ def add_candidate():
             "Additional information must be 10,000 characters or fewer."
         )
 
-    if not position:
-        errors.append("Position is required.")
-    elif len(position) > 150:
-        errors.append("Position must be 150 characters or fewer.")
-
     if not channel:
         errors.append("Channel is required.")
     elif len(channel) > 100:
         errors.append("Channel must be 100 characters or fewer.")
 
+    if position_id is None:
+        errors.append("Please select a position.")
+
     # --------------------------------------------------
-    # 6. Validate assigned department
+    # 5. Validate assigned department
     # --------------------------------------------------
 
     available_departments = get_available_candidate_departments(
@@ -1131,14 +1168,14 @@ def add_candidate():
             )
 
     # --------------------------------------------------
-    # 7. Validate CV file
+    # 6. Validate CV file
     # --------------------------------------------------
 
     if not cv_file or not cv_file.filename:
         errors.append("Please select a CV / resume file.")
 
     # --------------------------------------------------
-    # 8. Return validation errors
+    # 7. Return validation errors
     # --------------------------------------------------
 
     if errors:
@@ -1153,7 +1190,7 @@ def add_candidate():
         return render_form(errors=errors)
 
     # --------------------------------------------------
-    # 9. Prepare upload and database variables
+    # 8. Prepare upload and database variables
     # --------------------------------------------------
 
     uploaded_paths = []
@@ -1315,9 +1352,9 @@ def add_candidate():
         email_exists = bool(duplicate_row[1])
 
         return phone_exists, email_exists
-    
+
     # --------------------------------------------------
-    # 10. Validate and insert candidate
+    # 9. Validate and insert candidate
     # --------------------------------------------------
 
     try:
@@ -1327,7 +1364,7 @@ def add_candidate():
         with conn.cursor() as cur:
 
             # ------------------------------------------
-            # 10.1 Confirm selected department and branch
+            # 9.1 Confirm selected department and branch
             # ------------------------------------------
 
             cur.execute(
@@ -1351,7 +1388,7 @@ def add_candidate():
                 )
 
             # ------------------------------------------
-            # 10.2 Confirm branch is active
+            # 9.2 Confirm branch is active
             # ------------------------------------------
 
             cur.execute(
@@ -1370,7 +1407,7 @@ def add_candidate():
                 )
 
             # ------------------------------------------
-            # 10.3 Final Add Permission Check
+            # 9.3 Final Add Permission Check
             # ------------------------------------------
 
             if role != "super_admin":
@@ -1399,7 +1436,39 @@ def add_candidate():
                     )
 
             # ------------------------------------------
-            # 10.4 Check duplicate phone and email
+            # 9.4 Validate selected position
+            # ------------------------------------------
+
+            cur.execute(
+                """
+                SELECT
+                    id,
+                    position_name
+                FROM public.positions
+                WHERE id = %s
+                  AND department_id = %s
+                  AND is_active = TRUE
+                  AND deleted_at IS NULL
+                LIMIT 1
+                """,
+                (
+                    position_id,
+                    department_id,
+                )
+            )
+
+            position_row = cur.fetchone()
+
+            if position_row is None:
+                raise ValueError(
+                    "Selected position does not belong to the selected department "
+                    "or the position is inactive."
+                )
+
+            position_name = position_row[1]
+
+            # ------------------------------------------
+            # 9.5 Check duplicate phone and email
             # ------------------------------------------
 
             phone_exists, email_exists = (
@@ -1430,7 +1499,7 @@ def add_candidate():
                     )
 
             # ------------------------------------------
-            # 10.5 Save files AFTER duplicate check
+            # 9.6 Save files AFTER duplicate check
             # ------------------------------------------
 
             cv_path = save_upload(cv_file, "cv")
@@ -1446,11 +1515,7 @@ def add_candidate():
                 uploaded_paths.append(attachment_path)
 
             # ------------------------------------------
-            # 10.6 Insert candidate
-            # ------------------------------------------
-
-            # ------------------------------------------
-            # 10.6 Insert candidate
+            # 9.7 Insert candidate
             # ------------------------------------------
 
             cur.execute(
@@ -1462,6 +1527,7 @@ def add_candidate():
                     address,
                     nrc,
                     position,
+                    position_id,
                     channel,
                     additional_data,
                     department_id,
@@ -1475,7 +1541,8 @@ def add_candidate():
                 VALUES (
                     %s, %s, %s, %s, %s,
                     %s, %s, %s, %s, %s,
-                    %s, %s, 'applied', %s, %s
+                    %s, %s, %s,
+                    'applied', %s, %s
                 )
                 RETURNING id
                 """,
@@ -1485,7 +1552,8 @@ def add_candidate():
                     email,
                     address,
                     nrc,
-                    position,
+                    position_name,
+                    position_id,
                     channel,
                     additional_data,
                     department_id,
@@ -1500,7 +1568,7 @@ def add_candidate():
             new_id = cur.fetchone()[0]
 
             # ------------------------------------------
-            # 10.7 Save initial status history
+            # 9.8 Save initial status history
             # ------------------------------------------
 
             record_status_history(
@@ -1542,7 +1610,7 @@ def add_candidate():
         )
 
     # --------------------------------------------------
-    # 11. Handle permission denied
+    # 10. Handle permission denied
     # --------------------------------------------------
 
     except PermissionError as exc:
@@ -1571,7 +1639,7 @@ def add_candidate():
         ), 403
 
     # --------------------------------------------------
-    # 12. Handle validation / business errors
+    # 11. Handle validation / business errors
     # --------------------------------------------------
 
     except ValueError as exc:
@@ -1582,7 +1650,7 @@ def add_candidate():
         errors.append(str(exc))
 
     # --------------------------------------------------
-    # 13. Handle database and unexpected errors
+    # 12. Handle database and unexpected errors
     # --------------------------------------------------
 
     except Exception as exc:
@@ -1672,7 +1740,7 @@ def add_candidate():
             )
 
     # --------------------------------------------------
-    # 14. Close database and clean up uploaded files
+    # 13. Close database and clean up uploaded files
     # --------------------------------------------------
 
     finally:
@@ -1694,7 +1762,7 @@ def add_candidate():
                     )
 
     # --------------------------------------------------
-    # 15. Return AJAX duplicate / error response
+    # 14. Return AJAX duplicate / error response
     # --------------------------------------------------
 
     if is_ajax:
@@ -1714,7 +1782,7 @@ def add_candidate():
         )
 
     # --------------------------------------------------
-    # 16. Normal non-AJAX form response
+    # 15. Normal non-AJAX form response
     # --------------------------------------------------
 
     return render_form(
@@ -1783,8 +1851,32 @@ def add_candidate_page():
                         )
                     )
 
+                # --------------------------------------
+                # 3. Get positions for available departments
+                # --------------------------------------
+
+                cur.execute(
+                    """
+                    SELECT
+                        id,
+                        department_id,
+                        position_name
+                    FROM public.positions
+                    WHERE department_id = ANY(%s)
+                      AND is_active = TRUE
+                      AND deleted_at IS NULL
+                    ORDER BY position_name ASC
+                    """,
+                    (department_ids,)
+                )
+
+                positions = rows_as_dicts(cur)
+
+            else:
+                positions = []
+
             # ------------------------------------------
-            # 3. Get branches
+            # 4. Get branches
             # ------------------------------------------
 
             if role == "super_admin":
@@ -1827,7 +1919,7 @@ def add_candidate_page():
                     branches = []
 
             # ------------------------------------------
-            # 4. Check Add Candidate Permission
+            # 5. Check Add Candidate Permission
             # ------------------------------------------
 
             permission_denied = False
@@ -1862,6 +1954,7 @@ def add_candidate_page():
             "add_candidate.html",
             departments=departments,
             branches=branches,
+            positions=positions,
             role=role,
             form_mode="auto",
             auto_form_data={},
@@ -5285,11 +5378,30 @@ def edit_candidate(candidate_id):
 
                 branches = rows_as_dicts(cur)
 
+                # --------------------------------------
+                # Load active positions
+                # --------------------------------------
+                cur.execute(
+                    """
+                    SELECT
+                        p.id,
+                        p.department_id,
+                        p.position_name
+                    FROM public.positions p
+                    WHERE p.is_active = TRUE
+                    AND p.deleted_at IS NULL
+                    ORDER BY p.position_name
+                    """
+                )
+
+                positions = rows_as_dicts(cur)
+                
                 return render_template(
                     "edit_candidate.html",
                     candidate=candidate,
                     departments=departments,
                     branches=branches,
+                    positions=positions,
                     permission_denied=False,
                 )
 
