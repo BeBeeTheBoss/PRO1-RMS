@@ -686,10 +686,11 @@
 
             <div class="form-grid">
 
+                <!-- Department -->
                 <div class="field">
                     <label>Department</label>
 
-                    <select disabled>
+                    <select id="departmentSelect" disabled>
                         {% for department in departments %}
                         <option
                             value="{{ department.id }}"
@@ -710,18 +711,35 @@
                     </small>
                 </div>
 
+                <!-- Sub Department -->
                 <div class="field">
-                    <label>Sub Department / Category <span>*</span></label>
+                    <label>
+                        Sub Department / Category <span>*</span>
+                    </label>
+
+                    <select
+                        id="subDepartmentSelect"
+                        disabled
+                        data-original-value="{{ exam_set.sub_department or '' }}">
+
+                        <option value="{{ exam_set.sub_department or '' }}" selected>
+                            {{ exam_set.sub_department or 'No sub department' }}
+                        </option>
+
+                    </select>
 
                     <input
-                        type="text"
+                        type="hidden"
                         name="sub_department"
-                        maxlength="150"
-                        required
-                        value="{{ exam_set.sub_department or '' }}"
-                        placeholder="Enter category">
+                        value="{{ exam_set.sub_department or '' }}">
+
+                    <small class="department-note">
+                        <i class="fa-solid fa-lock"></i>
+                        Sub Department cannot be changed after creating the question bank.
+                    </small>
                 </div>
 
+                <!-- Exam Title -->
                 <div class="field full">
                     <label>Exam Title <span>*</span></label>
 
@@ -734,6 +752,7 @@
                         placeholder="Enter exam title">
                 </div>
 
+                <!-- Description -->
                 <div class="field full">
                     <label>Description</label>
 
@@ -797,7 +816,7 @@
                     Back
                 </a>
 
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary" id="updateQuestionBankBtn">
                     <i class="fa-solid fa-floppy-disk"></i>
                     Update Question Bank
                 </button>
@@ -815,10 +834,44 @@
 
 
 {% block extra_js %}
+
 <script>
+
+// ==================================================
+// 1. DEPARTMENT & SUB DEPARTMENT LOCK
+// ==================================================
+
+const departmentSelect = document.getElementById('departmentSelect');
+const subDepartmentSelect = document.getElementById('subDepartmentSelect');
+
+const originalSubDepartment = subDepartmentSelect
+    ? subDepartmentSelect.dataset.originalValue || ''
+    : '';
+
+// Keep Department disabled
+if (departmentSelect) {
+    departmentSelect.disabled = true;
+}
+
+// Keep Sub Department disabled
+if (subDepartmentSelect) {
+    subDepartmentSelect.disabled = true;
+}
+
+
+// ==================================================
+// 2. QUESTION COUNTER
+// ==================================================
+
 let questionCounter = 0;
 
+
+// ==================================================
+// 3. ADD QUESTION
+// ==================================================
+
 function addQuestion(existing = null) {
+
     questionCounter++;
 
     const number = questionCounter;
@@ -826,12 +879,14 @@ function addQuestion(existing = null) {
 
     card.className = 'question-card';
 
-    const options = existing?.options || [
-        { label: 'A', text: '' },
-        { label: 'B', text: '' },
-        { label: 'C', text: '' },
-        { label: 'D', text: '' }
-    ];
+    const options = Array.isArray(existing?.options)
+        ? existing.options
+        : [
+            { label: 'A', text: '' },
+            { label: 'B', text: '' },
+            { label: 'C', text: '' },
+            { label: 'D', text: '' }
+        ];
 
     const correct = Number(existing?.correct_option ?? 0);
 
@@ -902,41 +957,143 @@ function addQuestion(existing = null) {
         existing?.question || '';
 
     card.querySelectorAll('.option-text').forEach((input, i) => {
+
         const option = options[i];
 
-        input.value = typeof option === 'object' && option !== null
+        input.value = (
+            typeof option === 'object' && option !== null
+        )
             ? (option.text || '')
             : (option || '');
+
     });
 
     document.getElementById('questionsContainer').appendChild(card);
 }
 
 
+// ==================================================
+// 4. REMOVE QUESTION
+// ==================================================
+
 function removeQuestion(button) {
-    button.closest('.question-card').remove();
+
+    const card = button.closest('.question-card');
+
+    if (card) {
+        card.remove();
+    }
+
     renumberQuestions();
 }
 
 
+// ==================================================
+// 5. RENUMBER QUESTIONS
+// ==================================================
+
 function renumberQuestions() {
+
     document.querySelectorAll('.question-card').forEach((card, index) => {
+
         card.querySelector('.question-number').innerHTML = `
             <i class="fa-solid fa-hashtag"></i>
             Question ${index + 1}
         `;
+
     });
 }
 
 
-// Validate and prepare questions before submitting
-document.getElementById('questionForm').addEventListener('submit', function(e) {
+// ==================================================
+// 6. LOAD EXISTING QUESTIONS
+// ==================================================
 
-    const cards = [...document.querySelectorAll('.question-card')];
+const questionsDataElement = document.getElementById(
+    'existingQuestionsData'
+);
+
+let existingQuestions = [];
+
+try {
+
+    existingQuestions = JSON.parse(
+        questionsDataElement.textContent
+    );
+
+} catch (error) {
+
+    console.error('Unable to load existing questions:', error);
+
+}
+
+
+if (Array.isArray(existingQuestions) && existingQuestions.length > 0) {
+
+    existingQuestions.forEach(q => {
+
+        addQuestion({
+            question: q.question_text || '',
+            options: q.options || [],
+            correct_option: q.correct_option ?? 0
+        });
+
+    });
+
+} else {
+
+    addQuestion();
+
+}
+
+
+// ==================================================
+// 7. FORM VALIDATION & SUBMISSION
+// ==================================================
+
+const questionForm = document.getElementById('questionForm');
+
+const updateQuestionBankBtn = document.getElementById(
+    'updateQuestionBankBtn'
+);
+
+let isSubmitting = false;
+
+questionForm.addEventListener('submit', function (e) {
+
+    if (isSubmitting) {
+        e.preventDefault();
+        return;
+    }
+
+    // Validate Sub Department
+    // Keep the original validation unchanged.
+    if (
+        !subDepartmentSelect ||
+        subDepartmentSelect.disabled ||
+        !subDepartmentSelect.value
+    ) {
+
+        e.preventDefault();
+
+        alert('Please select a valid Sub Department.');
+
+        subDepartmentSelect?.focus();
+
+        return;
+    }
+
+    // Collect question cards
+    const cards = [
+        ...document.querySelectorAll('.question-card')
+    ];
 
     if (!cards.length) {
+
         e.preventDefault();
+
         alert('Please add at least one question.');
+
         return;
     }
 
@@ -944,21 +1101,31 @@ document.getElementById('questionForm').addEventListener('submit', function(e) {
 
     for (const card of cards) {
 
-        const question = card.querySelector('.question-text').value.trim();
+        const question = card.querySelector(
+            '.question-text'
+        ).value.trim();
 
-        const options = [...card.querySelectorAll('.option-text')]
-            .map(input => input.value.trim());
+        const options = [
+            ...card.querySelectorAll('.option-text')
+        ].map(input => input.value.trim());
 
-        const correct = card.querySelector('input[type=radio]:checked');
+        const correct = card.querySelector(
+            'input[type="radio"]:checked'
+        );
 
         if (
             !question ||
             options.length !== 4 ||
-            options.some(x => !x) ||
+            options.some(option => !option) ||
             !correct
         ) {
+
             e.preventDefault();
-            alert('Please complete every question and all four options.');
+
+            alert(
+                'Please complete every question and all four options, then select one correct answer.'
+            );
+
             return;
         }
 
@@ -967,38 +1134,25 @@ document.getElementById('questionForm').addEventListener('submit', function(e) {
             options: options,
             correct_option: parseInt(correct.value, 10)
         });
+
     }
 
+    // Prepare JSON for Flask
     document.getElementById('questions_json').value =
         JSON.stringify(questions);
+
+    // Prevent double submission
+    isSubmitting = true;
+
+    updateQuestionBankBtn.disabled = true;
+
+    updateQuestionBankBtn.innerHTML = `
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Updating Question Bank...
+    `;
+
 });
 
-
-// Load original database questions
-const questionsDataElement = document.getElementById('existingQuestionsData');
-
-let existingQuestions = [];
-
-try {
-    existingQuestions = JSON.parse(
-        questionsDataElement.textContent
-    );
-} catch (error) {
-    console.error('Unable to load existing questions:', error);
-}
-
-if (Array.isArray(existingQuestions) && existingQuestions.length > 0) {
-
-    existingQuestions.forEach(q => {
-        addQuestion({
-            question: q.question_text || '',
-            options: q.options || [],
-            correct_option: q.correct_option ?? 0
-        });
-    });
-
-} else {
-    addQuestion();
-}
 </script>
+
 {% endblock %}

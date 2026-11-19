@@ -166,31 +166,80 @@ def _finalize_assignment(conn, cur, assignment):
     return cur.fetchone()
 
 
+
 def _load_exam_sets(cur, department_id=None):
+
     if department_id:
+
         cur.execute("""
-            SELECT es.*, d.name AS department_name,
-                   COUNT(eq.id)::int AS question_count
+            SELECT
+                es.*,
+                d.name AS department_name,
+                sd.sub_department_name,
+                COUNT(eq.id)::int AS question_count
+
             FROM exam_sets es
-            JOIN departments d ON d.id = es.department_id
-            LEFT JOIN exam_questions eq ON eq.exam_set_id = es.id
+
+            JOIN departments d
+                ON d.id = es.department_id
+
+            JOIN sub_departments sd
+                ON sd.id = es.sub_department_id
+
+            LEFT JOIN exam_questions eq
+                ON eq.exam_set_id = es.id
+
             WHERE es.deleted_at IS NULL
               AND es.department_id = %s
-            GROUP BY es.id, d.name
-            ORDER BY es.created_at DESC
+              AND sd.is_active = TRUE
+              AND sd.deleted_at IS NULL
+
+            GROUP BY
+                es.id,
+                d.name,
+                sd.sub_department_name
+
+            ORDER BY
+                es.created_at DESC
+
         """, (department_id,))
+
     else:
+
         cur.execute("""
-            SELECT es.*, d.name AS department_name,
-                   COUNT(eq.id)::int AS question_count
+            SELECT
+                es.*,
+                d.name AS department_name,
+                sd.sub_department_name,
+                COUNT(eq.id)::int AS question_count
+
             FROM exam_sets es
-            JOIN departments d ON d.id = es.department_id
-            LEFT JOIN exam_questions eq ON eq.exam_set_id = es.id
+
+            JOIN departments d
+                ON d.id = es.department_id
+
+            JOIN sub_departments sd
+                ON sd.id = es.sub_department_id
+
+            LEFT JOIN exam_questions eq
+                ON eq.exam_set_id = es.id
+
             WHERE es.deleted_at IS NULL
-            GROUP BY es.id, d.name
-            ORDER BY es.created_at DESC
+              AND sd.is_active = TRUE
+              AND sd.deleted_at IS NULL
+
+            GROUP BY
+                es.id,
+                d.name,
+                sd.sub_department_name
+
+            ORDER BY
+                es.created_at DESC
+
         """)
+
     return cur.fetchall()
+
 
 @exam_bp.route("/exams")
 def exam_list():
@@ -330,6 +379,7 @@ def exam_list():
         conn.close()
 
 
+
 @exam_bp.route("/exams/create", methods=["GET", "POST"])
 @super_admin_required
 def exam_create():
@@ -344,7 +394,7 @@ def exam_create():
         dept_scope = _scope_department()
 
         # -------------------------------------------------
-        # LOAD UNIQUE DEPARTMENT NAMES
+        # 1. LOAD UNIQUE DEPARTMENT NAMES
         # Same department name across different branches
         # appears once.
         # -------------------------------------------------
@@ -376,10 +426,47 @@ def exam_create():
 
         departments = cur.fetchall()
 
+        # -------------------------------------------------
+        # 2. LOAD ACTIVE SUB DEPARTMENTS
+        # Same Department name across branches is shared.
+        # -------------------------------------------------
+
+        department_names = [
+            (d["name"] or "").strip().casefold()
+            for d in departments
+            if d.get("name")
+        ]
+
+        if department_names:
+            cur.execute("""
+                SELECT DISTINCT
+                    LOWER(TRIM(d.name)) AS department_key,
+                    sd.sub_department_name
+                FROM public.sub_departments sd
+                JOIN public.departments d
+                    ON d.id = sd.department_id
+                WHERE sd.is_active = TRUE
+                  AND sd.deleted_at IS NULL
+                  AND d.is_active = TRUE
+                  AND LOWER(TRIM(d.name)) = ANY(%s)
+                ORDER BY
+                    department_key,
+                    sd.sub_department_name
+            """, (department_names,))
+
+            sub_departments = cur.fetchall()
+        else:
+            sub_departments = []
+
+        # -------------------------------------------------
+        # 3. POST REQUEST
+        # -------------------------------------------------
+
         if request.method == "POST":
 
             selected_department_id = request.form.get(
-                "department_id", type=int
+                "department_id",
+                type=int
             )
 
             sub_department = (
@@ -395,7 +482,8 @@ def exam_create():
             ).strip()
 
             questions_raw = request.form.get(
-                "questions_json", "[]"
+                "questions_json",
+                "[]"
             )
 
             try:
@@ -404,7 +492,7 @@ def exam_create():
                 questions = None
 
             # -------------------------------------------------
-            # GET SELECTED DEPARTMENT
+            # 4. GET SELECTED DEPARTMENT
             # -------------------------------------------------
 
             selected_department = None
@@ -420,10 +508,14 @@ def exam_create():
                 selected_department = cur.fetchone()
 
             # -------------------------------------------------
-            # BASIC VALIDATION
+            # 5. BASIC VALIDATION
             # -------------------------------------------------
 
-            if not selected_department_id or not sub_department or not title:
+            if (
+                not selected_department_id
+                or not sub_department
+                or not title
+            ):
                 flash(
                     "Department, sub department and exam title are required.",
                     "error"
@@ -462,9 +554,8 @@ def exam_create():
             else:
 
                 # -------------------------------------------------
-                # RESOLVE CANONICAL DEPARTMENT
-                # Same department name across branches is one
-                # shared Question Bank department.
+                # 6. RESOLVE CANONICAL DEPARTMENT
+                # Same department name across branches is shared.
                 # -------------------------------------------------
 
                 cur.execute("""
@@ -493,7 +584,7 @@ def exam_create():
                 else:
 
                     # -------------------------------------------------
-                    # DEPARTMENT HEAD PERMISSION VALIDATION
+                    # 7. DEPARTMENT HEAD PERMISSION VALIDATION
                     # -------------------------------------------------
 
                     if dept_scope:
@@ -508,179 +599,218 @@ def exam_create():
 
                         if (
                             not own_department
-                            or own_department["name"].strip().casefold()
-                            != department["name"].strip().casefold()
+                            or (
+                                own_department["name"] or ""
+                            ).strip().casefold()
+                            != (
+                                department["name"] or ""
+                            ).strip().casefold()
                         ):
                             abort(403)
 
                     # -------------------------------------------------
-                    # DUPLICATE QUESTION BANK VALIDATION
-                    #
-                    # Department + Sub Department combination
-                    # must be unique.
-                    #
-                    # Exam Title is NOT considered.
-                    #
-                    # Example:
-                    # IT + Software = one Question Bank only.
-                    #
-                    # Same Department name across branches
-                    # is treated as one department.
+                    # 8. VALIDATE SUB DEPARTMENT
+                    # Must belong to the selected department.
                     # -------------------------------------------------
 
                     cur.execute("""
                         SELECT EXISTS (
                             SELECT 1
-                            FROM exam_sets es
-                            JOIN departments d
-                                ON d.id = es.department_id
-                            WHERE es.deleted_at IS NULL
-                            AND LOWER(TRIM(d.name)) =
-                                LOWER(TRIM(%s))
-                            AND LOWER(TRIM(es.sub_department)) =
-                                LOWER(TRIM(%s))
-                        ) AS already_exists
+                            FROM public.sub_departments sd
+                            JOIN public.departments d
+                                ON d.id = sd.department_id
+                            WHERE LOWER(TRIM(d.name)) =
+                                  LOWER(TRIM(%s))
+                              AND LOWER(TRIM(sd.sub_department_name)) =
+                                  LOWER(TRIM(%s))
+                              AND sd.is_active = TRUE
+                              AND sd.deleted_at IS NULL
+                              AND d.is_active = TRUE
+                        ) AS is_valid
                     """, (
                         department["name"],
                         sub_department
                     ))
 
-                    duplicate = cur.fetchone()
+                    sub_department_check = cur.fetchone()
 
-                    if duplicate and duplicate["already_exists"]:
-
+                    if (
+                        not sub_department_check
+                        or not sub_department_check["is_valid"]
+                    ):
                         flash(
-                            f'Question Bank already exists for '
-                            f'Department "{department["name"]}" '
-                            f'and Sub Department "{sub_department}".',
+                            "Invalid Sub Department for the selected Department.",
                             "error"
                         )
 
                     else:
 
                         # -------------------------------------------------
-                        # QUESTION VALIDATION
+                        # 9. DUPLICATE QUESTION BANK VALIDATION
+                        # Department + Sub Department must be unique.
+                        # Exam Title is NOT considered.
                         # -------------------------------------------------
 
-                        cleaned = []
-                        invalid = False
+                        cur.execute("""
+                            SELECT EXISTS (
+                                SELECT 1
+                                FROM exam_sets es
+                                JOIN departments d
+                                    ON d.id = es.department_id
+                                WHERE es.deleted_at IS NULL
+                                  AND LOWER(TRIM(d.name)) =
+                                      LOWER(TRIM(%s))
+                                  AND LOWER(TRIM(es.sub_department)) =
+                                      LOWER(TRIM(%s))
+                            ) AS already_exists
+                        """, (
+                            department["name"],
+                            sub_department
+                        ))
 
-                        for q in questions:
+                        duplicate = cur.fetchone()
 
-                            if not isinstance(q, dict):
-                                invalid = True
-                                break
-
-                            question_text = (
-                                q.get("question") or ""
-                            ).strip()
-
-                            options = q.get("options") or []
-                            correct = q.get("correct_option")
-
-                            if (
-                                not question_text
-                                or not isinstance(options, list)
-                                or len(options) != 4
-                                or any(
-                                    not str(x).strip()
-                                    for x in options
-                                )
-                                or not isinstance(correct, int)
-                                or isinstance(correct, bool)
-                                or correct not in range(4)
-                            ):
-                                invalid = True
-                                break
-
-                            cleaned.append({
-                                "question": question_text,
-                                "options": [
-                                    {
-                                        "label": "ABCD"[i],
-                                        "text": str(options[i]).strip()
-                                    }
-                                    for i in range(4)
-                                ],
-                                "correct_option": correct,
-                                "points": 1
-                            })
-
-                        if invalid:
+                        if duplicate and duplicate["already_exists"]:
 
                             flash(
-                                "Each question needs text, four options and one correct answer.",
+                                f'Question Bank already exists for '
+                                f'Department "{department["name"]}" '
+                                f'and Sub Department "{sub_department}".',
                                 "error"
                             )
 
                         else:
 
                             # -------------------------------------------------
-                            # CREATE EXAM SET
+                            # 10. QUESTION VALIDATION
                             # -------------------------------------------------
 
-                            cur.execute("""
-                                INSERT INTO exam_sets
-                                    (
-                                        department_id,
-                                        sub_department,
-                                        exam_title,
-                                        description,
-                                        created_by
+                            cleaned = []
+                            invalid = False
+
+                            for q in questions:
+
+                                if not isinstance(q, dict):
+                                    invalid = True
+                                    break
+
+                                question_text = (
+                                    q.get("question") or ""
+                                ).strip()
+
+                                options = q.get("options")
+                                correct = q.get("correct_option")
+
+                                if (
+                                    not question_text
+                                    or not isinstance(options, list)
+                                    or len(options) != 4
+                                    or any(
+                                        not isinstance(option, str)
+                                        or not option.strip()
+                                        for option in options
                                     )
-                                VALUES (%s, %s, %s, %s, %s)
-                                RETURNING id
-                            """, (
-                                department["id"],
-                                sub_department,
-                                title,
-                                description,
-                                session.get("user_id")
-                            ))
+                                    or not isinstance(correct, int)
+                                    or isinstance(correct, bool)
+                                    or correct not in range(4)
+                                ):
+                                    invalid = True
+                                    break
 
-                            exam_set_id = cur.fetchone()["id"]
+                                cleaned.append({
+                                    "question": question_text,
+                                    "options": [
+                                        {
+                                            "label": "ABCD"[i],
+                                            "text": options[i].strip()
+                                        }
+                                        for i in range(4)
+                                    ],
+                                    "correct_option": correct,
+                                    "points": 1
+                                })
 
-                            # -------------------------------------------------
-                            # INSERT QUESTIONS
-                            # -------------------------------------------------
+                            if invalid:
 
-                            for q in cleaned:
+                                flash(
+                                    "Each question needs text, four options and one correct answer.",
+                                    "error"
+                                )
+
+                            else:
+
+                                # -------------------------------------------------
+                                # 11. CREATE EXAM SET
+                                # -------------------------------------------------
+
                                 cur.execute("""
-                                    INSERT INTO exam_questions
+                                    INSERT INTO exam_sets
                                         (
-                                            exam_set_id,
-                                            question_text,
-                                            options,
-                                            correct_option,
-                                            points
+                                            department_id,
+                                            sub_department,
+                                            exam_title,
+                                            description,
+                                            created_by
                                         )
                                     VALUES (%s, %s, %s, %s, %s)
+                                    RETURNING id
                                 """, (
-                                    exam_set_id,
-                                    q["question"],
-                                    Json(q["options"]),
-                                    q["correct_option"],
-                                    q["points"]
+                                    department["id"],
+                                    sub_department,
+                                    title,
+                                    description,
+                                    session.get("user_id")
                                 ))
 
-                            # -------------------------------------------------
-                            # COMMIT
-                            # -------------------------------------------------
+                                exam_set_id = cur.fetchone()["id"]
 
-                            conn.commit()
+                                # -------------------------------------------------
+                                # 12. INSERT QUESTIONS
+                                # -------------------------------------------------
 
-                            flash(
-                                "Exam and questions created successfully.",
-                                "success"
-                            )
+                                for q in cleaned:
+                                    cur.execute("""
+                                        INSERT INTO exam_questions
+                                            (
+                                                exam_set_id,
+                                                question_text,
+                                                options,
+                                                correct_option,
+                                                points
+                                            )
+                                        VALUES (%s, %s, %s, %s, %s)
+                                    """, (
+                                        exam_set_id,
+                                        q["question"],
+                                        Json(q["options"]),
+                                        q["correct_option"],
+                                        q["points"]
+                                    ))
 
-                            return redirect(
-                                url_for("exam.exam_list")
-                            )
+                                # -------------------------------------------------
+                                # 13. COMMIT
+                                # -------------------------------------------------
+
+                                conn.commit()
+
+                                flash(
+                                    "Exam and questions created successfully.",
+                                    "success"
+                                )
+
+                                return redirect(
+                                    url_for("exam.exam_create", exam_created=1)
+                                )
+
+        # -------------------------------------------------
+        # 14. RENDER TEMPLATE
+        # Keep submitted form data on validation errors.
+        # -------------------------------------------------
 
         return render_template(
             "exams/create_questions.html",
-            departments=departments
+            departments=departments,
+            sub_departments=sub_departments
         )
 
     except Exception:
@@ -708,6 +838,7 @@ def exam_create():
 @super_admin_required
 def exam_edit(exam_set_id):
     user_id = session.get("user_id")
+
     denied = _require_exam_role()
     if denied:
         return denied
@@ -718,24 +849,103 @@ def exam_edit(exam_set_id):
         cur = _dict_cursor(conn)
         dept_scope = _scope_department()
 
+        # ==================================================
+        # 1. LOAD EXAM SET
+        # ==================================================
         cur.execute("""
             SELECT *
             FROM exam_sets
             WHERE id = %s
-                AND deleted_at IS NULL
-                AND (%s IS NULL OR department_id = %s)
-        """, (exam_set_id, dept_scope, dept_scope))
+              AND deleted_at IS NULL
+              AND (%s IS NULL OR department_id = %s)
+        """, (
+            exam_set_id,
+            dept_scope,
+            dept_scope
+        ))
 
         exam_set = cur.fetchone()
 
         if not exam_set:
             abort(404)
 
+        # ==================================================
+        # 2. LOAD DEPARTMENTS
+        #    Keep existing unique department-name logic.
+        # ==================================================
+        if dept_scope:
+            cur.execute("""
+                SELECT
+                    MIN(d.id) AS id,
+                    MIN(d.name) AS name
+                FROM departments d
+                JOIN departments own
+                    ON LOWER(TRIM(d.name)) = LOWER(TRIM(own.name))
+                WHERE d.is_active = TRUE
+                  AND own.id = %s
+                  AND own.is_active = TRUE
+                GROUP BY LOWER(TRIM(d.name))
+                ORDER BY MIN(d.name)
+            """, (dept_scope,))
+
+        else:
+            cur.execute("""
+                SELECT
+                    MIN(id) AS id,
+                    MIN(name) AS name
+                FROM departments
+                WHERE is_active = TRUE
+                GROUP BY LOWER(TRIM(name))
+                ORDER BY MIN(name)
+            """)
+
+        departments = cur.fetchall()
+
+        # ==================================================
+        # 3. LOAD SUB DEPARTMENTS
+        #    Match by department name.
+        # ==================================================
+        department_names = [
+            (d["name"] or "").strip().casefold()
+            for d in departments
+            if d.get("name")
+        ]
+
+        if department_names:
+            cur.execute("""
+                SELECT DISTINCT
+                    LOWER(TRIM(d.name)) AS department_key,
+                    sd.sub_department_name
+                FROM public.sub_departments sd
+                JOIN public.departments d
+                    ON d.id = sd.department_id
+                WHERE sd.is_active = TRUE
+                  AND sd.deleted_at IS NULL
+                  AND d.is_active = TRUE
+                  AND LOWER(TRIM(d.name)) = ANY(%s)
+                ORDER BY
+                    department_key,
+                    sd.sub_department_name
+            """, (department_names,))
+
+            sub_departments = cur.fetchall()
+
+        else:
+            sub_departments = []
+
+        # ==================================================
+        # 4. POST - UPDATE QUESTION BANK
+        # ==================================================
         if request.method == "POST":
-            title = (request.form.get("exam_title") or "").strip()
+
+            title = (
+                request.form.get("exam_title") or ""
+            ).strip()
+
             sub_department = (
                 request.form.get("sub_department") or ""
             ).strip()
+
             description = (
                 request.form.get("description") or ""
             ).strip()
@@ -747,32 +957,98 @@ def exam_edit(exam_set_id):
             except (ValueError, TypeError):
                 questions = None
 
+            # ----------------------------------------------
+            # Validate required fields
+            # ----------------------------------------------
             if not title or not sub_department:
-                flash("Exam title and category are required.", "error")
-                return redirect(
-                    url_for("exam.exam_edit", exam_set_id=exam_set_id)
+                flash(
+                    "Exam title and category are required.",
+                    "error"
                 )
 
-            if not isinstance(questions, list) or not questions:
-                flash("Please add at least one question.", "error")
                 return redirect(
-                    url_for("exam.exam_edit", exam_set_id=exam_set_id)
+                    url_for(
+                        "exam.exam_edit",
+                        exam_set_id=exam_set_id
+                    )
+                )
+
+            # ----------------------------------------------
+            # Validate Sub Department
+            # ----------------------------------------------
+            cur.execute("""
+                SELECT 1
+                FROM public.sub_departments sd
+                JOIN public.departments d
+                    ON d.id = sd.department_id
+                WHERE LOWER(TRIM(d.name)) = LOWER(TRIM((
+                    SELECT name
+                    FROM departments
+                    WHERE id = %s
+                )))
+                  AND LOWER(TRIM(sd.sub_department_name))
+                      = LOWER(TRIM(%s))
+                  AND sd.is_active = TRUE
+                  AND sd.deleted_at IS NULL
+                  AND d.is_active = TRUE
+                LIMIT 1
+            """, (
+                exam_set["department_id"],
+                sub_department
+            ))
+
+            if not cur.fetchone():
+                flash(
+                    "Invalid Sub Department for this Department.",
+                    "error"
+                )
+
+                return redirect(
+                    url_for(
+                        "exam.exam_edit",
+                        exam_set_id=exam_set_id
+                    )
+                )
+
+            # ----------------------------------------------
+            # Validate questions
+            # ----------------------------------------------
+            if not isinstance(questions, list) or not questions:
+                flash(
+                    "Please add at least one question.",
+                    "error"
+                )
+
+                return redirect(
+                    url_for(
+                        "exam.exam_edit",
+                        exam_set_id=exam_set_id
+                    )
                 )
 
             cleaned = []
 
             for q in questions:
+
                 if not isinstance(q, dict):
                     abort(400)
 
-                question_text = (q.get("question") or "").strip()
+                question_text = (
+                    q.get("question") or ""
+                ).strip()
+
                 options = q.get("options") or []
                 correct = q.get("correct_option")
 
                 if (
                     not question_text
+                    or not isinstance(options, list)
                     or len(options) != 4
-                    or any(not str(x).strip() for x in options)
+                    or any(
+                        not isinstance(x, str) or not x.strip()
+                        for x in options
+                    )
+                    or isinstance(correct, bool)
                     or not isinstance(correct, int)
                     or correct not in range(4)
                 ):
@@ -780,8 +1056,12 @@ def exam_edit(exam_set_id):
                         "Each question needs four options and one correct answer.",
                         "error"
                     )
+
                     return redirect(
-                        url_for("exam.exam_edit", exam_set_id=exam_set_id)
+                        url_for(
+                            "exam.exam_edit",
+                            exam_set_id=exam_set_id
+                        )
                     )
 
                 cleaned.append({
@@ -789,7 +1069,7 @@ def exam_edit(exam_set_id):
                     "options": [
                         {
                             "label": "ABCD"[i],
-                            "text": str(options[i]).strip()
+                            "text": options[i].strip()
                         }
                         for i in range(4)
                     ],
@@ -797,6 +1077,9 @@ def exam_edit(exam_set_id):
                     "points": 1
                 })
 
+            # ----------------------------------------------
+            # Update exam set
+            # ----------------------------------------------
             cur.execute("""
                 UPDATE exam_sets
                 SET exam_title = %s,
@@ -805,7 +1088,7 @@ def exam_edit(exam_set_id):
                     updated_by = %s,
                     updated_at = NOW()
                 WHERE id = %s
-                AND deleted_at IS NULL
+                  AND deleted_at IS NULL
             """, (
                 title,
                 sub_department,
@@ -814,8 +1097,10 @@ def exam_edit(exam_set_id):
                 exam_set_id
             ))
 
+            # ----------------------------------------------
             # Replace question bank questions.
             # Existing assignments keep their question_snapshot.
+            # ----------------------------------------------
             cur.execute("""
                 DELETE FROM exam_questions
                 WHERE exam_set_id = %s
@@ -824,8 +1109,13 @@ def exam_edit(exam_set_id):
             for q in cleaned:
                 cur.execute("""
                     INSERT INTO exam_questions
-                        (exam_set_id, question_text, options,
-                         correct_option, points)
+                        (
+                            exam_set_id,
+                            question_text,
+                            options,
+                            correct_option,
+                            points
+                        )
                     VALUES (%s, %s, %s, %s, %s)
                 """, (
                     exam_set_id,
@@ -837,11 +1127,25 @@ def exam_edit(exam_set_id):
 
             conn.commit()
 
-            flash("Question bank updated successfully.", "success")
-            return redirect(url_for("exam.exam_list"))
+            flash(
+                "Question bank updated successfully.",
+                "success"
+            )
 
+            return redirect(
+                url_for("exam.exam_list")
+            )
+
+        # ==================================================
+        # 5. GET - LOAD EXISTING QUESTIONS
+        # ==================================================
         cur.execute("""
-            SELECT id, question_text, options, correct_option, points
+            SELECT
+                id,
+                question_text,
+                options,
+                correct_option,
+                points
             FROM exam_questions
             WHERE exam_set_id = %s
             ORDER BY id
@@ -852,38 +1156,35 @@ def exam_edit(exam_set_id):
         for q in questions:
             q["options"] = _json_value(q["options"])
 
-        if dept_scope:
-            cur.execute("""
-                SELECT id, name
-                FROM departments
-                WHERE id = %s AND is_active = TRUE
-            """, (dept_scope,))
-        else:
-            cur.execute("""
-                SELECT id, name
-                FROM departments
-                WHERE is_active = TRUE
-                ORDER BY name
-            """)
-
-        departments = cur.fetchall()
-
+        # ==================================================
+        # 6. RENDER EDIT PAGE
+        # ==================================================
         return render_template(
             "exams/edit_questions.html",
             exam_set=exam_set,
             questions=questions,
-            departments=departments
+            departments=departments,
+            sub_departments=sub_departments
         )
 
     except Exception:
         conn.rollback()
-        current_app.logger.exception("Question bank update failed")
-        flash("Unable to update question bank.", "error")
-        return redirect(url_for("exam.exam_list"))
+
+        current_app.logger.exception(
+            "Question bank update failed"
+        )
+
+        flash(
+            "Unable to update question bank.",
+            "error"
+        )
+
+        return redirect(
+            url_for("exam.exam_list")
+        )
 
     finally:
         conn.close()
-
 
 @exam_bp.route("/exams/<int:exam_set_id>/delete", methods=["POST"])
 @super_admin_required
@@ -1088,13 +1389,24 @@ def exam_assign():
                 type=int
             )
 
+            # Use sub_department_id instead of name
+            sub_department_id = request.form.get(
+                "sub_department_id",
+                type=int
+            )
+
             count = request.form.get(
                 "question_count",
                 type=int
             )
 
-            selection = request.form.get("selection_method")
-            method = request.form.get("exam_method")
+            selection = (
+                request.form.get("selection_method") or ""
+            ).strip().lower()
+
+            method = (
+                request.form.get("exam_method") or ""
+            ).strip().lower()
 
             selected_ids = request.form.getlist(
                 "question_ids",
@@ -1108,6 +1420,7 @@ def exam_assign():
             if (
                 not interview_id
                 or not exam_set_id
+                or not sub_department_id
                 or not count
                 or count < 1
             ):
@@ -1207,46 +1520,36 @@ def exam_assign():
                 )
 
             # -----------------------------------------
-            # VALIDATE EXAM DEPARTMENT
+            # VALIDATE SUB DEPARTMENT
             # -----------------------------------------
 
             cur.execute("""
-                SELECT es.*
+                SELECT
+                    sd.id,
+                    sd.department_id,
+                    sd.sub_department_name
 
-                FROM exam_sets es
+                FROM sub_departments sd
 
-                JOIN departments exam_dept
-                    ON exam_dept.id = es.department_id
+                WHERE sd.id = %s
 
-                JOIN departments candidate_dept
-                    ON candidate_dept.id = %s
+                  AND sd.department_id = %s
 
-                WHERE es.id = %s
+                  AND sd.is_active = TRUE
 
-                  AND es.deleted_at IS NULL
+                  AND sd.deleted_at IS NULL
 
-                  AND es.is_active = TRUE
-
-                  AND LOWER(TRIM(exam_dept.name))
-                      = LOWER(TRIM(candidate_dept.name))
-
-                  AND (
-                      %s IS NULL
-                      OR es.department_id = %s
-                  )
-
+                LIMIT 1
             """, (
-                interview["department_id"],
-                exam_set_id,
-                dept_scope,
-                dept_scope
+                sub_department_id,
+                interview["department_id"]
             ))
 
-            exam_set = cur.fetchone()
+            selected_sub_department = cur.fetchone()
 
-            if not exam_set:
+            if not selected_sub_department:
                 flash(
-                    "Selected exam does not belong to this candidate's department or is no longer available.",
+                    "Selected sub department does not belong to this candidate's department or is no longer available.",
                     "error"
                 )
 
@@ -1255,7 +1558,63 @@ def exam_assign():
                 )
 
             # -----------------------------------------
-            # LOAD QUESTION BANK
+            # VALIDATE EXAM SET
+            # Exact department_id + sub_department_id
+            # -----------------------------------------
+
+            cur.execute("""
+                SELECT
+                    es.*
+
+                FROM exam_sets es
+
+                JOIN sub_departments sd
+                    ON sd.id = es.sub_department_id
+                   AND sd.department_id = es.department_id
+
+                WHERE es.id = %s
+
+                  AND es.department_id = %s
+
+                  AND es.sub_department_id = %s
+
+                  AND es.deleted_at IS NULL
+
+                  AND es.is_active = TRUE
+
+                  AND sd.is_active = TRUE
+
+                  AND sd.deleted_at IS NULL
+
+                  AND (
+                      %s IS NULL
+                      OR es.department_id = %s
+                  )
+
+                LIMIT 1
+
+            """, (
+                exam_set_id,
+                interview["department_id"],
+                sub_department_id,
+                dept_scope,
+                dept_scope
+            ))
+
+            exam_set = cur.fetchone()
+
+            if not exam_set:
+                flash(
+                    "Selected exam does not belong to this candidate's department and sub department, or is no longer available.",
+                    "error"
+                )
+
+                return redirect(
+                    url_for("exam.exam_assign")
+                )
+
+            # -----------------------------------------
+            # LOAD QUESTIONS FROM SELECTED QUESTION BANK
             # -----------------------------------------
 
             cur.execute("""
@@ -1428,10 +1787,41 @@ def exam_assign():
                 )
             )
 
+        
         # =========================================
         # GET REQUEST
         # =========================================
 
+        # LOAD ACTIVE SUB DEPARTMENTS
+        # These belong to the candidate's selected department.
+        # Candidate's own sub department is NOT used.
+        cur.execute("""
+            SELECT
+                sd.id,
+                sd.department_id,
+                sd.sub_department_name
+
+            FROM sub_departments sd
+
+            WHERE sd.is_active = TRUE
+
+              AND sd.deleted_at IS NULL
+
+              AND (
+                  %s IS NULL
+                  OR sd.department_id = %s
+              )
+
+            ORDER BY
+                sd.sub_department_name ASC
+        """, (
+            dept_scope,
+            dept_scope
+        ))
+
+        sub_departments = cur.fetchall()
+
+        # LOAD ACTIVE EXAM SETS
         exam_sets = _load_exam_sets(
             cur,
             dept_scope
@@ -1440,8 +1830,10 @@ def exam_assign():
         return render_template(
             "exams/assign_exam.html",
             candidates=candidates,
-            exam_sets=exam_sets
+            exam_sets=exam_sets,
+            sub_departments=sub_departments
         )
+
 
     except HTTPException:
         conn.rollback()

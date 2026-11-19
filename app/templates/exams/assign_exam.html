@@ -373,7 +373,6 @@
 </style>
 {% endblock %}
 
-
 {% block content %}
 <div class="assign-wrap" data-page-mode="{{ page_mode|default('assign') }}">
 
@@ -385,23 +384,18 @@
     </div>
 
     <div class="exam-tabs">
-        <button type="button"
-                class="exam-tab {% if page_mode != 'qr' %}active{% endif %}"
-                id="assignTabButton"
-                onclick="switchExamTab('assign')">
-            <i class="fa-solid fa-file-circle-check"></i>
-            Assign Exam
+        <button type="button" class="exam-tab {% if page_mode != 'qr' %}active{% endif %}"
+                id="assignTabButton" onclick="switchExamTab('assign')">
+            <i class="fa-solid fa-file-circle-check"></i> Assign Exam
         </button>
 
-        <button type="button"
-                class="exam-tab {% if page_mode == 'qr' %}active{% endif %}"
-                id="qrTabButton"
-                onclick="switchExamTab('qr')">
-            <i class="fa-solid fa-qrcode"></i>
-            QR Code / Link
+        <button type="button" class="exam-tab {% if page_mode == 'qr' %}active{% endif %}"
+                id="qrTabButton" onclick="switchExamTab('qr')">
+            <i class="fa-solid fa-qrcode"></i> QR Code / Link
         </button>
     </div>
 
+    <!-- ASSIGN EXAM TAB -->
     <div class="tab-content {% if page_mode != 'qr' %}active{% endif %}" id="assignTab">
 
         <form method="POST" id="assignForm" action="{{ url_for('exam.exam_assign') }}">
@@ -464,7 +458,7 @@
                 </div>
 
                 <div class="candidate-pagination" id="candidatePagination" style="display:none">
-                    <div class="pagination-info" id="paginationInfo">Showing 0–0 of 0 candidates</div>
+                    <div class="pagination-info" id="paginationInfo"></div>
                     <div class="pagination-buttons" id="paginationButtons"></div>
                 </div>
             </section>
@@ -477,17 +471,25 @@
                         <div>
                             <h3 class="panel-title">Exam Configuration</h3>
                             <div class="panel-subtitle">
-                                Select a candidate first. Their department will determine the available question banks.
+                                Select a candidate first. Their department and sub department determine the available question banks.
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid">
+
                     <div class="field">
                         <label>Department <span class="required-star">*</span></label>
                         <input type="text" id="candidateDepartment"
                                placeholder="Automatically displayed" readonly required>
+                    </div>
+
+                    <div class="field">
+                        <label>Sub Department <span class="required-star">*</span></label>
+                        <select name="sub_department_id" id="subDepartment" required disabled>
+                            <option value="">Select a candidate first</option>
+                        </select>
                     </div>
 
                     <div class="field">
@@ -498,7 +500,8 @@
                                 {% if item.is_active %}
                                 <option value="{{ item.id }}"
                                         data-count="{{ item.question_count }}"
-                                        data-department="{{ item.department_name|e }}">
+                                        data-department-id="{{ item.department_id }}"
+                                        data-sub-department-id="{{ item.sub_department_id }}">
                                     {{ item.exam_title }} ({{ item.question_count }} questions)
                                 </option>
                                 {% endif %}
@@ -513,6 +516,7 @@
                     </div>
                 </div>
 
+                <!-- SELECTION METHOD -->
                 <div style="margin-top:22px">
                     <label style="display:block;font-size:12px;font-weight:800;color:#59647c;margin-bottom:11px">
                         Question Selection Method
@@ -523,16 +527,14 @@
                             <input type="radio" name="selection_method" value="random" checked>
                             Random Questions
                         </label>
-
                         <label class="choice">
                             <input type="radio" name="selection_method" value="manual">
                             Select Manually
                         </label>
                     </div>
 
-                    <!-- RANDOM QUESTION PREVIEW -->
+                    <!-- RANDOM PREVIEW -->
                     <div id="randomQuestions" class="random-preview">
-
                         <div class="random-preview-toolbar">
                             <div>
                                 <div style="font-size:12px;font-weight:800;color:#46516b;margin-bottom:5px">
@@ -540,12 +542,13 @@
                                     Random Question Preview
                                 </div>
                                 <div class="random-preview-status" id="randomPreviewStatus">
-                                    Select a candidate and question bank, then preview your random questions.
+                                    Select a candidate, sub department and question bank, then preview your random questions.
                                 </div>
                             </div>
 
                             <button type="button" class="btn primary"
-                                    id="previewRandomButton" onclick="previewRandomQuestions()">
+                                    id="previewRandomButton"
+                                    onclick="previewRandomQuestions()">
                                 <i class="fa-solid fa-wand-magic-sparkles"></i>
                                 Preview Random Questions
                             </button>
@@ -560,11 +563,10 @@
                             </div>
                         </div>
 
-                        <!-- Selected random question IDs are submitted with the form -->
                         <div id="randomQuestionInputs"></div>
                     </div>
 
-                    <!-- MANUAL QUESTION SELECTION -->
+                    <!-- MANUAL QUESTIONS -->
                     <div id="manualQuestions" style="display:none">
                         <div class="question-list" id="questionList"></div>
 
@@ -583,7 +585,7 @@
 
                 <div class="info">
                     <i class="fa-solid fa-circle-info"></i>
-                    The candidate's department is selected automatically. Only active question banks belonging to that department will be available.
+                    The candidate's department and sub department determine which active question banks are available.
                 </div>
             </section>
 
@@ -594,7 +596,9 @@
                         <div class="panel-icon"><i class="fa-solid fa-paper-plane"></i></div>
                         <div>
                             <h3 class="panel-title">Exam Delivery</h3>
-                            <div class="panel-subtitle">Choose how the candidate will access the examination.</div>
+                            <div class="panel-subtitle">
+                                Choose how the candidate will access the examination.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -617,13 +621,16 @@
                 </div>
             </section>
 
+            <!-- ACTIONS -->
             <div class="actions">
                 <a href="{{ url_for('exam.exam_list') }}" class="btn light">
                     <i class="fa-solid fa-arrow-left"></i> Back
                 </a>
-                <button type="submit" class="btn primary">Assign Exam</button>
-            </div>
 
+                <button type="submit" class="btn primary">
+                    Assign Exam
+                </button>
+            </div>
         </form>
     </div>
 
@@ -633,6 +640,7 @@
 
             {% if page_mode == 'qr' and assignment %}
             <section class="panel qr-card">
+
                 <div class="qr-top">
                     <div class="qr-icon"><i class="fa-solid fa-qrcode"></i></div>
                     <h2>{{ assignment.exam_title }}</h2>
@@ -677,7 +685,7 @@
                             </div>
                             <div class="info-item">
                                 <small>Sub Department</small>
-                                <strong>{{ assignment.sub_department }}</strong>
+                                <strong>{{ assignment.sub_department_name|default(assignment.sub_department, true) }}</strong>
                             </div>
                         </div>
 
@@ -692,7 +700,11 @@
                 </div>
 
                 <div class="link-section">
-                    <label><i class="fa-solid fa-link"></i> Candidate Exam Link</label>
+                    <label>
+                        <i class="fa-solid fa-link"></i>
+                        Candidate Exam Link
+                    </label>
+
                     <div class="link-box">
                         <input type="text" id="examLink" readonly value="{{ public_url }}">
                         <button type="button" class="btn primary" onclick="copyExamLink()">
@@ -724,21 +736,26 @@
                 </button>
             </section>
             {% endif %}
-
         </div>
     </div>
-
+</div>
+<!-- SUB DEPARTMENT DATA -->
+<div id="subDepartmentData" hidden>
+    {% for item in sub_departments %}
+    <span
+        data-id="{{ item.id }}"
+        data-department-id="{{ item.department_id }}"
+        data-name="{{ item.sub_department_name|e }}">
+    </span>
+    {% endfor %}
 </div>
 {% endblock %}
 
-
 {% block extra_js %}
 <script>
-
-/* ==========================
+/* =====================================================
    TAB SWITCHING
-========================== */
-
+===================================================== */
 function switchExamTab(tab) {
     const assignTab = document.getElementById('assignTab');
     const qrTab = document.getElementById('qrTab');
@@ -752,18 +769,12 @@ function switchExamTab(tab) {
     assignButton.classList.toggle('active', tab === 'assign');
     qrButton.classList.toggle('active', tab === 'qr');
 
-    if (tab === 'qr') {
-        history.replaceState(null, '', '#qr-code');
-    } else {
-        history.replaceState(null, '', '#assign');
-    }
+    history.replaceState(null, '', tab === 'qr' ? '#qr-code' : '#assign');
 }
 
-
-/* ==========================
+/* =====================================================
    COPY EXAM LINK
-========================== */
-
+===================================================== */
 async function copyExamLink() {
     const input = document.getElementById('examLink');
 
@@ -783,12 +794,9 @@ async function copyExamLink() {
     }
 }
 
-
-/* ==========================
-   CANDIDATE PAGINATION
-   5 CANDIDATES PER PAGE
-========================== */
-
+/* =====================================================
+   ELEMENTS
+===================================================== */
 const candidateSearch = document.getElementById('candidateSearch');
 const candidateList = document.getElementById('candidateList');
 const candidateCount = document.getElementById('candidateCount');
@@ -796,175 +804,17 @@ const candidatePagination = document.getElementById('candidatePagination');
 const paginationInfo = document.getElementById('paginationInfo');
 const paginationButtons = document.getElementById('paginationButtons');
 
-const candidatesPerPage = 5;
-let currentCandidatePage = 1;
-let filteredCandidates = [];
-
-const allCandidateRows = candidateList
-    ? Array.from(candidateList.querySelectorAll('.candidate-row'))
-    : [];
-
-function getFilteredCandidates() {
-    const query = candidateSearch
-        ? candidateSearch.value.trim().toLowerCase()
-        : '';
-
-    return allCandidateRows.filter(row => {
-        const searchText = row.dataset.search || '';
-        return searchText.includes(query);
-    });
-}
-
-function renderCandidatePagination() {
-    filteredCandidates = getFilteredCandidates();
-
-    const totalCandidates = filteredCandidates.length;
-    const totalPages = Math.ceil(totalCandidates / candidatesPerPage);
-
-    if (currentCandidatePage > totalPages) {
-        currentCandidatePage = Math.max(1, totalPages);
-    }
-    if (currentCandidatePage < 1) currentCandidatePage = 1;
-
-    allCandidateRows.forEach(row => row.style.display = 'none');
-
-    if (candidateCount) {
-        candidateCount.textContent =
-            `${totalCandidates} Candidate${totalCandidates !== 1 ? 's' : ''}`;
-    }
-
-    if (totalCandidates === 0) {
-        if (candidateList) {
-            candidateList.innerHTML = `
-                <div class="empty">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    No matching candidates found.
-                </div>
-            `;
-        }
-        if (candidatePagination) candidatePagination.style.display = 'none';
-        return;
-    }
-
-    if (candidateList) {
-        candidateList.innerHTML = '';
-        allCandidateRows.forEach(row => candidateList.appendChild(row));
-    }
-
-    const startIndex = (currentCandidatePage - 1) * candidatesPerPage;
-    const endIndex = Math.min(startIndex + candidatesPerPage, totalCandidates);
-
-    filteredCandidates.slice(startIndex, endIndex).forEach(row => {
-        row.style.display = 'flex';
-    });
-
-    if (candidatePagination) {
-        candidatePagination.style.display =
-            totalCandidates > candidatesPerPage ? 'flex' : 'none';
-    }
-
-    if (paginationInfo) {
-        paginationInfo.textContent =
-            `Showing ${startIndex + 1}–${endIndex} of ${totalCandidates} candidates`;
-    }
-
-    renderPaginationButtons(totalPages);
-}
-
-function renderPaginationButtons(totalPages) {
-    if (!paginationButtons) return;
-
-    paginationButtons.innerHTML = '';
-    if (totalPages <= 1) return;
-
-    const previousButton = document.createElement('button');
-    previousButton.type = 'button';
-    previousButton.className = 'page-btn';
-    previousButton.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-    previousButton.disabled = currentCandidatePage === 1;
-
-    previousButton.addEventListener('click', function () {
-        if (currentCandidatePage > 1) {
-            currentCandidatePage--;
-            renderCandidatePagination();
-        }
-    });
-    paginationButtons.appendChild(previousButton);
-
-    for (let page = 1; page <= totalPages; page++) {
-        const pageButton = document.createElement('button');
-        pageButton.type = 'button';
-        pageButton.className =
-            `page-btn ${page === currentCandidatePage ? 'active' : ''}`;
-        pageButton.textContent = page;
-
-        pageButton.addEventListener('click', function () {
-            currentCandidatePage = page;
-            renderCandidatePagination();
-        });
-        paginationButtons.appendChild(pageButton);
-    }
-
-    const nextButton = document.createElement('button');
-    nextButton.type = 'button';
-    nextButton.className = 'page-btn';
-    nextButton.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-    nextButton.disabled = currentCandidatePage === totalPages;
-
-    nextButton.addEventListener('click', function () {
-        if (currentCandidatePage < totalPages) {
-            currentCandidatePage++;
-            renderCandidatePagination();
-        }
-    });
-    paginationButtons.appendChild(nextButton);
-}
-
-if (candidateSearch) {
-    candidateSearch.addEventListener('input', function () {
-        currentCandidatePage = 1;
-        renderCandidatePagination();
-    });
-}
-
-if (candidateList) {
-    candidateList.addEventListener('change', function (event) {
-        if (event.target.matches('input[name="interview_id"]')) {
-            allCandidateRows.forEach(row => row.classList.remove('selected'));
-
-            const selectedRow = event.target.closest('.candidate-row');
-            if (selectedRow) selectedRow.classList.add('selected');
-        }
-    });
-}
-
-renderCandidatePagination();
-
-
-/* ==========================
-   DEPARTMENT & QUESTION BANK
-========================== */
-
 const examSet = document.getElementById('examSet');
+const subDepartment = document.getElementById('subDepartment');
+const candidateDepartment = document.getElementById('candidateDepartment');
 const questionCount = document.getElementById('questionCount');
+
 const manualBox = document.getElementById('manualQuestions');
 const questionList = document.getElementById('questionList');
 const manualCount = document.getElementById('manualCount');
-const candidateDepartment = document.getElementById('candidateDepartment');
-
 const questionPagination = document.getElementById('questionPagination');
 const questionPaginationInfo = document.getElementById('questionPaginationInfo');
 const questionPaginationButtons = document.getElementById('questionPaginationButtons');
-
-const questionsPerPage = 10;
-let currentQuestionPage = 1;
-let allQuestionRows = [];
-let selectedDepartmentName = '';
-
-
-/* ==========================
-   RANDOM PREVIEW ELEMENTS
-========================== */
 
 const randomBox = document.getElementById('randomQuestions');
 const randomPreviewButton = document.getElementById('previewRandomButton');
@@ -972,36 +822,214 @@ const randomPreviewStatus = document.getElementById('randomPreviewStatus');
 const randomPreviewContent = document.getElementById('randomPreviewContent');
 const randomQuestionList = document.getElementById('randomQuestionList');
 const randomQuestionInputs = document.getElementById('randomQuestionInputs');
+const randomQuestionPagination = document.getElementById('randomQuestionPagination');
+const randomQuestionPaginationInfo = document.getElementById('randomQuestionPaginationInfo');
+const randomQuestionPaginationButtons = document.getElementById('randomQuestionPaginationButtons');
 
-const randomQuestionPagination =
-    document.getElementById('randomQuestionPagination');
-const randomQuestionPaginationInfo =
-    document.getElementById('randomQuestionPaginationInfo');
-const randomQuestionPaginationButtons =
-    document.getElementById('randomQuestionPaginationButtons');
+const assignForm = document.getElementById('assignForm');
 
+/* =====================================================
+   SUB DEPARTMENT DATA FROM DATABASE
+   Source: sub_departments table
+   Read from HTML instead of embedding Jinja in JS
+===================================================== */
+
+const subDepartmentDataElement =
+    document.getElementById('subDepartmentData');
+
+const subDepartmentData = subDepartmentDataElement
+    ? Array.from(
+        subDepartmentDataElement.querySelectorAll('span')
+    ).map(item => ({
+        id: String(item.dataset.id || ''),
+        departmentId: String(item.dataset.departmentId || ''),
+        name: item.dataset.name || ''
+    }))
+    : [];
+
+/* =====================================================
+   STATE
+===================================================== */
+const candidatesPerPage = 5;
+const questionsPerPage = 10;
 const randomQuestionsPerPage = 10;
 
-let randomQuestionIds = [];
-let randomQuestionRows = [];
+let currentCandidatePage = 1;
+let currentQuestionPage = 1;
 let currentRandomQuestionPage = 1;
 
+let filteredCandidates = [];
+let allQuestionRows = [];
+let randomQuestionRows = [];
+let randomQuestionIds = [];
 
-/* ==========================
+let questionRequestNumber = 0;
+let randomRequestNumber = 0;
+
+const allCandidateRows = candidateList
+    ? Array.from(candidateList.querySelectorAll('.candidate-row'))
+    : [];
+
+/* =====================================================
    COMMON HELPERS
-========================== */
-
-function normalizeDepartment(value) {
-    return (value || '').trim().toLowerCase();
-}
-
+===================================================== */
 function getSelectionMethod() {
     return document.querySelector(
         'input[name="selection_method"]:checked'
     )?.value || 'random';
 }
 
+function getSelectedCandidateRow() {
+    const radio = document.querySelector('input[name="interview_id"]:checked');
+    return radio ? radio.closest('.candidate-row') : null;
+}
+
+function getSelectedDepartmentId() {
+    return String(getSelectedCandidateRow()?.dataset.departmentId || '');
+}
+
+function clearQuestionBankSelection() {
+    if (examSet) examSet.value = '';
+}
+
+function updateManualCount() {
+    if (!manualCount) return;
+
+    const selected = document.querySelectorAll(
+        '#questionList input[name="question_ids"]:checked'
+    ).length;
+
+    manualCount.textContent =
+        `Selected ${selected} / ${questionCount?.value || 0} questions`;
+}
+
+/* =====================================================
+   CANDIDATE PAGINATION
+===================================================== */
+function getFilteredCandidates() {
+    const query = candidateSearch?.value.trim().toLowerCase() || '';
+
+    return allCandidateRows.filter(row =>
+        (row.dataset.search || '').includes(query)
+    );
+}
+
+function renderCandidatePagination() {
+    filteredCandidates = getFilteredCandidates();
+
+    const total = filteredCandidates.length;
+    const totalPages = Math.ceil(total / candidatesPerPage);
+
+    currentCandidatePage = Math.min(
+        Math.max(1, currentCandidatePage),
+        Math.max(1, totalPages)
+    );
+
+    allCandidateRows.forEach(row => row.style.display = 'none');
+
+    if (candidateCount) {
+        candidateCount.textContent =
+            `${total} Candidate${total !== 1 ? 's' : ''}`;
+    }
+
+    if (candidateList) {
+        candidateList.innerHTML = '';
+
+        if (!total) {
+            candidateList.innerHTML = `
+                <div class="empty">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    No matching candidates found.
+                </div>
+            `;
+        } else {
+            allCandidateRows.forEach(row => candidateList.appendChild(row));
+        }
+    }
+
+    if (!total) {
+        if (candidatePagination) candidatePagination.style.display = 'none';
+        return;
+    }
+
+    const start = (currentCandidatePage - 1) * candidatesPerPage;
+    const end = Math.min(start + candidatesPerPage, total);
+
+    filteredCandidates.slice(start, end).forEach(row => {
+        row.style.display = 'flex';
+    });
+
+    if (candidatePagination) {
+        candidatePagination.style.display =
+            total > candidatesPerPage ? 'flex' : 'none';
+    }
+
+    if (paginationInfo) {
+        paginationInfo.textContent =
+            `Showing ${start + 1}–${end} of ${total} candidates`;
+    }
+
+    renderCandidatePaginationButtons(totalPages);
+}
+
+function renderCandidatePaginationButtons(totalPages) {
+    if (!paginationButtons) return;
+
+    paginationButtons.innerHTML = '';
+    if (totalPages <= 1) return;
+
+    const addButton = (label, page, disabled = false, active = false) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `page-btn ${active ? 'active' : ''}`;
+        button.innerHTML = label;
+        button.disabled = disabled;
+
+        button.addEventListener('click', () => {
+            currentCandidatePage = page;
+            renderCandidatePagination();
+        });
+
+        paginationButtons.appendChild(button);
+    };
+
+    addButton(
+        '<i class="fa-solid fa-chevron-left"></i>',
+        currentCandidatePage - 1,
+        currentCandidatePage === 1
+    );
+
+    for (let page = 1; page <= totalPages; page++) {
+        addButton(
+            String(page),
+            page,
+            false,
+            page === currentCandidatePage
+        );
+    }
+
+    addButton(
+        '<i class="fa-solid fa-chevron-right"></i>',
+        currentCandidatePage + 1,
+        currentCandidatePage === totalPages
+    );
+}
+
+if (candidateSearch) {
+    candidateSearch.addEventListener('input', () => {
+        currentCandidatePage = 1;
+        renderCandidatePagination();
+    });
+}
+
+renderCandidatePagination();
+
+/* =====================================================
+   RESET RANDOM PREVIEW
+===================================================== */
 function clearRandomPreview(message = '') {
+    randomRequestNumber++;
+
     randomQuestionIds = [];
     randomQuestionRows = [];
     currentRandomQuestionPage = 1;
@@ -1009,76 +1037,30 @@ function clearRandomPreview(message = '') {
     if (randomQuestionList) randomQuestionList.innerHTML = '';
     if (randomQuestionInputs) randomQuestionInputs.innerHTML = '';
     if (randomPreviewContent) randomPreviewContent.style.display = 'none';
-
-    if (randomQuestionPagination) {
-        randomQuestionPagination.style.display = 'none';
-    }
-
-    if (randomQuestionPaginationButtons) {
-        randomQuestionPaginationButtons.innerHTML = '';
-    }
+    if (randomQuestionPagination) randomQuestionPagination.style.display = 'none';
+    if (randomQuestionPaginationButtons) randomQuestionPaginationButtons.innerHTML = '';
 
     if (randomPreviewStatus) {
         randomPreviewStatus.textContent = message ||
-            'Select a candidate and question bank, then preview your random questions.';
+            'Select a candidate, sub department and question bank, then preview your random questions.';
         randomPreviewStatus.classList.remove('success');
+    }
+
+    if (randomPreviewButton) {
+        randomPreviewButton.disabled = false;
+        randomPreviewButton.innerHTML =
+            '<i class="fa-solid fa-wand-magic-sparkles"></i> Preview Random Questions';
     }
 }
 
+/* =====================================================
+   RESET MANUAL QUESTIONS
+===================================================== */
+function resetQuestionList() {
+    questionRequestNumber++;
 
-/* ==========================
-   FILTER QUESTION BANKS
-========================== */
+    if (questionList) questionList.innerHTML = '';
 
-function filterQuestionBanks(departmentName) {
-    if (!examSet) return;
-
-    selectedDepartmentName = departmentName || '';
-
-    examSet.value = '';
-    examSet.disabled = !selectedDepartmentName;
-
-    const options = Array.from(examSet.options);
-    let availableBanks = 0;
-
-    options.forEach((option, index) => {
-        if (index === 0) {
-            option.hidden = false;
-            option.disabled = false;
-            option.textContent = selectedDepartmentName
-                ? 'Select question bank'
-                : 'Select a candidate first';
-            return;
-        }
-
-        const bankDepartment = option.dataset.department || '';
-
-        const matches =
-            selectedDepartmentName &&
-            normalizeDepartment(bankDepartment) ===
-            normalizeDepartment(selectedDepartmentName);
-
-        option.hidden = !matches;
-        option.disabled = !matches;
-
-        if (matches) availableBanks++;
-    });
-
-    if (!selectedDepartmentName) {
-        examSet.value = '';
-        questionList.innerHTML = '';
-        allQuestionRows = [];
-        clearRandomPreview();
-        return;
-    }
-
-    if (availableBanks === 0) {
-        examSet.options[0].textContent =
-            'No question bank available for this department';
-        examSet.disabled = true;
-    }
-
-    questionList.innerHTML = '';
     allQuestionRows = [];
     currentQuestionPage = 1;
 
@@ -1086,52 +1068,203 @@ function filterQuestionBanks(departmentName) {
     if (questionPaginationButtons) questionPaginationButtons.innerHTML = '';
 
     clearRandomPreview();
+    updateManualCount();
 
     if (manualBox) manualBox.style.display = 'none';
-
-    updateManualCount();
 }
 
+/* =====================================================
+   FILTER SUB DEPARTMENTS
+   Match candidate department_id
+===================================================== */
 
-/* ==========================
+function filterSubDepartments(departmentId) {
+
+    if (!subDepartment || !examSet) return;
+
+    subDepartment.innerHTML = '';
+    subDepartment.disabled = true;
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+
+    placeholder.textContent = departmentId
+        ? 'Select sub department'
+        : 'Select a candidate first';
+
+    subDepartment.appendChild(placeholder);
+
+    const matchingSubDepartments = subDepartmentData.filter(item =>
+        item.departmentId === String(departmentId || '')
+    );
+
+    matchingSubDepartments.forEach(item => {
+        const option = document.createElement('option');
+
+        option.value = item.id;
+        option.textContent = item.name;
+
+        subDepartment.appendChild(option);
+    });
+
+    subDepartment.disabled =
+        !departmentId || matchingSubDepartments.length === 0;
+
+    if (departmentId && matchingSubDepartments.length === 0) {
+        placeholder.textContent = 'No sub departments available';
+    }
+
+    filterQuestionBanks(departmentId, '');
+}
+
+/* =====================================================
+   FILTER QUESTION BANKS
+   Match department_id + sub_department_id
+===================================================== */
+
+function filterQuestionBanks(departmentId, subDepartmentId) {
+
+    if (!examSet) return;
+
+    examSet.value = '';
+    examSet.disabled = true;
+
+    const options = Array.from(examSet.options);
+    const availableBanks = [];
+
+    options.forEach((option, index) => {
+
+        if (index === 0) {
+
+            option.hidden = false;
+            option.disabled = false;
+
+            if (!departmentId) {
+                option.textContent = 'Select a candidate first';
+            } else if (!subDepartmentId) {
+                option.textContent = 'Select a sub department first';
+            } else {
+                option.textContent = 'Select question bank';
+            }
+
+            return;
+        }
+
+        const bankDepartmentId =
+            String(option.dataset.departmentId || '');
+
+        const bankSubDepartmentId =
+            String(option.dataset.subDepartmentId || '');
+
+        const matches =
+            Boolean(departmentId) &&
+            Boolean(subDepartmentId) &&
+            bankDepartmentId === String(departmentId) &&
+            bankSubDepartmentId === String(subDepartmentId);
+
+        option.hidden = !matches;
+        option.disabled = !matches;
+
+        if (matches) {
+            availableBanks.push(option);
+        }
+
+    });
+
+    resetQuestionList();
+
+    if (!departmentId || !subDepartmentId) {
+        return;
+    }
+
+    if (availableBanks.length === 0) {
+
+        examSet.options[0].textContent =
+            'No question bank available for this sub department';
+
+        examSet.disabled = true;
+
+        updateManualCount();
+
+        return;
+    }
+
+    examSet.disabled = false;
+
+    if (availableBanks.length === 1) {
+
+        examSet.value = availableBanks[0].value;
+
+        handleQuestionBankSelection();
+
+    }
+
+}
+
+/* =====================================================
    CANDIDATE SELECTION
-========================== */
-
+===================================================== */
 function handleCandidateSelection(radio) {
     if (!radio) return;
 
     const row = radio.closest('.candidate-row');
     if (!row) return;
 
-    const departmentName = row.dataset.departmentName || '';
+    const departmentId = String(row.dataset.departmentId || '');
 
     if (candidateDepartment) {
-        candidateDepartment.value = departmentName;
+        candidateDepartment.value = row.dataset.departmentName || '';
     }
 
-    filterQuestionBanks(departmentName);
+    filterSubDepartments(departmentId);
 }
 
 if (candidateList) {
-    candidateList.addEventListener('change', function (event) {
-        if (event.target.matches('input[name="interview_id"]')) {
-            allCandidateRows.forEach(row => row.classList.remove('selected'));
+    candidateList.addEventListener('change', event => {
+        if (!event.target.matches('input[name="interview_id"]')) return;
 
-            const selectedRow = event.target.closest('.candidate-row');
-            if (selectedRow) {
-                selectedRow.classList.add('selected');
-            }
+        allCandidateRows.forEach(row => row.classList.remove('selected'));
 
-            handleCandidateSelection(event.target);
-        }
+        const selectedRow = event.target.closest('.candidate-row');
+        if (selectedRow) selectedRow.classList.add('selected');
+
+        handleCandidateSelection(event.target);
     });
 }
 
+/* =====================================================
+   SUB DEPARTMENT CHANGE
+===================================================== */
+if (subDepartment) {
+    subDepartment.addEventListener('change', function () {
+        filterQuestionBanks(
+            getSelectedDepartmentId(),
+            String(this.value || '')
+        );
+    });
+}
 
-/* ==========================
-   SELECTION METHOD
-========================== */
+/* =====================================================
+   QUESTION BANK SELECTION
+===================================================== */
+function handleQuestionBankSelection() {
+    resetQuestionList();
 
+    if (!examSet?.value) return;
+
+    if (getSelectionMethod() === 'manual') {
+        if (manualBox) manualBox.style.display = 'block';
+        loadQuestions();
+    }
+}
+
+if (examSet) {
+    examSet.addEventListener('change', handleQuestionBankSelection);
+}
+
+/* =====================================================
+   SELECTION METHOD CHANGE
+===================================================== */
 function updateManualQuestionInputs() {
     const manualActive = getSelectionMethod() === 'manual';
 
@@ -1144,86 +1277,58 @@ function updateManualQuestionInputs() {
 
 document.querySelectorAll('input[name="selection_method"]').forEach(radio => {
     radio.addEventListener('change', function () {
+        if (!this.checked) return;
 
-        if (this.value === 'manual' && this.checked) {
+        resetQuestionList();
 
-            // Remove previously generated random question IDs.
-            clearRandomPreview(
-                'Select your questions manually from the question bank.'
-            );
+        if (this.value === 'manual') {
+            if (manualBox) manualBox.style.display = 'block';
+            if (randomBox) randomBox.style.display = 'none';
 
-            if (manualBox) {
-                manualBox.style.display = 'block';
-            }
-
-            if (randomBox) {
-                randomBox.style.display = 'none';
-            }
-
-            updateManualQuestionInputs();
-
-            if (examSet && examSet.value) {
-                loadQuestions();
-            }
-
-        } else if (this.value === 'random' && this.checked) {
-
-            // Clear previous random preview.
-            clearRandomPreview();
-
-            if (manualBox) {
-                manualBox.style.display = 'none';
-            }
-
-            if (randomBox) {
-                randomBox.style.display = 'block';
-            }
-
-            // Prevent manual checkbox IDs from being submitted.
-            updateManualQuestionInputs();
+            if (examSet?.value) loadQuestions();
+        } else {
+            if (manualBox) manualBox.style.display = 'none';
+            if (randomBox) randomBox.style.display = 'block';
         }
+
+        updateManualQuestionInputs();
     });
 });
 
-
-/* ==========================
+/* =====================================================
    MANUAL QUESTION PAGINATION
-   10 QUESTIONS PER PAGE
-========================== */
-
+===================================================== */
 function renderQuestionPagination() {
-    if (!questionList) return;
+    const total = allQuestionRows.length;
+    const totalPages = Math.ceil(total / questionsPerPage);
 
-    const totalQuestions = allQuestionRows.length;
-    const totalPages = Math.ceil(totalQuestions / questionsPerPage);
-
-    if (currentQuestionPage > totalPages) {
-        currentQuestionPage = Math.max(1, totalPages);
-    }
-    if (currentQuestionPage < 1) currentQuestionPage = 1;
+    currentQuestionPage = Math.min(
+        Math.max(1, currentQuestionPage),
+        Math.max(1, totalPages)
+    );
 
     allQuestionRows.forEach(row => row.style.display = 'none');
 
-    if (totalQuestions === 0) {
+    if (!total) {
         if (questionPagination) questionPagination.style.display = 'none';
         return;
     }
 
-    const startIndex = (currentQuestionPage - 1) * questionsPerPage;
-    const endIndex = Math.min(startIndex + questionsPerPage, totalQuestions);
+    const start = (currentQuestionPage - 1) * questionsPerPage;
+    const end = Math.min(start + questionsPerPage, total);
 
-    allQuestionRows.slice(startIndex, endIndex).forEach(row => {
+    allQuestionRows.slice(start, end).forEach(row => {
         row.style.display = 'flex';
     });
 
     if (questionPagination) {
         questionPagination.style.display =
-            totalQuestions > questionsPerPage ? 'flex' : 'none';
+            total > questionsPerPage ? 'flex' : 'none';
     }
 
     if (questionPaginationInfo) {
         questionPaginationInfo.textContent =
-            `Showing ${startIndex + 1}–${endIndex} of ${totalQuestions} questions`;
+            `Showing ${start + 1}–${end} of ${total} questions`;
     }
 
     renderQuestionPaginationButtons(totalPages);
@@ -1235,56 +1340,49 @@ function renderQuestionPaginationButtons(totalPages) {
     questionPaginationButtons.innerHTML = '';
     if (totalPages <= 1) return;
 
-    const previousButton = document.createElement('button');
-    previousButton.type = 'button';
-    previousButton.className = 'page-btn';
-    previousButton.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-    previousButton.disabled = currentQuestionPage === 1;
-
-    previousButton.addEventListener('click', function () {
-        if (currentQuestionPage > 1) {
-            currentQuestionPage--;
-            renderQuestionPagination();
-        }
-    });
-    questionPaginationButtons.appendChild(previousButton);
-
-    for (let page = 1; page <= totalPages; page++) {
-        const pageButton = document.createElement('button');
-        pageButton.type = 'button';
-        pageButton.className =
-            `page-btn ${page === currentQuestionPage ? 'active' : ''}`;
-        pageButton.textContent = page;
-
-        pageButton.addEventListener('click', function () {
+    const addButton = (label, page, disabled = false, active = false) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `page-btn ${active ? 'active' : ''}`;
+        button.innerHTML = label;
+        button.disabled = disabled;
+        button.addEventListener('click', () => {
             currentQuestionPage = page;
             renderQuestionPagination();
         });
-        questionPaginationButtons.appendChild(pageButton);
+        questionPaginationButtons.appendChild(button);
+    };
+
+    addButton(
+        '<i class="fa-solid fa-chevron-left"></i>',
+        currentQuestionPage - 1,
+        currentQuestionPage === 1
+    );
+
+    for (let page = 1; page <= totalPages; page++) {
+        addButton(
+            String(page),
+            page,
+            false,
+            page === currentQuestionPage
+        );
     }
 
-    const nextButton = document.createElement('button');
-    nextButton.type = 'button';
-    nextButton.className = 'page-btn';
-    nextButton.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-    nextButton.disabled = currentQuestionPage === totalPages;
-
-    nextButton.addEventListener('click', function () {
-        if (currentQuestionPage < totalPages) {
-            currentQuestionPage++;
-            renderQuestionPagination();
-        }
-    });
-    questionPaginationButtons.appendChild(nextButton);
+    addButton(
+        '<i class="fa-solid fa-chevron-right"></i>',
+        currentQuestionPage + 1,
+        currentQuestionPage === totalPages
+    );
 }
 
-
-/* ==========================
-   LOAD QUESTIONS FOR MANUAL
-========================== */
-
+/* =====================================================
+   LOAD MANUAL QUESTIONS
+===================================================== */
 async function loadQuestions() {
-    if (!questionList || !examSet) return;
+    if (!questionList || !examSet?.value) return;
+
+    const requestedExamSetId = examSet.value;
+    const requestNumber = ++questionRequestNumber;
 
     questionList.innerHTML = '<div class="empty">Loading questions...</div>';
     allQuestionRows = [];
@@ -1293,14 +1391,9 @@ async function loadQuestions() {
     if (questionPagination) questionPagination.style.display = 'none';
     if (questionPaginationButtons) questionPaginationButtons.innerHTML = '';
 
-    if (!examSet.value) {
-        questionList.innerHTML = '';
-        return;
-    }
-
     try {
         const response = await fetch(
-            `{{ url_for('exam.exam_questions_api') }}?exam_set_id=${encodeURIComponent(examSet.value)}`
+            `{{ url_for('exam.exam_questions_api') }}?exam_set_id=${encodeURIComponent(requestedExamSetId)}`
         );
 
         const data = await response.json();
@@ -1309,60 +1402,63 @@ async function loadQuestions() {
             throw new Error(data.error || 'Unable to load questions');
         }
 
-        questionList.innerHTML = '';
-        allQuestionRows = [];
+        if (
+            examSet.value !== requestedExamSetId ||
+            requestNumber !== questionRequestNumber
+        ) return;
 
-        data.questions.forEach((q, index) => {
+        questionList.innerHTML = '';
+
+        const questions = Array.isArray(data.questions) ? data.questions : [];
+
+        questions.forEach((question, index) => {
             const label = document.createElement('label');
             label.className = 'question-item';
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.name = 'question_ids';
-            checkbox.value = q.id;
+            checkbox.value = question.id;
+            checkbox.disabled = getSelectionMethod() !== 'manual';
             checkbox.addEventListener('change', updateManualCount);
 
-            // Only submit manual question IDs in manual mode.
-            checkbox.disabled = getSelectionMethod() !== 'manual';
-
             const text = document.createElement('span');
-            text.textContent = `${index + 1}. ${q.question_text}`;
+            text.textContent = `${index + 1}. ${question.question_text || ''}`;
 
             label.append(checkbox, text);
             questionList.appendChild(label);
             allQuestionRows.push(label);
         });
 
-        if (!data.questions.length) {
-            questionList.innerHTML =
-                '<div class="empty">No questions in this bank.</div>';
-
-            if (questionPagination) questionPagination.style.display = 'none';
+        if (!questions.length) {
+            questionList.innerHTML = '<div class="empty">No questions in this bank.</div>';
         } else {
-            currentQuestionPage = 1;
             renderQuestionPagination();
         }
 
         updateManualCount();
 
     } catch (error) {
-        questionList.innerHTML = '';
-        allQuestionRows = [];
+        if (
+            examSet.value !== requestedExamSetId ||
+            requestNumber !== questionRequestNumber
+        ) return;
 
-        if (questionPagination) questionPagination.style.display = 'none';
+        questionList.innerHTML = '';
 
         const message = document.createElement('div');
         message.className = 'empty';
         message.textContent = error.message;
         questionList.appendChild(message);
+
+        allQuestionRows = [];
+        updateManualCount();
     }
 }
 
-
-/* ==========================
-   RANDOM QUESTION PREVIEW
-========================== */
-
+/* =====================================================
+   SHUFFLE QUESTIONS
+===================================================== */
 function shuffleQuestions(questions) {
     const shuffled = [...questions];
 
@@ -1374,9 +1470,12 @@ function shuffleQuestions(questions) {
     return shuffled;
 }
 
+/* =====================================================
+   RANDOM QUESTION PREVIEW
+===================================================== */
 async function previewRandomQuestions() {
-    if (!examSet || !examSet.value) {
-        alert('Please select a candidate and question bank first.');
+    if (!examSet?.value) {
+        alert('Please select a candidate, sub department and question bank first.');
         return;
     }
 
@@ -1389,17 +1488,20 @@ async function previewRandomQuestions() {
         return;
     }
 
+    clearRandomPreview('Loading random questions from the selected question bank...');
+
+    const requestNumber = ++randomRequestNumber;
+    const requestedExamSetId = examSet.value;
+
     if (randomPreviewButton) {
         randomPreviewButton.disabled = true;
         randomPreviewButton.innerHTML =
             '<i class="fa-solid fa-spinner fa-spin"></i> Generating Preview...';
     }
 
-    clearRandomPreview('Loading random questions from the selected question bank...');
-
     try {
         const response = await fetch(
-            `{{ url_for('exam.exam_questions_api') }}?exam_set_id=${encodeURIComponent(examSet.value)}`
+            `{{ url_for('exam.exam_questions_api') }}?exam_set_id=${encodeURIComponent(requestedExamSetId)}`
         );
 
         const data = await response.json();
@@ -1408,35 +1510,38 @@ async function previewRandomQuestions() {
             throw new Error(data.error || 'Unable to load questions');
         }
 
+        if (
+            examSet.value !== requestedExamSetId ||
+            requestNumber !== randomRequestNumber
+        ) return;
+
         const availableQuestions = Array.isArray(data.questions)
             ? data.questions
             : [];
 
         if (availableQuestions.length < count) {
-            throw new Error(
-                `Only ${availableQuestions.length} questions are available.`
-            );
+            throw new Error(`Only ${availableQuestions.length} questions are available.`);
         }
 
-        // Randomly select the requested number of questions.
         const selectedQuestions = shuffleQuestions(availableQuestions).slice(0, count);
 
-        // Store the exact selected IDs for form submission.
         randomQuestionIds = selectedQuestions.map(question => question.id);
 
-        // Create hidden inputs so the selected IDs are submitted.
-        randomQuestionInputs.innerHTML = '';
+        // POST exact selected question IDs.
+        if (randomQuestionInputs) {
+            randomQuestionInputs.innerHTML = '';
 
-        randomQuestionIds.forEach(id => {
-            const hiddenInput = document.createElement('input');
-            hiddenInput.type = 'hidden';
-            hiddenInput.name = 'question_ids';
-            hiddenInput.value = id;
-            randomQuestionInputs.appendChild(hiddenInput);
-        });
+            randomQuestionIds.forEach(id => {
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'question_ids';
+                hiddenInput.value = id;
+                randomQuestionInputs.appendChild(hiddenInput);
+            });
+        }
 
-        // Render the preview rows.
-        randomQuestionList.innerHTML = '';
+        if (randomQuestionList) randomQuestionList.innerHTML = '';
+
         randomQuestionRows = [];
 
         selectedQuestions.forEach((question, index) => {
@@ -1457,28 +1562,37 @@ async function previewRandomQuestions() {
         });
 
         currentRandomQuestionPage = 1;
-        randomPreviewContent.style.display = 'block';
+
+        if (randomPreviewContent) {
+            randomPreviewContent.style.display = 'block';
+        }
 
         renderRandomQuestionPagination();
 
-        randomPreviewStatus.textContent =
-            `${randomQuestionIds.length} random questions selected. These are the questions prepared for this assignment.`;
+        if (randomPreviewStatus) {
+            randomPreviewStatus.textContent =
+                `${randomQuestionIds.length} random questions selected. These are the questions prepared for this assignment.`;
+            randomPreviewStatus.classList.add('success');
+        }
 
-        randomPreviewStatus.classList.add('success');
-
-        // Change the button label after the first preview.
-        randomPreviewButton.innerHTML =
-            '<i class="fa-solid fa-rotate"></i> Generate Again';
+        if (randomPreviewButton) {
+            randomPreviewButton.innerHTML =
+                '<i class="fa-solid fa-rotate"></i> Generate Again';
+        }
 
     } catch (error) {
-        clearRandomPreview(error.message);
-        alert(error.message);
-
+        if (requestNumber === randomRequestNumber) {
+            clearRandomPreview(error.message);
+            alert(error.message);
+        }
     } finally {
-        if (randomPreviewButton) {
+        if (
+            randomPreviewButton &&
+            requestNumber === randomRequestNumber
+        ) {
             randomPreviewButton.disabled = false;
 
-            if (randomQuestionIds.length > 0) {
+            if (randomQuestionIds.length) {
                 randomPreviewButton.innerHTML =
                     '<i class="fa-solid fa-rotate"></i> Generate Again';
             } else {
@@ -1489,158 +1603,95 @@ async function previewRandomQuestions() {
     }
 }
 
-
-/* ==========================
-   RANDOM PREVIEW PAGINATION
-   10 QUESTIONS PER PAGE
-========================== */
-
+/* =====================================================
+   RANDOM QUESTION PAGINATION
+===================================================== */
 function renderRandomQuestionPagination() {
-    const totalQuestions = randomQuestionRows.length;
-    const totalPages = Math.ceil(totalQuestions / randomQuestionsPerPage);
+    const total = randomQuestionRows.length;
+    const totalPages = Math.ceil(total / randomQuestionsPerPage);
 
-    if (currentRandomQuestionPage > totalPages) {
-        currentRandomQuestionPage = Math.max(1, totalPages);
-    }
+    currentRandomQuestionPage = Math.min(
+        Math.max(1, currentRandomQuestionPage),
+        Math.max(1, totalPages)
+    );
 
-    if (currentRandomQuestionPage < 1) {
-        currentRandomQuestionPage = 1;
-    }
+    randomQuestionRows.forEach(row => row.style.display = 'none');
 
-    randomQuestionRows.forEach(row => {
-        row.style.display = 'none';
-    });
-
-    if (!totalQuestions) {
-        randomQuestionPagination.style.display = 'none';
+    if (!total) {
+        if (randomQuestionPagination) randomQuestionPagination.style.display = 'none';
         return;
     }
 
-    const startIndex =
-        (currentRandomQuestionPage - 1) * randomQuestionsPerPage;
+    const start = (currentRandomQuestionPage - 1) * randomQuestionsPerPage;
+    const end = Math.min(start + randomQuestionsPerPage, total);
 
-    const endIndex = Math.min(
-        startIndex + randomQuestionsPerPage,
-        totalQuestions
-    );
-
-    randomQuestionRows.slice(startIndex, endIndex).forEach(row => {
+    randomQuestionRows.slice(start, end).forEach(row => {
         row.style.display = 'flex';
     });
 
-    randomQuestionPagination.style.display =
-        totalQuestions > randomQuestionsPerPage ? 'flex' : 'none';
+    if (randomQuestionPagination) {
+        randomQuestionPagination.style.display =
+            total > randomQuestionsPerPage ? 'flex' : 'none';
+    }
 
-    randomQuestionPaginationInfo.textContent =
-        `Showing ${startIndex + 1}–${endIndex} of ${totalQuestions} questions`;
+    if (randomQuestionPaginationInfo) {
+        randomQuestionPaginationInfo.textContent =
+            `Showing ${start + 1}–${end} of ${total} questions`;
+    }
 
     renderRandomQuestionPaginationButtons(totalPages);
 }
 
 function renderRandomQuestionPaginationButtons(totalPages) {
-    randomQuestionPaginationButtons.innerHTML = '';
+    if (!randomQuestionPaginationButtons) return;
 
+    randomQuestionPaginationButtons.innerHTML = '';
     if (totalPages <= 1) return;
 
-    const previousButton = document.createElement('button');
-    previousButton.type = 'button';
-    previousButton.className = 'page-btn';
-    previousButton.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-    previousButton.disabled = currentRandomQuestionPage === 1;
+    const addButton = (label, page, disabled = false, active = false) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `page-btn ${active ? 'active' : ''}`;
+        button.innerHTML = label;
+        button.disabled = disabled;
 
-    previousButton.addEventListener('click', function () {
-        if (currentRandomQuestionPage > 1) {
-            currentRandomQuestionPage--;
-            renderRandomQuestionPagination();
-        }
-    });
-
-    randomQuestionPaginationButtons.appendChild(previousButton);
-
-    for (let page = 1; page <= totalPages; page++) {
-        const pageButton = document.createElement('button');
-        pageButton.type = 'button';
-        pageButton.className =
-            `page-btn ${page === currentRandomQuestionPage ? 'active' : ''}`;
-        pageButton.textContent = page;
-
-        pageButton.addEventListener('click', function () {
+        button.addEventListener('click', () => {
             currentRandomQuestionPage = page;
             renderRandomQuestionPagination();
         });
 
-        randomQuestionPaginationButtons.appendChild(pageButton);
+        randomQuestionPaginationButtons.appendChild(button);
+    };
+
+    addButton(
+        '<i class="fa-solid fa-chevron-left"></i>',
+        currentRandomQuestionPage - 1,
+        currentRandomQuestionPage === 1
+    );
+
+    for (let page = 1; page <= totalPages; page++) {
+        addButton(
+            String(page),
+            page,
+            false,
+            page === currentRandomQuestionPage
+        );
     }
 
-    const nextButton = document.createElement('button');
-    nextButton.type = 'button';
-    nextButton.className = 'page-btn';
-    nextButton.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-    nextButton.disabled = currentRandomQuestionPage === totalPages;
-
-    nextButton.addEventListener('click', function () {
-        if (currentRandomQuestionPage < totalPages) {
-            currentRandomQuestionPage++;
-            renderRandomQuestionPagination();
-        }
-    });
-
-    randomQuestionPaginationButtons.appendChild(nextButton);
+    addButton(
+        '<i class="fa-solid fa-chevron-right"></i>',
+        currentRandomQuestionPage + 1,
+        currentRandomQuestionPage === totalPages
+    );
 }
 
-
-/* ==========================
-   MANUAL QUESTION COUNT
-========================== */
-
-function updateManualCount() {
-    if (!manualCount) return;
-
-    const selected =
-        document.querySelectorAll('#questionList input:checked').length;
-
-    manualCount.textContent =
-        `Selected ${selected} / ${questionCount ? questionCount.value : 0} questions`;
-}
-
-
-/* ==========================
-   QUESTION BANK CHANGE
-========================== */
-
-if (examSet) {
-    examSet.addEventListener('change', function () {
-        questionList.innerHTML = '';
-        allQuestionRows = [];
-        currentQuestionPage = 1;
-
-        if (questionPagination) questionPagination.style.display = 'none';
-        if (questionPaginationButtons) questionPaginationButtons.innerHTML = '';
-
-        clearRandomPreview();
-        updateManualCount();
-
-        if (!this.value) return;
-
-        const manualSelected =
-            document.querySelector('input[name="selection_method"]:checked')?.value;
-
-        if (manualSelected === 'manual') {
-            loadQuestions();
-        }
-    });
-}
-
-
-/* ==========================
+/* =====================================================
    QUESTION COUNT CHANGE
-========================== */
-
+===================================================== */
 if (questionCount) {
-    questionCount.addEventListener('input', function () {
+    questionCount.addEventListener('input', () => {
         updateManualCount();
 
-        // A previous random preview is no longer valid after changing the count.
         if (getSelectionMethod() === 'random') {
             clearRandomPreview(
                 'Question count changed. Please generate a new random preview.'
@@ -1649,87 +1700,116 @@ if (questionCount) {
     });
 }
 
-
-/* ==========================
+/* =====================================================
    FORM VALIDATION
-========================== */
-
-const assignForm = document.getElementById('assignForm');
-
+===================================================== */
 if (assignForm) {
-    assignForm.addEventListener('submit', function (e) {
-        const option = examSet.options[examSet.selectedIndex];
-
-        const available =
-            parseInt(option?.dataset.count || '0', 10);
-
-        const count =
-            parseInt(questionCount.value || '0', 10);
-
-        if (!examSet.value || count < 1 || count > available) {
-            e.preventDefault();
-
-            alert(
-                `Please select a valid question count. Available questions: ${available}`
-            );
-            return;
-        }
-
-        const selectedCandidate =
-            document.querySelector('input[name="interview_id"]:checked');
+    assignForm.addEventListener('submit', event => {
+        const selectedCandidate = document.querySelector(
+            'input[name="interview_id"]:checked'
+        );
 
         if (!selectedCandidate) {
-            e.preventDefault();
+            event.preventDefault();
             alert('Please select a candidate.');
             return;
         }
 
         const selectedRow = selectedCandidate.closest('.candidate-row');
-        const candidateDept = selectedRow?.dataset.departmentName || '';
+
+        const candidateDepartmentId =
+            String(selectedRow?.dataset.departmentId || '');
+
+        const selectedSubDepartmentId =
+            String(subDepartment?.value || '');
+
+        if (!selectedSubDepartmentId) {
+            event.preventDefault();
+            alert('Please select a sub department.');
+            return;
+        }
+
+        // Ensure the selected subdepartment belongs to candidate department.
+        const selectedSubDepartment = subDepartment.options[
+            subDepartment.selectedIndex
+        ];
+
+        const validSubDepartment = subDepartmentData.some(item =>
+            String(item.id) === selectedSubDepartmentId &&
+            String(item.departmentId) === candidateDepartmentId
+        );
+
+        if (!validSubDepartment) {
+            event.preventDefault();
+            alert('The selected sub department does not belong to the candidate department.');
+            return;
+        }
+
+        if (!examSet?.value) {
+            event.preventDefault();
+            alert('Please select a question bank.');
+            return;
+        }
 
         const selectedBank = examSet.options[examSet.selectedIndex];
-        const bankDept = selectedBank?.dataset.department || '';
+
+        const bankDepartmentId =
+            String(selectedBank?.dataset.departmentId || '');
+
+        const bankSubDepartmentId =
+            String(selectedBank?.dataset.subDepartmentId || '');
 
         if (
-            !candidateDept ||
-            normalizeDepartment(candidateDept) !== normalizeDepartment(bankDept)
+            !candidateDepartmentId ||
+            candidateDepartmentId !== bankDepartmentId
         ) {
-            e.preventDefault();
-            alert('Please select a question bank belonging to the candidate department.');
+            event.preventDefault();
+            alert('The selected question bank does not belong to the candidate department.');
+            return;
+        }
+
+        if (selectedSubDepartmentId !== bankSubDepartmentId) {
+            event.preventDefault();
+            alert('The selected question bank does not belong to the selected sub department.');
+            return;
+        }
+
+        const available = parseInt(selectedBank?.dataset.count || '0', 10);
+        const count = parseInt(questionCount?.value || '0', 10);
+
+        if (!count || count < 1 || count > available) {
+            event.preventDefault();
+            alert(`Please select a valid question count. Available questions: ${available}`);
             return;
         }
 
         const selection = getSelectionMethod();
 
         if (selection === 'manual') {
-            const selected =
-                document.querySelectorAll('#questionList input:checked').length;
+            const selected = document.querySelectorAll(
+                '#questionList input[name="question_ids"]:checked'
+            ).length;
 
             if (selected !== count) {
-                e.preventDefault();
+                event.preventDefault();
                 alert(`Please select exactly ${count} questions.`);
                 return;
             }
         }
 
-        if (selection === 'random') {
-            if (randomQuestionIds.length !== count) {
-                e.preventDefault();
-
-                alert(
-                    'Please preview the random questions first. If you change the question count, generate the preview again.'
-                );
-                return;
-            }
+        if (selection === 'random' && randomQuestionIds.length !== count) {
+            event.preventDefault();
+            alert(
+                'Please preview the random questions first. If you change the question count, generate the preview again.'
+            );
+            return;
         }
     });
 }
 
-
-/* ==========================
-   INITIAL SELECTION METHOD
-========================== */
-
+/* =====================================================
+   INITIAL UI
+===================================================== */
 const initialSelectionMethod = getSelectionMethod();
 
 if (randomBox) {
@@ -1743,23 +1823,11 @@ if (manualBox) {
 }
 
 updateManualQuestionInputs();
-
-/* ==========================
-   INITIAL TAB
-   No Jinja inside JavaScript
-========================== */
+updateManualCount();
 
 const assignPage = document.querySelector('.assign-wrap');
+const initialPageMode = assignPage?.dataset.pageMode || 'assign';
 
-const initialPageMode = assignPage
-    ? assignPage.dataset.pageMode
-    : 'assign';
-
-if (initialPageMode === 'qr') {
-    switchExamTab('qr');
-} else {
-    switchExamTab('assign');
-}
-
+switchExamTab(initialPageMode === 'qr' ? 'qr' : 'assign');
 </script>
 {% endblock %}

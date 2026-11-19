@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 {% block title %}Create Exam Questions{% endblock %}
 {% block page_heading %}Create Exam Questions{% endblock %}
@@ -17,7 +18,7 @@
     --exam-danger: #e05263;
     --exam-success: #159b75;
     --exam-radius: 18px;
-    --exam-shadow: 0 8px 30px rgba(34, 39, 75, .055);
+    --exam-shadow: 0 8px 30px rgba(34,39,75,.055);
     --exam-transition: all .22s ease;
 }
 
@@ -28,7 +29,6 @@
     color: var(--exam-text);
 }
 
-/* Intro */
 .exam-intro {
     position: relative;
     overflow: hidden;
@@ -40,8 +40,8 @@
     margin-bottom: 24px;
     border-radius: 20px;
     color: #fff;
-    background: linear-gradient(115deg, #5148c7 0%, #7168e8 58%, #9188f4 100%);
-    box-shadow: 0 12px 28px rgba(99, 91, 219, .18);
+    background: linear-gradient(115deg,#5148c7 0%,#7168e8 58%,#9188f4 100%);
+    box-shadow: 0 12px 28px rgba(99,91,219,.18);
 }
 
 .exam-intro::before,
@@ -67,7 +67,7 @@
     bottom: -110px;
 }
 
-.intro-content {
+.intro-content,.intro-icon {
     position: relative;
     z-index: 1;
 }
@@ -100,8 +100,6 @@
 }
 
 .intro-icon {
-    position: relative;
-    z-index: 1;
     width: 65px;
     height: 65px;
     flex-shrink: 0;
@@ -114,7 +112,6 @@
     backdrop-filter: blur(8px);
 }
 
-/* Main panels */
 .panel {
     background: var(--exam-surface);
     border: 1px solid var(--exam-border);
@@ -163,10 +160,9 @@
     margin-top: 4px;
 }
 
-/* Form fields */
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2,minmax(0,1fr));
     gap: 22px;
 }
 
@@ -237,24 +233,6 @@
     grid-column: 1 / -1;
 }
 
-/* Question section */
-.questions-section-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.questions-label {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-}
-
-.questions-label i {
-    color: var(--exam-primary);
-}
-
 .question-card {
     position: relative;
     background: #fff;
@@ -267,14 +245,8 @@
 }
 
 @keyframes questionAppear {
-    from {
-        opacity: 0;
-        transform: translateY(7px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(7px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .question-card:hover {
@@ -304,11 +276,6 @@
     border-radius: 9px;
 }
 
-.question-number i {
-    font-size: 11px;
-    opacity: .8;
-}
-
 .question-card > .field {
     margin-bottom: 19px;
 }
@@ -318,10 +285,9 @@
     background: #fcfcff;
 }
 
-/* Options */
 .options-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2,minmax(0,1fr));
     gap: 14px;
     margin-top: 8px;
 }
@@ -400,7 +366,6 @@
     background: var(--exam-primary);
 }
 
-/* Hints */
 .hint {
     display: flex;
     align-items: flex-start;
@@ -419,7 +384,6 @@
     color: var(--exam-primary);
 }
 
-/* Buttons */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -440,13 +404,13 @@
 
 .btn-primary {
     color: #fff;
-    background: linear-gradient(135deg, #665de0, #5148c7);
+    background: linear-gradient(135deg,#665de0,#5148c7);
     box-shadow: 0 4px 11px rgba(99,91,219,.2);
 }
 
 .btn-primary:hover {
     color: #fff;
-    background: linear-gradient(135deg, #554bcf, #443bb5);
+    background: linear-gradient(135deg,#554bcf,#443bb5);
     transform: translateY(-2px);
     box-shadow: 0 7px 16px rgba(99,91,219,.26);
 }
@@ -500,7 +464,6 @@
     transform: translateY(-1px);
 }
 
-/* Bottom actions */
 .actions {
     display: flex;
     justify-content: space-between;
@@ -532,106 +495,6 @@
     color: var(--exam-success);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .exam-wrap {
-        padding-bottom: 25px;
-    }
-
-    .exam-intro {
-        padding: 22px;
-        border-radius: 16px;
-    }
-
-    .intro-title {
-        font-size: 19px;
-    }
-
-    .intro-icon {
-        width: 53px;
-        height: 53px;
-        font-size: 22px;
-    }
-
-    .panel {
-        padding: 20px;
-        border-radius: 15px;
-    }
-
-    .form-grid,
-    .options-grid {
-        grid-template-columns: 1fr;
-        gap: 17px;
-    }
-
-    .question-card {
-        padding: 18px;
-    }
-
-    .actions {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 16px;
-    }
-
-    .actions-right {
-        flex-direction: column-reverse;
-        width: 100%;
-    }
-
-    .actions .btn,
-    .actions-right .btn {
-        width: 100%;
-    }
-
-    .save-note {
-        justify-content: center;
-    }
-}
-
-@media (max-width: 480px) {
-    .exam-intro {
-        padding: 19px;
-    }
-
-    .intro-description {
-        font-size: 11px;
-    }
-
-    .intro-icon {
-        width: 45px;
-        height: 45px;
-        border-radius: 13px;
-        font-size: 19px;
-    }
-
-    .panel {
-        padding: 16px;
-    }
-
-    .panel-header {
-        gap: 10px;
-    }
-
-    .panel-header-icon {
-        width: 38px;
-        height: 38px;
-    }
-
-    .question-card {
-        padding: 15px;
-    }
-
-    .question-head {
-        align-items: flex-start;
-    }
-
-    .btn-danger {
-        padding: 7px 9px;
-    }
-}
-
-/* Prevent duplicate form submission */
 #saveQuestionBankBtn:disabled {
     opacity: .75;
     cursor: not-allowed;
@@ -644,9 +507,55 @@
 }
 
 @keyframes examSpin {
-    to {
-        transform: rotate(360deg);
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width:768px) {
+    .exam-wrap { padding-bottom: 25px; }
+    .exam-intro { padding: 22px; border-radius: 16px; }
+    .intro-title { font-size: 19px; }
+    .intro-icon {
+        width: 53px;
+        height: 53px;
+        font-size: 22px;
     }
+    .panel { padding: 20px; border-radius: 15px; }
+    .form-grid,.options-grid {
+        grid-template-columns: 1fr;
+        gap: 17px;
+    }
+    .question-card { padding: 18px; }
+    .actions {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 16px;
+    }
+    .actions-right {
+        flex-direction: column-reverse;
+        width: 100%;
+    }
+    .actions .btn,.actions-right .btn { width: 100%; }
+    .save-note { justify-content: center; }
+}
+
+@media (max-width:480px) {
+    .exam-intro { padding: 19px; }
+    .intro-description { font-size: 11px; }
+    .intro-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 13px;
+        font-size: 19px;
+    }
+    .panel { padding: 16px; }
+    .panel-header { gap: 10px; }
+    .panel-header-icon {
+        width: 38px;
+        height: 38px;
+    }
+    .question-card { padding: 15px; }
+    .question-head { align-items: flex-start; }
+    .btn-danger { padding: 7px 9px; }
 }
 </style>
 {% endblock %}
@@ -654,7 +563,6 @@
 {% block content %}
 <div class="exam-wrap">
 
-    <!-- Premium Intro -->
     <div class="exam-intro">
         <div class="intro-content">
             <div class="intro-eyebrow">
@@ -667,6 +575,7 @@
                 for your candidate assessments.
             </p>
         </div>
+
         <div class="intro-icon">
             <i class="fa-solid fa-file-circle-question"></i>
         </div>
@@ -675,7 +584,6 @@
     <form method="POST" id="questionForm">
         <input type="hidden" name="questions_json" id="questions_json">
 
-        <!-- Exam Information Panel -->
         <section class="panel">
             <div class="panel-header">
                 <div class="panel-header-icon">
@@ -692,7 +600,8 @@
             <div class="form-grid">
                 <div class="field">
                     <label>Department <span>*</span></label>
-                    <select name="department_id" required>
+                    <select name="department_id" id="departmentSelect" required>
+                        <option value="">Select department</option>
                         {% for department in departments %}
                         <option value="{{ department.id }}">
                             {{ department.name }}
@@ -703,24 +612,29 @@
 
                 <div class="field">
                     <label>Sub Department / Category <span>*</span></label>
-                    <input
-                        id="subDepartmentInput"
+                    <select
+                        id="subDepartmentSelect"
                         name="sub_department"
-                        maxlength="150"
                         required
-                        placeholder="e.g. IT, Finance, HR">
-
-                    <small id="subDepartmentError"
-                        style="display:none;color:#e05263;font-size:11px;margin-top:2px;">
-                        <i class="fa-solid fa-circle-exclamation"></i>
-                        This name already exists as a Department.
-                    </small>
+                        disabled
+                    >
+                        <option value="">Select sub department</option>
+                        {% for sub in sub_departments %}
+                        <option
+                            value="{{ sub.sub_department_name }}"
+                            data-department-name="{{ sub.department_key }}"
+                        >
+                            {{ sub.sub_department_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
                 </div>
 
                 <div class="field full">
                     <label>Exam Title <span>*</span></label>
                     <input
                         name="exam_title"
+                        id="examTitle"
                         maxlength="200"
                         required
                         placeholder="Enter exam title">
@@ -730,12 +644,12 @@
                     <label>Description</label>
                     <textarea
                         name="description"
+                        id="examDescription"
                         placeholder="Brief description about this exam"></textarea>
                 </div>
             </div>
         </section>
 
-        <!-- Questions Panel -->
         <section class="panel">
             <div class="panel-header">
                 <div class="panel-header-icon">
@@ -752,7 +666,7 @@
             <div id="questionsContainer"></div>
 
             <div class="add-btn-wrapper">
-                <button type="button" class="btn add-btn" onclick="addQuestion()">
+                <button type="button" class="btn add-btn" id="addQuestionBtn">
                     <i class="fa-solid fa-plus"></i>
                     Add Another Question
                 </button>
@@ -765,7 +679,6 @@
             </p>
         </section>
 
-        <!-- Action Buttons -->
         <div class="actions">
             <div class="save-note">
                 <i class="fa-solid fa-shield-halved"></i>
@@ -794,75 +707,105 @@
 
 {% block extra_js %}
 <script>
-    // Prevent Sub Department name from matching Department name
-    const departmentSelect = document.querySelector(
-        'select[name="department_id"]'
-    );
+document.addEventListener('DOMContentLoaded', function () {
 
-    const subDepartmentInput = document.getElementById(
-        'subDepartmentInput'
-    );
+    // ==================================================
+    // ELEMENTS AND DRAFT SETTINGS
+    // ==================================================
 
-    const subDepartmentError = document.getElementById(
-        'subDepartmentError'
-    );
+    const DRAFT_KEY = 'exam_question_bank_create_draft';
+    const DRAFT_LIFETIME = 60 * 60 * 1000;
 
-    function validateSubDepartmentName() {
-        if (!departmentSelect || !subDepartmentInput) return true;
-
-        const departmentName = departmentSelect.options[
-            departmentSelect.selectedIndex
-        ]?.text.trim().toLocaleLowerCase();
-
-        const subDepartmentName = subDepartmentInput.value
-            .trim()
-            .toLocaleLowerCase();
-
-        const isDuplicate = (
-            departmentName &&
-            subDepartmentName &&
-            departmentName === subDepartmentName
-        );
-
-        subDepartmentError.style.display = isDuplicate ? 'block' : 'none';
-
-        subDepartmentInput.style.borderColor = isDuplicate
-            ? '#e05263'
-            : '';
-
-        return !isDuplicate;
-    }
-
-    subDepartmentInput.addEventListener(
-        'input',
-        validateSubDepartmentName
-    );
-
-    if (departmentSelect) {
-        departmentSelect.addEventListener(
-            'change',
-            validateSubDepartmentName
-        );
-    }
+    const form = document.getElementById('questionForm');
+    const departmentSelect = document.getElementById('departmentSelect');
+    const subDepartmentSelect = document.getElementById('subDepartmentSelect');
+    const questionsContainer = document.getElementById('questionsContainer');
+    const questionsJson = document.getElementById('questions_json');
+    const saveButton = document.getElementById('saveQuestionBankBtn');
 
     let questionCounter = 0;
+    let isSubmitting = false;
+
+    // ==================================================
+    // DEPARTMENT-BASED SUB DEPARTMENT DROPDOWN
+    // ==================================================
+
+    function filterSubDepartments(preserveValue = false) {
+
+        if (!departmentSelect || !subDepartmentSelect) return;
+
+        const previousValue = preserveValue
+            ? subDepartmentSelect.value
+            : '';
+
+        const selectedDepartmentName = (
+            departmentSelect.selectedOptions[0]?.textContent || ''
+        ).trim().toLocaleLowerCase();
+
+        let hasOptions = false;
+
+        [...subDepartmentSelect.options].forEach(option => {
+
+            if (!option.value) {
+                option.hidden = false;
+                return;
+            }
+
+            const optionDepartment = (
+                option.dataset.departmentName || ''
+            ).trim().toLocaleLowerCase();
+
+            const matched = (
+                optionDepartment === selectedDepartmentName
+            );
+
+            option.hidden = !matched;
+
+            if (matched) hasOptions = true;
+        });
+
+        subDepartmentSelect.disabled = !hasOptions;
+
+        subDepartmentSelect.options[0].textContent = hasOptions
+            ? 'Select sub department'
+            : 'No sub departments available';
+
+        if (
+            preserveValue &&
+            previousValue &&
+            [...subDepartmentSelect.options].some(
+                option => option.value === previousValue && !option.hidden
+            )
+        ) {
+            subDepartmentSelect.value = previousValue;
+        } else {
+            subDepartmentSelect.value = '';
+        }
+    }
+
+    departmentSelect.addEventListener('change', function () {
+        filterSubDepartments(false);
+        saveDraft();
+    });
+
+    // ==================================================
+    // CREATE QUESTION CARD
+    // ==================================================
 
     function addQuestion(existing = null) {
-        questionCounter++;
-        const number = questionCounter;
 
+        questionCounter++;
+
+        const number = questionCounter;
         const card = document.createElement('div');
+
         card.className = 'question-card';
         card.dataset.question = number;
 
-        const options = existing?.options || [
-            { text: '', label: 'A' },
-            { text: '', label: 'B' },
-            { text: '', label: 'C' },
-            { text: '', label: 'D' }
-        ];
+        const letters = ['A', 'B', 'C', 'D'];
 
-        const correct = existing?.correct_option ?? 0;
+        const options = existing?.options || ['', '', '', ''];
+        const correct = Number(existing?.correct_option ?? 0);
 
         card.innerHTML = `
             <div class="question-head">
@@ -870,7 +813,11 @@
                     <i class="fa-solid fa-hashtag"></i>
                     Question ${number}
                 </span>
-                <button type="button" class="btn btn-danger" onclick="removeQuestion(this)">
+
+                <button
+                    type="button"
+                    class="btn btn-danger remove-question-btn"
+                >
                     <i class="fa-solid fa-trash"></i>
                     Remove
                 </button>
@@ -878,17 +825,34 @@
 
             <div class="field">
                 <label>Question <span>*</span></label>
-                <textarea class="question-text" required placeholder="Type your question here..."></textarea>
+                <textarea
+                    class="question-text"
+                    required
+                    placeholder="Type your question here..."
+                ></textarea>
             </div>
 
             <div class="options-grid">
-                ${['A', 'B', 'C', 'D'].map((letter, i) => `
+                ${letters.map((letter, index) => `
                     <div class="field">
                         <label>Option ${letter} <span>*</span></label>
+
                         <div class="option-line">
-                            <input type="radio" name="correct_${number}" value="${i}" ${i === correct ? 'checked' : ''}>
+                            <input
+                                type="radio"
+                                name="correct_${number}"
+                                value="${index}"
+                                ${index === correct ? 'checked' : ''}
+                            >
+
                             <span class="option-label">${letter}</span>
-                            <input type="text" class="option-text" required placeholder="Enter option ${letter}">
+
+                            <input
+                                type="text"
+                                class="option-text"
+                                required
+                                placeholder="Enter option ${letter}"
+                            >
                         </div>
                     </div>
                 `).join('')}
@@ -900,69 +864,264 @@
             </p>
         `;
 
-        card.querySelector('.question-text').value = existing?.question || '';
+        card.querySelector('.question-text').value =
+            existing?.question || '';
 
-        card.querySelectorAll('.option-text').forEach((input, i) => {
-            input.value = options[i]?.text || '';
+        card.querySelectorAll('.option-text').forEach((input, index) => {
+            input.value = options[index] || '';
         });
 
-        document.getElementById('questionsContainer').appendChild(card);
+        card.querySelector('.remove-question-btn').addEventListener(
+            'click',
+            function () {
+                card.remove();
+                renumberQuestions();
+                saveDraft();
+            }
+        );
+
+        card.addEventListener('input', saveDraft);
+        card.addEventListener('change', saveDraft);
+
+        questionsContainer.appendChild(card);
     }
 
-    function removeQuestion(button) {
-        button.closest('.question-card').remove();
-        renumberQuestions();
-    }
+    // ==================================================
+    // RENUMBER QUESTIONS
+    // ==================================================
 
     function renumberQuestions() {
-        document.querySelectorAll('.question-card').forEach((card, index) => {
-            card.querySelector('.question-number').innerHTML = `
-                <i class="fa-solid fa-hashtag"></i>
-                Question ${index + 1}
-            `;
-        });
+
+        document.querySelectorAll('.question-card').forEach(
+            (card, index) => {
+
+                card.querySelector('.question-number').innerHTML = `
+                    <i class="fa-solid fa-hashtag"></i>
+                    Question ${index + 1}
+                `;
+            }
+        );
     }
 
     // ==================================================
-    // PREVENT DOUBLE SUBMISSION
+    // ADD QUESTION BUTTON
     // ==================================================
 
-    const questionForm = document.getElementById('questionForm');
-    const saveQuestionBankBtn = document.getElementById(
-        'saveQuestionBankBtn'
+    document.getElementById('addQuestionBtn').addEventListener(
+        'click',
+        function () {
+            addQuestion();
+            saveDraft();
+        }
     );
 
-    let isQuestionBankSubmitting = false;
+    // ==================================================
+    // COLLECT FORM DATA
+    // ==================================================
 
-    questionForm.addEventListener('submit', function(e) {
+    function collectDraft() {
 
-        // Block second submission immediately
-        if (isQuestionBankSubmitting) {
+        const questions = [];
+
+        document.querySelectorAll('.question-card').forEach(card => {
+
+            const question = card.querySelector('.question-text').value;
+
+            const options = [
+                ...card.querySelectorAll('.option-text')
+            ].map(input => input.value);
+
+            const correct = card.querySelector(
+                'input[type="radio"]:checked'
+            );
+
+            questions.push({
+                question: question,
+                options: options,
+                correct_option: correct
+                    ? Number(correct.value)
+                    : null
+            });
+        });
+
+        return {
+            savedAt: Date.now(),
+            department_id: departmentSelect.value,
+            sub_department: subDepartmentSelect.value,
+            exam_title: document.getElementById('examTitle').value,
+            description: document.getElementById('examDescription').value,
+            questions: questions
+        };
+    }
+
+    // ==================================================
+    // SAVE DRAFT
+    // ==================================================
+
+    function saveDraft() {
+
+        try {
+            sessionStorage.setItem(
+                DRAFT_KEY,
+                JSON.stringify(collectDraft())
+            );
+        } catch (error) {
+            console.warn('Unable to save exam draft:', error);
+        }
+    }
+
+    // ==================================================
+    // RESTORE DRAFT AFTER SERVER ERROR / REDIRECT
+    // ==================================================
+
+    function restoreDraft() {
+
+        let draft;
+
+        try {
+            const stored = sessionStorage.getItem(DRAFT_KEY);
+
+            if (!stored) return false;
+
+            draft = JSON.parse(stored);
+
+            if (
+                !draft.savedAt ||
+                Date.now() - draft.savedAt > DRAFT_LIFETIME
+            ) {
+                sessionStorage.removeItem(DRAFT_KEY);
+                return false;
+            }
+
+        } catch (error) {
+            sessionStorage.removeItem(DRAFT_KEY);
+            return false;
+        }
+
+        if (draft.department_id) {
+            departmentSelect.value = String(draft.department_id);
+        }
+
+        filterSubDepartments(false);
+
+        if (draft.sub_department) {
+            const matchingOption = [...subDepartmentSelect.options].find(
+                option =>
+                    option.value === draft.sub_department &&
+                    !option.hidden
+            );
+
+            if (matchingOption) {
+                subDepartmentSelect.value = draft.sub_department;
+            }
+        }
+
+        document.getElementById('examTitle').value =
+            draft.exam_title || '';
+
+        document.getElementById('examDescription').value =
+            draft.description || '';
+
+        questionsContainer.innerHTML = '';
+        questionCounter = 0;
+
+        if (Array.isArray(draft.questions) && draft.questions.length) {
+            draft.questions.forEach(question => addQuestion(question));
+        } else {
+            addQuestion();
+        }
+
+        renumberQuestions();
+
+        return true;
+    }
+
+    // ==================================================
+    // INITIAL LOAD
+    // ==================================================
+
+    const params = new URLSearchParams(window.location.search);
+    const examCreated = params.get("exam_created") === "1";
+
+    const navigation = performance.getEntriesByType('navigation')[0];
+    const isRefresh = navigation && navigation.type === 'reload';
+
+    // Clear draft after successful creation OR manual refresh
+    if (examCreated || isRefresh) {
+        sessionStorage.removeItem(DRAFT_KEY);
+    }
+
+    const restored = restoreDraft();
+
+    if (!restored) {
+        filterSubDepartments(false);
+        addQuestion();
+    }
+
+    // ==================================================
+    // AUTO SAVE FORM CHANGES
+    // ==================================================
+
+    form.addEventListener('input', function () {
+        if (!isSubmitting) saveDraft();
+    });
+
+    form.addEventListener('change', function () {
+        if (!isSubmitting) saveDraft();
+    });
+
+    // ==================================================
+    // FORM SUBMISSION
+    // ==================================================
+
+    form.addEventListener('submit', function (e) {
+
+        if (isSubmitting) {
             e.preventDefault();
             return;
         }
+
+        // ----------------------------------------------
+        // VALIDATE SUB DEPARTMENT
+        // ----------------------------------------------
+
+        if (
+            !subDepartmentSelect ||
+            subDepartmentSelect.disabled ||
+            !subDepartmentSelect.value
+        ) {
+            e.preventDefault();
+
+            alert('Please select a valid Sub Department.');
+
+            subDepartmentSelect?.focus();
+
+            return;
+        }
+
+        // ----------------------------------------------
+        // VALIDATE AT LEAST ONE QUESTION
+        // ----------------------------------------------
 
         const cards = [
             ...document.querySelectorAll('.question-card')
         ];
 
-        // Validate Sub Department
-        if (!validateSubDepartmentName()) {
-            e.preventDefault();
-            subDepartmentInput.focus();
-            return;
-        }
-
-        // At least one question required
         if (!cards.length) {
             e.preventDefault();
             alert('Please add at least one question.');
             return;
         }
 
+        // ----------------------------------------------
+        // VALIDATE QUESTIONS AND OPTIONS
+        // ----------------------------------------------
+
         const questions = [];
 
-        for (const card of cards) {
+        for (let index = 0; index < cards.length; index++) {
+
+            const card = cards[index];
 
             const question = card.querySelector(
                 '.question-text'
@@ -970,23 +1129,28 @@
 
             const options = [
                 ...card.querySelectorAll('.option-text')
-            ].map(x => x.value.trim());
+            ].map(input => input.value.trim());
 
             const correct = card.querySelector(
-                'input[type=radio]:checked'
+                'input[type="radio"]:checked'
             );
 
             if (
                 !question ||
                 options.length !== 4 ||
-                options.some(x => !x) ||
+                options.some(option => !option) ||
                 !correct
             ) {
                 e.preventDefault();
 
                 alert(
-                    'Please complete every question and all four options.'
+                    `Please complete Question ${index + 1}, all four options, and select its correct answer.`
                 );
+
+                card.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
 
                 return;
             }
@@ -994,27 +1158,38 @@
             questions.push({
                 question: question,
                 options: options,
-                correct_option: parseInt(correct.value, 10)
+                correct_option: Number(correct.value)
             });
         }
 
-        // Prepare JSON before submitting
-        document.getElementById(
-            'questions_json'
-        ).value = JSON.stringify(questions);
+        // ----------------------------------------------
+        // PREPARE JSON
+        // ----------------------------------------------
 
-        // Lock submission
-        isQuestionBankSubmitting = true;
+        questionsJson.value = JSON.stringify(questions);
 
-        saveQuestionBankBtn.disabled = true;
+        // ----------------------------------------------
+        // SAVE CURRENT DATA BEFORE POST
+        // If server redirects after an error, restore it.
+        // ----------------------------------------------
 
-        saveQuestionBankBtn.innerHTML = `
+        saveDraft();
+
+        // ----------------------------------------------
+        // LOCK SUBMISSION
+        // ----------------------------------------------
+
+        isSubmitting = true;
+
+        saveButton.disabled = true;
+
+        saveButton.innerHTML = `
             <i class="fa-solid fa-spinner fa-spin"></i>
             <span>Saving Question Bank...</span>
         `;
-
     });
-    // Create mode: Start with one empty question
-    addQuestion();
+
+});
+
 </script>
 {% endblock %}
