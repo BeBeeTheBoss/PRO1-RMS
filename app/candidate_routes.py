@@ -266,13 +266,12 @@ def row_as_dict(cursor):
 
 
 def validate_phone(phone):
-    """Allow common phone formatting and require 7-15 digits."""
-    if not phone or not re.fullmatch(r"[+0-9()\-\s]{7,15}", phone):
+    """Allow digits only and require 7-15 digits."""
+
+    if not phone or not re.fullmatch(r"[0-9]{7,11}", phone):
         return False
 
-    digit_count = len(re.sub(r"\D", "", phone))
-
-    return 7 <= digit_count <= 15
+    return True
 
 
 def validate_email(email):
