@@ -612,22 +612,20 @@
 
                 <div class="field">
                     <label>Sub Department / Category <span>*</span></label>
-                    <select
-                        id="subDepartmentSelect"
-                        name="sub_department"
-                        required
-                        disabled
-                    >
+
+                    <select id="subDepartmentSelect" name="sub_department" required disabled>
                         <option value="">Select sub department</option>
+
                         {% for sub in sub_departments %}
                         <option
-                            value="{{ sub.sub_department_name }}"
+                            value="{{ sub.id }}"
                             data-department-name="{{ sub.department_key }}"
                         >
                             {{ sub.sub_department_name }}
                         </option>
                         {% endfor %}
                     </select>
+
                 </div>
 
                 <div class="field full">

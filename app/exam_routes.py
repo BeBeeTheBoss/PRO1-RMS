@@ -428,7 +428,7 @@ def exam_create():
 
         # -------------------------------------------------
         # 2. LOAD ACTIVE SUB DEPARTMENTS
-        # Same Department name across branches is shared.
+        # Use the canonical department ID.
         # -------------------------------------------------
 
         department_names = [
@@ -439,18 +439,27 @@ def exam_create():
 
         if department_names:
             cur.execute("""
-                SELECT DISTINCT
-                    LOWER(TRIM(d.name)) AS department_key,
+                WITH canonical_departments AS (
+                    SELECT
+                        MIN(d.id) AS id,
+                        LOWER(TRIM(d.name)) AS department_key
+                    FROM public.departments d
+                    WHERE d.is_active = TRUE
+                      AND LOWER(TRIM(d.name)) = ANY(%s)
+                    GROUP BY LOWER(TRIM(d.name))
+                )
+                SELECT
+                    sd.id,
+                    sd.department_id,
+                    cd.department_key,
                     sd.sub_department_name
-                FROM public.sub_departments sd
-                JOIN public.departments d
-                    ON d.id = sd.department_id
+                FROM canonical_departments cd
+                JOIN public.sub_departments sd
+                    ON sd.department_id = cd.id
                 WHERE sd.is_active = TRUE
                   AND sd.deleted_at IS NULL
-                  AND d.is_active = TRUE
-                  AND LOWER(TRIM(d.name)) = ANY(%s)
                 ORDER BY
-                    department_key,
+                    cd.department_key,
                     sd.sub_department_name
             """, (department_names,))
 
@@ -469,9 +478,11 @@ def exam_create():
                 type=int
             )
 
-            sub_department = (
-                request.form.get("sub_department") or ""
-            ).strip()
+            # Receive Sub Department ID instead of name
+            sub_department_id = request.form.get(
+                "sub_department",
+                type=int
+            )
 
             title = (
                 request.form.get("exam_title") or ""
@@ -513,7 +524,7 @@ def exam_create():
 
             if (
                 not selected_department_id
-                or not sub_department
+                or not sub_department_id
                 or not title
             ):
                 flash(
@@ -527,15 +538,9 @@ def exam_create():
                     "error"
                 )
 
-            elif len(sub_department) > 150:
+            elif sub_department_id <= 0:
                 flash(
-                    "Sub Department must not exceed 150 characters.",
-                    "error"
-                )
-
-            elif not any(char.isalnum() for char in sub_department):
-                flash(
-                    "Sub Department must contain at least one letter or number.",
+                    "Invalid Sub Department selected.",
                     "error"
                 )
 
@@ -610,34 +615,29 @@ def exam_create():
 
                     # -------------------------------------------------
                     # 8. VALIDATE SUB DEPARTMENT
-                    # Must belong to the selected department.
+                    # Must belong to the canonical department ID.
                     # -------------------------------------------------
 
                     cur.execute("""
-                        SELECT EXISTS (
-                            SELECT 1
-                            FROM public.sub_departments sd
-                            JOIN public.departments d
-                                ON d.id = sd.department_id
-                            WHERE LOWER(TRIM(d.name)) =
-                                  LOWER(TRIM(%s))
-                              AND LOWER(TRIM(sd.sub_department_name)) =
-                                  LOWER(TRIM(%s))
-                              AND sd.is_active = TRUE
-                              AND sd.deleted_at IS NULL
-                              AND d.is_active = TRUE
-                        ) AS is_valid
+                        SELECT
+                            sd.id,
+                            sd.department_id,
+                            sd.sub_department_name
+                        FROM public.sub_departments sd
+                        WHERE sd.id = %s
+                          AND sd.department_id = %s
+                          AND sd.is_active = TRUE
+                          AND sd.deleted_at IS NULL
+                        LIMIT 1
                     """, (
-                        department["name"],
-                        sub_department
+                        sub_department_id,
+                        department["id"]
                     ))
 
-                    sub_department_check = cur.fetchone()
+                    selected_sub_department = cur.fetchone()
 
-                    if (
-                        not sub_department_check
-                        or not sub_department_check["is_valid"]
-                    ):
+                    if not selected_sub_department:
+
                         flash(
                             "Invalid Sub Department for the selected Department.",
                             "error"
@@ -645,9 +645,15 @@ def exam_create():
 
                     else:
 
+                        sub_department_name = (
+                            selected_sub_department[
+                                "sub_department_name"
+                            ]
+                        )
+
                         # -------------------------------------------------
                         # 9. DUPLICATE QUESTION BANK VALIDATION
-                        # Department + Sub Department must be unique.
+                        # Department + Sub Department ID must be unique.
                         # Exam Title is NOT considered.
                         # -------------------------------------------------
 
@@ -655,17 +661,13 @@ def exam_create():
                             SELECT EXISTS (
                                 SELECT 1
                                 FROM exam_sets es
-                                JOIN departments d
-                                    ON d.id = es.department_id
                                 WHERE es.deleted_at IS NULL
-                                  AND LOWER(TRIM(d.name)) =
-                                      LOWER(TRIM(%s))
-                                  AND LOWER(TRIM(es.sub_department)) =
-                                      LOWER(TRIM(%s))
+                                  AND es.department_id = %s
+                                  AND es.sub_department_id = %s
                             ) AS already_exists
                         """, (
-                            department["name"],
-                            sub_department
+                            department["id"],
+                            sub_department_id
                         ))
 
                         duplicate = cur.fetchone()
@@ -675,7 +677,7 @@ def exam_create():
                             flash(
                                 f'Question Bank already exists for '
                                 f'Department "{department["name"]}" '
-                                f'and Sub Department "{sub_department}".',
+                                f'and Sub Department "{sub_department_name}".',
                                 "error"
                             )
 
@@ -741,22 +743,25 @@ def exam_create():
 
                                 # -------------------------------------------------
                                 # 11. CREATE EXAM SET
+                                # Save both Sub Department ID and name.
                                 # -------------------------------------------------
 
                                 cur.execute("""
                                     INSERT INTO exam_sets
                                         (
                                             department_id,
+                                            sub_department_id,
                                             sub_department,
                                             exam_title,
                                             description,
                                             created_by
                                         )
-                                    VALUES (%s, %s, %s, %s, %s)
+                                    VALUES (%s, %s, %s, %s, %s, %s)
                                     RETURNING id
                                 """, (
                                     department["id"],
-                                    sub_department,
+                                    sub_department_id,
+                                    sub_department_name,
                                     title,
                                     description,
                                     session.get("user_id")
@@ -799,12 +804,14 @@ def exam_create():
                                 )
 
                                 return redirect(
-                                    url_for("exam.exam_create", exam_created=1)
+                                    url_for(
+                                        "exam.exam_create",
+                                        exam_created=1
+                                    )
                                 )
 
         # -------------------------------------------------
         # 14. RENDER TEMPLATE
-        # Keep submitted form data on validation errors.
         # -------------------------------------------------
 
         return render_template(
