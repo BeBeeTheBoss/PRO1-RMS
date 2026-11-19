@@ -243,7 +243,7 @@ def login():
                     # Increasing lock duration
                     lock_durations = {
                         1: 1,
-                        2: 3,
+                        2: 5,
                         3: 10,
                         4: 30
                     }

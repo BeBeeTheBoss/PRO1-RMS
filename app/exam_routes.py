@@ -378,8 +378,7 @@ def exam_list():
     finally:
         conn.close()
 
-
-
+        
 @exam_bp.route("/exams/create", methods=["GET", "POST"])
 @super_admin_required
 def exam_create():
