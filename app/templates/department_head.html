@@ -1,6 +1,6 @@
 {% extends "base.html" %} {% block title %}View Department Head{% endblock %} {%
-block page_heading %}View Department Head{% endblock %} {% block page_subtitle
-%} Manage department head accounts and department assignments {% endblock %} {%
+block page_heading %}View User Accounts{% endblock %} {% block page_subtitle
+%} Manage user accounts and department assignments {% endblock %} {%
 block extra_css %}
 <style>
   .department-head-page,
@@ -1077,10 +1077,10 @@ block extra_css %}
         <div class="dh-breadcrumb">
           <span>Administration</span>
           <i class="fa-solid fa-chevron-right"></i>
-          <span>Department Head</span>
+          <span>Users</span>
         </div>
 
-        <h2>Department Head Directory</h2>
+        <h2>User Accounts Directory</h2>
         <p>Manage access, assignments and account activity.</p>
       </div>
     </div>
@@ -1298,7 +1298,7 @@ block extra_css %}
                 <a
                   href="{{ url_for('main.edit_department_head', user_id=u[0]) }}"
                   class="dh-edit-icon"
-                  title="Edit Department Head"
+                  title="Edit User Account"
                   aria-label="Edit {{ u[1] }}"
                 >
                   <i class="fa-solid fa-pen-to-square"></i>
@@ -1741,7 +1741,7 @@ block extra_css %}
         modalTitle.textContent = "Activate Account?";
 
         modalDescription.textContent =
-          "This account will be activated and the Department Head will be able to access the system again.";
+          "This account will be activated and will be able to access the system again.";
 
         confirmButton.classList.add("activate");
 
@@ -1754,7 +1754,7 @@ block extra_css %}
         modalTitle.textContent = "Deactivate Account?";
 
         modalDescription.textContent =
-          "This account will be deactivated and the Department Head will no longer be able to access the system.";
+          "This account will be deactivated and will no longer be able to access the system.";
 
         confirmButton.classList.add("deactivate");
 

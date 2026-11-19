@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Department Head{% endblock %}
-{% block page_heading %}Edit Department Head{% endblock %}
+{% block title %}Edit User Accounts{% endblock %}
+{% block page_heading %}Edit Users Accounts{% endblock %}
 {% block page_subtitle %}
-Review and update the department head account
+Review and update the user accounts
 {% endblock %}
 
 {% block extra_css %}
@@ -598,9 +598,9 @@ Review and update the department head account
                 <div class="eh-breadcrumb">
                     <span>Administration</span>
                     <i class="fa-solid fa-chevron-right"></i>
-                    <span>Department Head</span>
+                    <span>Users</span>
                     <i class="fa-solid fa-chevron-right"></i>
-                    <span>Edit #{{ department_head[0] }}</span>
+                    <span>Edit {{ department_head[0] }}</span>
                 </div>
                 <h2>Edit Information >> {{ department_head[1] }}</h2>
                 <p>Update the account details and department assignments below.</p>
