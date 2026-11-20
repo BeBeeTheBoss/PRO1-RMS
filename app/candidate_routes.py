@@ -3465,15 +3465,7 @@ def interview_schedules():
                     COUNT(*) AS total,
 
                     COUNT(*) FILTER (
-                        WHERE
-                            ci.status = 'scheduled'
-                            AND (
-                                ci.interview_date,
-                                COALESCE(ci.interview_time, TIME '00:00')
-                            ) >= (
-                                CURRENT_DATE,
-                                CURRENT_TIME
-                            )
+                        WHERE ci.status = 'scheduled'
                     ) AS upcoming,
 
                     COUNT(*) FILTER (
