@@ -360,7 +360,8 @@ block extra_css %}
   /* Column widths */
   .department-head-page .dh-table th:first-child,
   .department-head-page .dh-table td:first-child {
-    width: 85px;
+    min-width: 45px; /* အကျယ်ကို အတင်းသတ်မှတ်ရန် */
+    white-space: nowrap;
   }
 
   .department-head-page .dh-table th:nth-child(2),

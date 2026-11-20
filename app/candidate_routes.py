@@ -6249,6 +6249,7 @@ def view_candidate(candidate_id):
                     c.email,
                     c.address,
                     c.nrc,
+                    c.position,
                     c.department_id,
                     c.branch_id,
                     c.cv_file_path,

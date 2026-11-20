@@ -692,7 +692,13 @@ endblock %} {% block extra_css %}
                 <div class="label">Department</div>
                 <div class="value">{{ candidate.department_name }}</div>
               </div>
-
+              
+              <div>
+                  <div class="label">Position</div>
+                  <div class="value">
+                      {{ candidate.position or 'N/A' }}
+                  </div>
+              </div>
               <div>
                 <div class="label">Application Status</div>
                 <div class="value">
