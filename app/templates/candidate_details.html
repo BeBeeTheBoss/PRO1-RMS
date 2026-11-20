@@ -681,31 +681,6 @@ endblock %} {% block extra_css %}
                 <div class="value">{{ candidate.nrc or 'Not provided' }}</div>
               </div>
 
-              <div>
-                <div class="label">Branch</div>
-                <div class="value">
-                  {{ candidate.branch_name or 'Not assigned' }}
-                </div>
-              </div>
-
-              <div>
-                <div class="label">Department</div>
-                <div class="value">{{ candidate.department_name }}</div>
-              </div>
-              
-              <div>
-                  <div class="label">Position</div>
-                  <div class="value">
-                      {{ candidate.position or 'N/A' }}
-                  </div>
-              </div>
-              <div>
-                <div class="label">Application Status</div>
-                <div class="value">
-                  {{ candidate.status|replace('_', ' ')|title }}
-                </div>
-              </div>
-
               <div class="full">
                 <div class="label">Address</div>
 
@@ -926,7 +901,12 @@ endblock %} {% block extra_css %}
 
               <div class="value">{{ candidate.department_name or '—' }}</div>
             </div>
-
+            <div style="margin-bottom: 23px">
+                  <div class="label">Position</div>
+                  <div class="value">
+                      {{ candidate.position or 'N/A' }}
+                  </div>
+            </div>
             <div style="margin-bottom: 23px">
               <div class="label">Created Date</div>
 
