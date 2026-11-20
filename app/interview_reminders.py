@@ -342,7 +342,7 @@ def send_overdue_interview_reminders():
                     + "The following interview is overdue "
                     + "and its status is still scheduled.\n\n"
                     + details
-                    + "\n\nPlease update the interview status to 'completed'."
+                    + "\n\nPlease update the interview status to completed."
                 )
             )
 

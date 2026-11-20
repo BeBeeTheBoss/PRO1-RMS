@@ -119,7 +119,7 @@ def sync_interview_notifications(cur):
 
             CONCAT(
                 c.name,
-                ' - interview date has passed, but the status is still Scheduled. Please change the status to 'completed'. (',
+                ' - interview date has passed, but the status is still Scheduled. Please change the status to completed. (',
                 TO_CHAR(ci.interview_date, 'DD Mon YYYY'),
                 ').'
             ),
