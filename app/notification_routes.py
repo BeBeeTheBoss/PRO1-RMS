@@ -115,11 +115,11 @@ def sync_interview_notifications(cur):
             interview_id
         )
         SELECT
-            'Overdue Interview',
+            'Reminder',
 
             CONCAT(
                 c.name,
-                ' - interview date has passed, but the status is still Scheduled (',
+                ' - interview date has passed, but the status is still Scheduled. Please change the status to 'completed'. (',
                 TO_CHAR(ci.interview_date, 'DD Mon YYYY'),
                 ').'
             ),
