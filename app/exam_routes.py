@@ -2267,7 +2267,8 @@ def exam_results():
                         COALESCE(es.exam_title, ''),
                         COALESCE(es.sub_department, ''),
                         COALESCE(ea.exam_method, ''),
-                        COALESCE(ea.status, '')
+                        COALESCE(ea.status, ''),
+                        COALESCE(ci.interview_stage, '')
                     ) ILIKE %s
               )
 
@@ -2325,6 +2326,9 @@ def exam_results():
             INNER JOIN public.exam_sets es
                 ON es.id = ea.exam_set_id
 
+            LEFT JOIN public.candidate_interviews ci
+                ON ci.id = ea.interview_id
+
             {where_sql}
             """,
             filter_params
@@ -2360,7 +2364,9 @@ def exam_results():
                 b.name AS branch_name,
 
                 es.exam_title,
-                es.sub_department
+                es.sub_department,
+
+                ci.interview_stage AS interview_stage
 
             FROM public.exam_assignments ea
 
@@ -2375,6 +2381,9 @@ def exam_results():
 
             INNER JOIN public.exam_sets es
                 ON es.id = ea.exam_set_id
+
+            LEFT JOIN public.candidate_interviews ci
+                ON ci.id = ea.interview_id
 
             {where_sql}
 
@@ -2401,5 +2410,4 @@ def exam_results():
 
     finally:
         conn.close()
-
         

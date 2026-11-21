@@ -888,6 +888,7 @@ tbody tr:last-child td { border-bottom: none; }
                     <tr>
                         <th>ID</th>
                         <th>Candidate</th>
+                        <th>Interview Stage</th>
                         <th>Branch</th>
                         <th>Department</th>
                         <th>Exam</th>
@@ -922,7 +923,17 @@ tbody tr:last-child td { border-bottom: none; }
                                 {{ row.position or '—' }}
                             </div>
                         </td>
-
+                        
+                        <td>
+                            {% if row.interview_stage %}
+                                <span class="name">
+                                    {{ row.interview_stage|replace('_', ' ')|title }}
+                                </span>
+                            {% else %}
+                                <span style="color:#929bb0;">—</span>
+                            {% endif %}
+                        </td>
+                        
                         <td>
                             <span class="branch-badge">
                                 {{ row.branch_name or '—' }}

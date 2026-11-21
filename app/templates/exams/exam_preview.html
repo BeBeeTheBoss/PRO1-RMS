@@ -1,0 +1,459 @@
+
+{% extends "base.html" %}
+
+{% block title %}Exam Preview{% endblock %}
+{% block page_heading %}Examination Preview{% endblock %}
+{% block page_subtitle %}Review the selected questions before the candidate starts.{% endblock %}
+
+{% block content %}
+
+<style>
+    .preview-page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding-bottom: 35px;
+        color: #26324a;
+    }
+
+    .preview-hero {
+        position: relative;
+        overflow: hidden;
+        padding: 30px;
+        border-radius: 22px;
+        color: #fff;
+        background: linear-gradient(120deg, #3446a8, #6477ed 65%, #8998ff);
+        box-shadow: 0 12px 30px rgba(73, 91, 190, .18);
+        margin-bottom: 22px;
+    }
+
+    .preview-hero::after {
+        content: "";
+        position: absolute;
+        width: 230px;
+        height: 230px;
+        right: -65px;
+        top: -100px;
+        border: 35px solid rgba(255,255,255,.10);
+        border-radius: 50%;
+    }
+
+    .hero-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 12px;
+        border-radius: 30px;
+        background: rgba(255,255,255,.16);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .5px;
+        margin-bottom: 15px;
+    }
+
+    .preview-hero h2 {
+        font-size: 27px;
+        font-weight: 750;
+        margin: 0 0 10px;
+        color: #fff;
+        position: relative;
+        z-index: 1;
+    }
+
+    .preview-hero p {
+        margin: 0;
+        color: rgba(255,255,255,.85);
+        font-size: 14px;
+    }
+
+    .preview-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+
+    .preview-stat {
+        background: #fff;
+        border: 1px solid #e9ecf5;
+        border-radius: 16px;
+        padding: 18px;
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        box-shadow: 0 4px 14px rgba(30, 45, 90, .035);
+    }
+
+    .stat-icon {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        border-radius: 13px;
+        background: #eef0ff;
+        color: #5869df;
+        font-size: 18px;
+    }
+
+    .stat-info small {
+        display: block;
+        color: #8992a6;
+        font-size: 12px;
+        margin-bottom: 4px;
+    }
+
+    .stat-info strong {
+        font-size: 17px;
+        color: #293550;
+        font-weight: 750;
+    }
+
+    .preview-section {
+        background: #fff;
+        border: 1px solid #e9ecf5;
+        border-radius: 18px;
+        padding: 23px;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 18px rgba(30, 45, 90, .035);
+    }
+
+    .section-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 19px;
+    }
+
+    .section-heading h3 {
+        margin: 0;
+        color: #293550;
+        font-size: 17px;
+        font-weight: 750;
+    }
+
+    .question-count {
+        padding: 6px 11px;
+        border-radius: 20px;
+        background: #f0f1ff;
+        color: #5869df;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .question-card {
+        border: 1px solid #e9ecf5;
+        border-radius: 15px;
+        padding: 19px;
+        margin-bottom: 14px;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .question-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .question-card:hover {
+        border-color: #cbd1ff;
+        box-shadow: 0 5px 16px rgba(83, 101, 210, .07);
+    }
+
+    .question-top {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 15px;
+    }
+
+    .question-number {
+        min-width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 10px;
+        background: #eef0ff;
+        color: #5869df;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .question-text {
+        color: #293550;
+        font-size: 15px;
+        line-height: 1.7;
+        font-weight: 650;
+        padding-top: 5px;
+        overflow-wrap: anywhere;
+    }
+
+    .option-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        padding-left: 46px;
+    }
+
+    .option-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 11px 13px;
+        border: 1px solid #edf0f6;
+        border-radius: 10px;
+        background: #fafbfe;
+        color: #59647b;
+        font-size: 13px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    .option-label {
+        width: 23px;
+        height: 23px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        border-radius: 7px;
+        background: #eef0ff;
+        color: #5869df;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .preview-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 18px 21px;
+        background: #fff;
+        border: 1px solid #e9ecf5;
+        border-radius: 16px;
+    }
+
+    .preview-actions .action-note {
+        color: #8992a6;
+        font-size: 12px;
+    }
+
+    .action-buttons {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-preview {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 19px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none !important;
+        transition: .2s ease;
+    }
+
+    .btn-back {
+        color: #59647b;
+        background: #f2f4f9;
+        border: 1px solid #e7eaf2;
+    }
+
+    .btn-back:hover {
+        color: #3446a8;
+        background: #e9ecf8;
+    }
+
+    .btn-start {
+        color: #fff !important;
+        background: linear-gradient(110deg, #5267e8, #7182f4);
+        box-shadow: 0 5px 13px rgba(82, 103, 232, .22);
+    }
+
+    .btn-start:hover {
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(82, 103, 232, .3);
+    }
+
+    @media(max-width: 650px) {
+        .preview-hero {
+            padding: 23px 20px;
+        }
+
+        .preview-hero h2 {
+            font-size: 21px;
+        }
+
+        .preview-stats {
+            grid-template-columns: 1fr;
+            gap: 9px;
+        }
+
+        .preview-stat {
+            padding: 13px;
+        }
+
+        .preview-section {
+            padding: 16px;
+        }
+
+        .option-list {
+            grid-template-columns: 1fr;
+            padding-left: 0;
+        }
+
+        .question-card {
+            padding: 14px;
+        }
+
+        .preview-actions {
+            align-items: stretch;
+        }
+
+        .preview-actions .action-note {
+            width: 100%;
+        }
+
+        .action-buttons {
+            width: 100%;
+        }
+
+        .action-buttons a {
+            flex: 1;
+        }
+    }
+</style>
+
+<div class="preview-page">
+
+    <!-- HERO -->
+    <div class="preview-hero">
+        <div class="hero-label">
+            <i class="fa-solid fa-clipboard-check"></i>
+            EXAMINATION PREVIEW
+        </div>
+
+        <h2>{{ assignment.exam_title }}</h2>
+
+        <p>
+            <i class="fa-solid fa-user-graduate"></i>
+            {{ assignment.candidate_name }}
+            &nbsp; · &nbsp;
+            <i class="fa-solid fa-building"></i>
+            {{ assignment.department_name }}
+            {% if assignment.sub_department %}
+                &nbsp; · &nbsp;
+                {{ assignment.sub_department }}
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- EXAM STATS -->
+    <div class="preview-stats">
+
+        <div class="preview-stat">
+            <div class="stat-icon">
+                <i class="fa-solid fa-list-check"></i>
+            </div>
+            <div class="stat-info">
+                <small>Total Questions</small>
+                <strong>{{ questions|length }} Questions</strong>
+            </div>
+        </div>
+
+        <div class="preview-stat">
+            <div class="stat-icon">
+                <i class="fa-regular fa-clock"></i>
+            </div>
+            <div class="stat-info">
+                <small>Exam Duration</small>
+                <strong>30 Minutes</strong>
+            </div>
+        </div>
+
+        <div class="preview-stat">
+            <div class="stat-icon">
+                <i class="fa-solid fa-desktop"></i>
+            </div>
+            <div class="stat-info">
+                <small>Exam Method</small>
+                <strong>Direct System</strong>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- QUESTIONS -->
+    <div class="preview-section">
+
+        <div class="section-heading">
+            <h3>
+                <i class="fa-solid fa-file-circle-question"
+                   style="color:#5869df;margin-right:7px"></i>
+                Examination Questions
+            </h3>
+
+            <span class="question-count">
+                {{ questions|length }} Questions
+            </span>
+        </div>
+
+        {% for q in questions %}
+        <div class="question-card">
+
+            <div class="question-top">
+                <div class="question-number">
+                    {{ loop.index }}
+                </div>
+
+                <div class="question-text">
+                    {{ q.question }}
+                </div>
+            </div>
+
+            <div class="option-list">
+                {% for option in q.options %}
+                <div class="option-item">
+                    <span class="option-label">{{ option.label }}</span>
+                    <span>{{ option.text }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+        </div>
+        {% else %}
+        <div style="text-align:center;padding:35px 15px;color:#929bb0">
+            <i class="fa-regular fa-folder-open"
+               style="font-size:35px;margin-bottom:12px"></i>
+            <p style="margin:0;font-size:14px">No questions available for this exam.</p>
+        </div>
+        {% endfor %}
+
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="preview-actions">
+
+        <div class="action-note">
+            <i class="fa-solid fa-circle-info"></i>
+            Review the questions before opening the examination.
+        </div>
+
+        <div class="action-buttons">
+
+            <a href="{{ url_for('exam.direct_exam', assignment_id=assignment.id) }}"
+               class="btn-preview btn-start">
+                Open Direct Exam
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
