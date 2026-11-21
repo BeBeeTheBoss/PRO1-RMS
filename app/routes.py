@@ -19,6 +19,8 @@ from werkzeug.security import (
 from datetime import datetime, timezone
 from psycopg2.extras import RealDictCursor
 from app.db import get_connection
+from flask import send_from_directory
+from pathlib import Path
 
 main = Blueprint("main", __name__)
 
@@ -62,6 +64,27 @@ def home():
 
     return redirect(url_for("main.login"))
 
+
+@main.route("/user-guide")
+@login_required
+def user_guide():
+    guide_dir = Path(current_app.root_path) / "uploads" / "user_guide"
+
+    # ဒီနေရာမှာ PDF ဖိုင်နာမည်ကို အမှန်အတိုင်း ထည့်ပါ
+    filename = "PRO1_RMS_User_Guide_MM.pdf"
+
+    file_path = guide_dir / filename
+
+    if not file_path.is_file():
+        abort(404)
+
+    return send_from_directory(
+        str(guide_dir),
+        filename,
+        mimetype="application/pdf",
+        as_attachment=request.args.get("download") == "1",
+        download_name=filename
+    )
 
 # -----------------------------------------
 # LOGIN

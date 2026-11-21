@@ -2372,6 +2372,19 @@
 
                 <span class="nav-text">Candidate Records</span>
             </a>
+            
+            <!-- USER GUIDE -->
+            <a href="{{ url_for('main.user_guide') }}"
+            class="nav-link"
+            target="_blank"
+            rel="noopener noreferrer">
+
+                <span class="nav-icon">
+                    <i class="fa-solid fa-file-pdf"></i>
+                </span>
+
+                <span class="nav-text">User Guide</span>
+            </a>
         </nav>
 
         <div class="sidebar-bottom">
@@ -2670,6 +2683,7 @@
         </section>
 
     </div>
+
     <!-- PROFILE MODAL -->
     <div class="account-modal-overlay" id="profileModalOverlay" hidden>
 
@@ -2866,6 +2880,7 @@
         data-profile-url="{{ url_for('main.profile_api') }}"
         data-change-password-url="{{ url_for('main.change_password_api') }}"
     ></div>
+    
     <!-- ========================================
          MAIN JAVASCRIPT
     ======================================== -->
