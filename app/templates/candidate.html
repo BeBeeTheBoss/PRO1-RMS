@@ -1459,6 +1459,78 @@ Manage applications and move candidates through each recruitment stage.
 .candidates-page input.email-readonly {
     user-select: none;
 }
+
+/* =========================================
+   DECISION MODAL - INCREASE VIEW HEIGHT
+========================================= */
+
+.confirm-modal.decision-modal {
+    width: min(760px, calc(100% - 32px));
+    max-height: 94vh;
+    max-height: 94dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Email + Reason share one scroll area */
+#emailPreviewFields {
+    width: 100%;
+    max-height: calc(94vh - 270px);
+    max-height: calc(94dvh - 270px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 10px;
+    box-sizing: border-box;
+}
+
+/* Keep the scrollbar visible when content overflows */
+#emailPreviewFields {
+    scrollbar-width: thin;
+    scrollbar-color: #aab4d0 #f1f3f9;
+}
+
+#emailPreviewFields::-webkit-scrollbar {
+    width: 7px;
+}
+
+#emailPreviewFields::-webkit-scrollbar-track {
+    background: #f1f3f9;
+    border-radius: 10px;
+}
+
+#emailPreviewFields::-webkit-scrollbar-thumb {
+    background: #aab4d0;
+    border-radius: 10px;
+}
+
+#emailPreviewFields::-webkit-scrollbar-thumb:hover {
+    background: #7d8bb3;
+}
+
+/* Reason spacing */
+#decisionReasonField {
+    margin-top: 18px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .confirm-modal.decision-modal {
+        width: calc(100% - 20px);
+        max-height: 95vh;
+        max-height: 95dvh;
+    }
+
+    #emailPreviewFields {
+        max-height: calc(95vh - 250px);
+        max-height: calc(95dvh - 250px);
+        padding-right: 6px;
+    }
+}
+/* Resign: show only reason, hide email fields */
+#emailPreviewFields.reason-only > :not(#decisionReasonField) {
+    display: none !important;
+}
 </style>
 {% endblock %}
 
@@ -2004,7 +2076,25 @@ Manage applications and move candidates through each recruitment stage.
                     </div>
 
                     <!-- NEW: REASON FIELD -->
-                    
+                                    <!-- RESIGN REASON - OUTSIDE EMAIL PREVIEW -->
+                    <div class="email-field" id="decisionReasonField">
+                        <label for="decisionReason" id="decisionReasonLabel">
+                            Reason for Resignation
+                            <span class="required-star">*</span>
+                        </label>
+
+                        <textarea
+                            id="decisionReason"
+                            name="remarks"
+                            rows="4"
+                            maxlength="1000"
+                            placeholder="Enter reason for resignation..."
+                        ></textarea>
+
+                        <p class="small-note">
+                            A reason is required before confirming this decision.
+                        </p>
+                    </div>
 
                     <p class="small-note">
                         Review the recipient and message before sending.
@@ -2012,25 +2102,7 @@ Manage applications and move candidates through each recruitment stage.
                     </p>
 
                 </div>
-                <!-- RESIGN REASON - OUTSIDE EMAIL PREVIEW -->
-                <div class="email-field" id="decisionReasonField">
-                    <label for="decisionReason" id="decisionReasonLabel">
-                        Reason for Resignation
-                        <span class="required-star">*</span>
-                    </label>
 
-                    <textarea
-                        id="decisionReason"
-                        name="remarks"
-                        rows="4"
-                        maxlength="1000"
-                        placeholder="Enter reason for resignation..."
-                    ></textarea>
-
-                    <p class="small-note">
-                        A reason is required before confirming this decision.
-                    </p>
-                </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-light" id="cancelDecision">Cancel</button>
                     <button type="submit" class="btn btn-decision-confirm" id="confirmDecision">
@@ -2055,7 +2127,9 @@ Manage applications and move candidates through each recruitment stage.
 {% block extra_js %}
 
 <script>
-    // Toast notifications.
+    // ==================================================
+    // TOAST NOTIFICATIONS
+    // ==================================================
     (function () {
         const toast = document.getElementById('candidateToast');
         const toastIcon = document.getElementById('candidateToastIcon');
@@ -2072,7 +2146,11 @@ Manage applications and move candidates through each recruitment stage.
 
             toast.classList.remove('success', 'error');
             toast.classList.add(isError ? 'error' : 'success');
-            toastTitle.textContent = isError ? 'Something went wrong' : 'Success';
+
+            toastTitle.textContent = isError
+                ? 'Something went wrong'
+                : 'Success';
+
             toastMessage.textContent = message;
             toastIcon.textContent = isError ? '!' : '✓';
             toast.classList.add('show');
@@ -2100,21 +2178,30 @@ Manage applications and move candidates through each recruitment stage.
         const params = new URLSearchParams(window.location.search);
 
         if (params.get('toast') === 'success') {
-            window.showCandidateToast('Candidate saved successfully.', 'success');
+            window.showCandidateToast(
+                'Candidate saved successfully.',
+                'success'
+            );
+
             params.delete('toast');
 
             const query = params.toString();
+
             const cleanUrl = window.location.pathname +
-                (query ? '?' + query : '') + window.location.hash;
+                (query ? '?' + query : '') +
+                window.location.hash;
 
             window.history.replaceState({}, '', cleanUrl);
         }
     })();
 
 
-    // Pagination: 10 candidates per page.
+    // ==================================================
+    // PAGINATION: 10 CANDIDATES PER PAGE
+    // ==================================================
     (function () {
         const rowsPerPage = 10;
+
         const tableBody = document.getElementById('candidateTableBody');
         const pagination = document.getElementById('candidatePagination');
         const paginationInfo = document.getElementById('paginationInfo');
@@ -2172,7 +2259,11 @@ Manage applications and move candidates through each recruitment stage.
 
         function renderPage() {
             const startIndex = (currentPage - 1) * rowsPerPage;
-            const endIndex = Math.min(startIndex + rowsPerPage, rows.length);
+
+            const endIndex = Math.min(
+                startIndex + rowsPerPage,
+                rows.length
+            );
 
             rows.forEach(function (row, index) {
                 row.style.display =
@@ -2210,22 +2301,32 @@ Manage applications and move candidates through each recruitment stage.
     })();
 
 
-    // Delete confirmation modal.
+    // ==================================================
+    // DELETE CONFIRMATION MODAL
+    // ==================================================
     const deleteModal = document.getElementById('deleteModal');
-    const deleteModalForm = document.getElementById('deleteModalForm');
+
+    const deleteModalForm =
+        document.getElementById('deleteModalForm');
+
     const deleteModalDescription =
         document.getElementById('deleteModalDescription');
-    const cancelDelete = document.getElementById('cancelDelete');
+
+    const cancelDelete =
+        document.getElementById('cancelDelete');
 
     let lastDeleteTrigger = null;
 
     document.querySelectorAll('.js-delete-candidate').forEach(function (button) {
+
         button.addEventListener('click', function () {
+
             if (!deleteModal || !deleteModalForm || !deleteModalDescription) {
                 return;
             }
 
             lastDeleteTrigger = this;
+
             deleteModalForm.action = this.dataset.deleteUrl;
 
             deleteModalDescription.textContent =
@@ -2234,7 +2335,9 @@ Manage applications and move candidates through each recruitment stage.
 
             deleteModal.classList.add('open');
 
-            if (cancelDelete) cancelDelete.focus();
+            if (cancelDelete) {
+                cancelDelete.focus();
+            }
         });
     });
 
@@ -2261,8 +2364,11 @@ Manage applications and move candidates through each recruitment stage.
     }
 
 
-    // Decision modal references.
-    const decisionModal = document.getElementById('decisionModal');
+    // ==================================================
+    // DECISION MODAL REFERENCES
+    // ==================================================
+    const decisionModal =
+        document.getElementById('decisionModal');
 
     const decisionModalPanel = decisionModal
         ? decisionModal.querySelector('.confirm-modal.decision-modal')
@@ -2307,7 +2413,10 @@ Manage applications and move candidates through each recruitment stage.
     const previewEmailBody =
         document.getElementById('previewEmailBody');
 
-    // Interview schedule fields.
+
+    // ==================================================
+    // INTERVIEW SCHEDULE REFERENCES
+    // ==================================================
     const interviewScheduleFields =
         document.getElementById('interviewScheduleFields');
 
@@ -2324,7 +2433,9 @@ Manage applications and move candidates through each recruitment stage.
         document.getElementById('interviewer');
 
 
-    // Decision reason references.
+    // ==================================================
+    // DECISION REASON REFERENCES
+    // ==================================================
     const decisionReasonField =
         document.getElementById('decisionReasonField');
 
@@ -2332,8 +2443,11 @@ Manage applications and move candidates through each recruitment stage.
         document.getElementById('decisionReason');
 
 
-    // Reset reason whenever the decision modal opens.
+    // ==================================================
+    // RESET REASON
+    // ==================================================
     function resetDecisionReason() {
+
         if (decisionReason) {
             decisionReason.value = '';
             decisionReason.setCustomValidity('');
@@ -2345,13 +2459,15 @@ Manage applications and move candidates through each recruitment stage.
             decisionReasonField.classList.remove('visible');
         }
 
-        const reasonLabel = document.getElementById('decisionReasonLabel');
+        const reasonLabel =
+            document.getElementById('decisionReasonLabel');
 
         if (reasonLabel) {
             reasonLabel.innerHTML =
                 'Reason <span class="required-star">*</span>';
         }
     }
+
 
     // Clear validation message when user starts typing.
     if (decisionReason) {
@@ -2366,12 +2482,27 @@ Manage applications and move candidates through each recruitment stage.
         });
     }
 
+    if (interviewDate) {
+        interviewDate.addEventListener('change', function () {
+            interviewDate.setCustomValidity('');
+        });
+    }
+
+    if (interviewTime) {
+        interviewTime.addEventListener('change', function () {
+            interviewTime.setCustomValidity('');
+        });
+    }
+
 
     let pendingDecisionForm = null;
 
 
-    // Map pipeline tab to interview stage.
+    // ==================================================
+    // MAP PIPELINE TAB TO INTERVIEW STAGE
+    // ==================================================
     function getInterviewStage(tab) {
+
         if (tab === 'interview_request') {
             return 'First Interview';
         }
@@ -2384,33 +2515,84 @@ Manage applications and move candidates through each recruitment stage.
     }
 
 
-    // Return today's date in YYYY-MM-DD format (Asia/Yangon).
+    // ==================================================
+    // DETERMINE REQUIRED SCHEDULE FOR DECISION
+    // ==================================================
+    function getScheduleStage(decision, activeTab) {
+
+        // Skip from Interview Request schedules Second Interview.
+        if (
+            decision === 'skip' &&
+            activeTab === 'interview_request'
+        ) {
+            return 'Second Interview';
+        }
+
+        return getInterviewStage(activeTab);
+    }
+
+
+    function requiresInterviewSchedule(decision, activeTab) {
+
+        // Accept from Interview Request / First Interview.
+        if (
+            decision === 'accept' &&
+            getInterviewStage(activeTab) !== null
+        ) {
+            return true;
+        }
+
+        // Skip from Interview Request only.
+        if (
+            decision === 'skip' &&
+            activeTab === 'interview_request'
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    // ==================================================
+    // TODAY'S DATE IN ASIA/YANGON
+    // ==================================================
     function getTodayDate() {
+
         const now = new Date();
 
-        // Convert to Yangon time
-        const yangonTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Yangon' }));
+        const yangonTime = new Date(
+            now.toLocaleString('en-US', {
+                timeZone: 'Asia/Yangon'
+            })
+        );
 
         const year = yangonTime.getFullYear();
-        const month = String(yangonTime.getMonth() + 1).padStart(2, '0');
-        const day = String(yangonTime.getDate()).padStart(2, '0');
+
+        const month = String(
+            yangonTime.getMonth() + 1
+        ).padStart(2, '0');
+
+        const day = String(
+            yangonTime.getDate()
+        ).padStart(2, '0');
 
         return year + '-' + month + '-' + day;
     }
 
 
-
-    // Update email body with selected interview schedule.
-    // Frontend only maintains ONE schedule section.
+    // ==================================================
+    // UPDATE EMAIL BODY WITH INTERVIEW SCHEDULE
+    // ==================================================
     function updateInterviewSchedulePreview() {
+
         if (!previewEmailBody) return;
 
         let baseBody = previewEmailBody.value
             .replace(/\r\n/g, '\n')
             .replace(/\r/g, '\n');
 
-        // Remove all existing Interview Schedule sections.
-        // Supports both DD/MM/YYYY and DD Month YYYY.
+        // Remove existing Interview Schedule section.
         baseBody = baseBody.replace(
             /^[ \t]*Interview Schedule[ \t]*\n(?:(?:[ \t]*(?:Date|Time|Interviewer)[ \t]*:.*)\n?){1,3}/gim,
             ''
@@ -2444,6 +2626,7 @@ Manage applications and move candidates through each recruitment stage.
         const timeParts = interviewTime.value.split(':');
 
         const hour = Number(timeParts[0]);
+
         const minutes = timeParts[1];
 
         const period = hour >= 12 ? 'PM' : 'AM';
@@ -2464,7 +2647,9 @@ Manage applications and move candidates through each recruitment stage.
     }
 
 
-    // Listen for schedule changes.
+    // ==================================================
+    // LISTEN FOR SCHEDULE CHANGES
+    // ==================================================
     if (interviewDate) {
         interviewDate.addEventListener(
             'change',
@@ -2487,7 +2672,11 @@ Manage applications and move candidates through each recruitment stage.
     }
 
 
+    // ==================================================
+    // TITLE CASE
+    // ==================================================
     function titleCase(value) {
+
         return String(value || '')
             .replace(/_/g, ' ')
             .replace(/\b\w/g, function (character) {
@@ -2496,7 +2685,11 @@ Manage applications and move candidates through each recruitment stage.
     }
 
 
+    // ==================================================
+    // RESET DECISION MODAL CLASSES
+    // ==================================================
     function resetDecisionModalClasses() {
+
         if (decisionModal) {
             decisionModal.classList.remove(
                 'decision-accept',
@@ -2508,25 +2701,75 @@ Manage applications and move candidates through each recruitment stage.
         }
 
         if (decisionModalPanel) {
-            decisionModalPanel.classList.remove('email-preview-active');
+            decisionModalPanel.classList.remove(
+                'email-preview-active'
+            );
+        }
+
+        if (emailPreviewFields) {
+            emailPreviewFields.classList.remove('reason-only');
         }
     }
 
 
+    // ==================================================
+    // ACTIVATE EMAIL PREVIEW
+    // ==================================================
     function activateEmailPreview(decisionClass) {
+
         if (decisionModal) {
             decisionModal.classList.add(decisionClass);
         }
 
         if (decisionModalPanel) {
-            decisionModalPanel.classList.add('email-preview-active');
+            decisionModalPanel.classList.add(
+                'email-preview-active'
+            );
         }
     }
 
 
-    // Open preview/confirmation for the selected decision.
+    // ==================================================
+    // RESET INTERVIEW SCHEDULE FIELDS
+    // ==================================================
+    function resetInterviewSchedule() {
+
+        if (interviewScheduleFields) {
+            interviewScheduleFields.classList.remove('visible');
+        }
+
+        if (interviewDate) {
+            interviewDate.value = '';
+            interviewDate.required = false;
+            interviewDate.min = getTodayDate();
+            interviewDate.setCustomValidity('');
+        }
+
+        if (interviewTime) {
+            interviewTime.value = '';
+            interviewTime.required = false;
+            interviewTime.setCustomValidity('');
+        }
+
+        if (interviewer) {
+            interviewer.value = '';
+            interviewer.required = false;
+            interviewer.setCustomValidity('');
+        }
+
+        if (interviewScheduleTitle) {
+            interviewScheduleTitle.textContent = 'Interview Schedule';
+        }
+    }
+
+
+    // ==================================================
+    // OPEN PREVIEW / CONFIRMATION MODAL
+    // ==================================================
     document.querySelectorAll('.js-stage-decision').forEach(function (form) {
+
         form.addEventListener('submit', function (event) {
+
             event.preventDefault();
 
             if (
@@ -2574,12 +2817,21 @@ Manage applications and move candidates through each recruitment stage.
 
             const interviewStage = getInterviewStage(activeTab);
 
-            const requiresInterviewSchedule =
-                decision === 'accept' && interviewStage !== null;
+            const scheduleStage = getScheduleStage(
+                decision,
+                activeTab
+            );
+
+            const needSchedule = requiresInterviewSchedule(
+                decision,
+                activeTab
+            );
 
 
+            // Reset modal.
             resetDecisionModalClasses();
             resetDecisionReason();
+            resetInterviewSchedule();
 
             emailPreviewFields.classList.remove('visible');
 
@@ -2589,42 +2841,26 @@ Manage applications and move candidates through each recruitment stage.
 
             confirmDecision.disabled = false;
 
-            // Reset schedule fields.
-            if (interviewScheduleFields) {
-                interviewScheduleFields.classList.remove('visible');
-            }
-
-            if (interviewDate) {
-                interviewDate.value = '';
-                interviewDate.required = false;
-                interviewDate.min = getTodayDate();
-                interviewDate.setCustomValidity('');
-            }
-
-            if (interviewTime) {
-                interviewTime.value = '';
-                interviewTime.required = false;
-                interviewTime.setCustomValidity('');
-            }
-
-            if (interviewer) {
-                interviewer.value = '';
-                interviewer.required = false;
-                interviewer.setCustomValidity('');
-            }
-
             if (cancelDecision) {
                 cancelDecision.textContent = 'Cancel';
                 cancelDecision.style.display = '';
             }
 
 
+            // ==================================================
+            // ACCEPT
+            // ==================================================
             if (decision === 'accept') {
+
                 activateEmailPreview('decision-accept');
 
                 decisionModalIcon.textContent = '✉';
-                decisionModalEyebrow.textContent = 'ACCEPT CANDIDATE';
-                decisionModalTitle.textContent = 'Review acceptance email';
+
+                decisionModalEyebrow.textContent =
+                    'ACCEPT CANDIDATE';
+
+                decisionModalTitle.textContent =
+                    'Review acceptance email';
 
                 decisionModalDescription.textContent =
                     'Review and edit the email before moving ' +
@@ -2647,8 +2883,10 @@ Manage applications and move candidates through each recruitment stage.
 
                 emailPreviewFields.classList.add('visible');
 
-                // Require date, time and interviewer for interview acceptance.
-                if (requiresInterviewSchedule) {
+
+                // Interview schedule required for interview acceptance.
+                if (needSchedule) {
+
                     if (
                         !interviewScheduleFields ||
                         !interviewDate ||
@@ -2659,6 +2897,7 @@ Manage applications and move candidates through each recruitment stage.
                             'Interview schedule fields are missing from the page.',
                             'error'
                         );
+
                         pendingDecisionForm = null;
                         return;
                     }
@@ -2667,7 +2906,7 @@ Manage applications and move candidates through each recruitment stage.
 
                     if (interviewScheduleTitle) {
                         interviewScheduleTitle.textContent =
-                            interviewStage + ' Schedule';
+                            scheduleStage + ' Schedule';
                     }
 
                     interviewDate.required = true;
@@ -2676,17 +2915,25 @@ Manage applications and move candidates through each recruitment stage.
 
                     interviewDate.min = getTodayDate();
 
-                    // Update email preview when date/time/interviewer are selected.
                     updateInterviewSchedulePreview();
                 }
+            }
 
 
-            } else if (decision === 'skip') {
+            // ==================================================
+            // SKIP
+            // ==================================================
+            else if (decision === 'skip') {
+
                 activateEmailPreview('decision-skip');
 
                 decisionModalIcon.textContent = '⏭';
-                decisionModalEyebrow.textContent = 'SKIP STAGE';
-                decisionModalTitle.textContent = 'Review skip email';
+
+                decisionModalEyebrow.textContent =
+                    'SKIP STAGE';
+
+                decisionModalTitle.textContent =
+                    'Review skip email';
 
                 decisionModalDescription.textContent =
                     'Review the email explaining the skipped stage and the stage ' +
@@ -2709,17 +2956,66 @@ Manage applications and move candidates through each recruitment stage.
 
                 emailPreviewFields.classList.add('visible');
 
+
+                // ==================================================
+                // IMPORTANT:
+                // Skip from Interview Request -> Second Interview Schedule
+                // Other Skip stages -> No schedule.
+                // ==================================================
+                if (needSchedule) {
+
+                    if (
+                        !interviewScheduleFields ||
+                        !interviewDate ||
+                        !interviewTime ||
+                        !interviewer
+                    ) {
+                        window.showCandidateToast(
+                            'Interview schedule fields are missing from the page.',
+                            'error'
+                        );
+
+                        pendingDecisionForm = null;
+                        return;
+                    }
+
+                    interviewScheduleFields.classList.add('visible');
+
+                    if (interviewScheduleTitle) {
+                        interviewScheduleTitle.textContent =
+                            scheduleStage + ' Schedule';
+                    }
+
+                    interviewDate.required = true;
+                    interviewTime.required = true;
+                    interviewer.required = true;
+
+                    interviewDate.min = getTodayDate();
+
+                    updateInterviewSchedulePreview();
+                }
+
+                // Skip reason remains required.
                 if (decisionReasonField) {
                     decisionReasonField.classList.add('visible');
                 }
+            }
 
 
-            } else if (decision === 'reject') {
+            // ==================================================
+            // REJECT
+            // ==================================================
+            else if (decision === 'reject') {
+
                 activateEmailPreview('decision-reject');
 
                 decisionModalIcon.textContent = '✉';
-                decisionModalEyebrow.textContent = 'REJECT CANDIDATE';
-                decisionModalTitle.textContent = 'Review rejection email';
+
+                decisionModalEyebrow.textContent =
+                    'REJECT CANDIDATE';
+
+                decisionModalTitle.textContent =
+                    'Review rejection email';
 
                 decisionModalDescription.textContent =
                     'Review the rejection email before confirming this decision.';
@@ -2744,46 +3040,63 @@ Manage applications and move candidates through each recruitment stage.
                 if (decisionReasonField) {
                     decisionReasonField.classList.add('visible');
                 }
+            }
 
 
-            } else if (decision === 'cancel') {
+            // ==================================================
+            // CANCEL
+            // ==================================================
+            else if (decision === 'cancel') {
+
                 decisionModal.classList.add('decision-cancel');
 
                 decisionModalIcon.textContent = '↩';
-                decisionModalEyebrow.textContent = 'CANCEL CANDIDATE';
-                decisionModalTitle.textContent = 'Cancel this candidate?';
+
+                decisionModalEyebrow.textContent =
+                    'CANCEL CANDIDATE';
+
+                decisionModalTitle.textContent =
+                    'Cancel this candidate?';
 
                 decisionModalDescription.textContent =
                     'You are cancelling ' + candidateName +
                     ' from the current recruitment stage. Do you want to continue?';
 
                 confirmDecision.textContent = 'Yes, Cancel';
+            }
 
 
-            } else if (decision === 'resign') {
+            // ==================================================
+            // RESIGN
+            // ==================================================
+            else if (decision === 'resign') {
 
                 decisionModal.classList.add('decision-resign');
 
                 decisionModalIcon.textContent = '🚪';
-                decisionModalEyebrow.textContent = 'MARK AS RESIGNED';
-                decisionModalTitle.textContent = 'Mark candidate as resign?';
+
+                decisionModalEyebrow.textContent =
+                    'MARK AS RESIGNED';
+
+                decisionModalTitle.textContent =
+                    'Mark candidate as resign?';
 
                 decisionModalDescription.textContent =
                     candidateName +
                     ' will be moved from Joined to Resign. Please provide a reason.';
 
-                // Hide email preview completely
+                // Show reason only inside the shared scroll container.
                 if (emailPreviewFields) {
-                    emailPreviewFields.classList.remove('visible');
+                    emailPreviewFields.classList.add('visible', 'reason-only');
                 }
 
-                // Show reason only
                 if (decisionReasonField) {
                     decisionReasonField.classList.add('visible');
                 }
 
                 if (decisionReason) {
                     decisionReason.required = true;
+
                     decisionReason.placeholder =
                         'Enter reason for resignation...';
                 }
@@ -2800,17 +3113,24 @@ Manage applications and move candidates through each recruitment stage.
             }
 
 
+            // ==================================================
+            // SHOW MODAL
+            // ==================================================
             document.body.classList.add('email-preview-open');
+
             decisionModal.classList.add('open');
 
             if (emailPreviewFields) {
                 emailPreviewFields.scrollTop = 0;
             }
 
-            // Focus the first required interview field, otherwise the email field.
-            if (requiresInterviewSchedule && interviewDate) {
+            // Focus schedule date if required.
+            if (needSchedule && interviewDate) {
                 interviewDate.focus();
-            } else if (cancelDecision && cancelDecision.style.display !== 'none') {
+            } else if (
+                cancelDecision &&
+                cancelDecision.style.display !== 'none'
+            ) {
                 cancelDecision.focus();
             } else {
                 confirmDecision.focus();
@@ -2818,49 +3138,68 @@ Manage applications and move candidates through each recruitment stage.
         });
     });
 
-        /* ==========================================
-       PROCESSING STATE HELPERS
-    ========================================== */
 
+    // ==================================================
+    // PROCESSING STATE HELPERS
+    // ==================================================
     function setDecisionProcessing(active, message) {
+
         if (confirmDecision) {
+
             if (active) {
+
                 confirmDecision.dataset.originalLabel =
                     confirmDecision.dataset.originalLabel ||
                     confirmDecision.textContent.trim();
 
                 confirmDecision.disabled = true;
+
                 confirmDecision.classList.add('is-loading');
+
                 confirmDecision.innerHTML =
                     '<span class="btn-spinner" aria-hidden="true"></span>' +
                     '<span>Processing...</span>';
+
             } else {
+
                 confirmDecision.disabled = false;
+
                 confirmDecision.classList.remove('is-loading');
+
                 confirmDecision.textContent =
                     confirmDecision.dataset.originalLabel || 'Confirm';
             }
         }
 
         if (decisionProcessingOverlay) {
-            decisionProcessingOverlay.classList.toggle('show', !!active);
+            decisionProcessingOverlay.classList.toggle(
+                'show',
+                !!active
+            );
         }
 
         if (decisionProcessingText && message) {
             decisionProcessingText.textContent = message;
         }
     }
-    
+
+
+    // ==================================================
+    // CLOSE DECISION MODAL
+    // ==================================================
     function closeDecisionModal() {
+
         if (!decisionModal) return;
 
         decisionModal.classList.remove('open');
+
         document.body.classList.remove('email-preview-open');
-        
-        // ✅ Reset processing state
+
+        // Reset processing state.
         setDecisionProcessing(false);
-        
+
         if (pendingDecisionForm) {
+
             const button = pendingDecisionForm.querySelector(
                 'button[type="submit"]'
             );
@@ -2873,37 +3212,26 @@ Manage applications and move candidates through each recruitment stage.
         pendingDecisionForm = null;
 
         // Reset interview schedule fields.
-        if (interviewDate) {
-            interviewDate.value = '';
-            interviewDate.setCustomValidity('');
-        }
-
-        if (interviewTime) {
-            interviewTime.value = '';
-            interviewTime.setCustomValidity('');
-        }
-
-        if (interviewer) {
-            interviewer.value = '';
-            interviewer.setCustomValidity('');
-        }
-
-        if (interviewScheduleFields) {
-            interviewScheduleFields.classList.remove('visible');
-        }
+        resetInterviewSchedule();
 
         if (confirmDecision) {
             confirmDecision.disabled = false;
         }
     }
 
+
     if (cancelDecision) {
-        cancelDecision.addEventListener('click', closeDecisionModal);
+        cancelDecision.addEventListener(
+            'click',
+            closeDecisionModal
+        );
     }
 
 
     if (decisionModal) {
+
         decisionModal.addEventListener('click', function (event) {
+
             if (event.target === decisionModal) {
                 closeDecisionModal();
             }
@@ -2911,30 +3239,41 @@ Manage applications and move candidates through each recruitment stage.
     }
 
 
-    // Close active modal with Escape.
+    // ==================================================
+    // CLOSE ACTIVE MODAL WITH ESCAPE
+    // ==================================================
     document.addEventListener('keydown', function (event) {
+
         if (event.key !== 'Escape') return;
 
-        if (decisionModal && decisionModal.classList.contains('open')) {
+        if (
+            decisionModal &&
+            decisionModal.classList.contains('open')
+        ) {
             closeDecisionModal();
             return;
         }
 
-        if (deleteModal && deleteModal.classList.contains('open')) {
+        if (
+            deleteModal &&
+            deleteModal.classList.contains('open')
+        ) {
             closeDeleteModal();
         }
     });
 
 
-    /* ==========================================
-       CONFIRM DECISION - WITH VALIDATION
-    ========================================== */
-
+    // ==================================================
+    // CONFIRM DECISION - WITH VALIDATION
+    // ==================================================
     if (confirmDecision) {
+
         confirmDecision.addEventListener('click', function (event) {
+
             event.preventDefault();
 
             if (!pendingDecisionForm) {
+
                 if (window.showCandidateToast) {
                     window.showCandidateToast(
                         'No candidate decision selected. Please try again.',
@@ -2946,6 +3285,7 @@ Manage applications and move candidates through each recruitment stage.
             }
 
             const originalForm = pendingDecisionForm;
+
             const decision = originalForm.dataset.decision;
 
             const activeTabField = originalForm.querySelector(
@@ -2958,8 +3298,15 @@ Manage applications and move candidates through each recruitment stage.
 
             const interviewStage = getInterviewStage(activeTab);
 
-            const requiresInterviewSchedule =
-                decision === 'accept' && interviewStage !== null;
+            const scheduleStage = getScheduleStage(
+                decision,
+                activeTab
+            );
+
+            const needSchedule = requiresInterviewSchedule(
+                decision,
+                activeTab
+            );
 
             const requiresEmail = [
                 'accept',
@@ -2974,16 +3321,22 @@ Manage applications and move candidates through each recruitment stage.
             ].includes(decision);
 
 
-            // Helper: Create or update hidden fields.
+            // ==================================================
+            // HELPER: CREATE OR UPDATE HIDDEN FIELDS
+            // ==================================================
             function setHiddenField(name, value) {
+
                 let field = originalForm.querySelector(
                     'input[type="hidden"][name="' + name + '"]'
                 );
 
                 if (!field) {
+
                     field = document.createElement('input');
+
                     field.type = 'hidden';
                     field.name = name;
+
                     originalForm.appendChild(field);
                 }
 
@@ -2991,8 +3344,11 @@ Manage applications and move candidates through each recruitment stage.
             }
 
 
-            // Validate interview date, time and interviewer.
-            if (requiresInterviewSchedule) {
+            // ==================================================
+            // VALIDATE INTERVIEW SCHEDULE
+            // ==================================================
+            if (needSchedule) {
+
                 if (
                     !interviewDate ||
                     !interviewTime ||
@@ -3001,22 +3357,40 @@ Manage applications and move candidates through each recruitment stage.
                     !interviewTime.value ||
                     !interviewer.value.trim()
                 ) {
-                    if (interviewDate && !interviewDate.value) {
+
+                    if (
+                        interviewDate &&
+                        !interviewDate.value
+                    ) {
+
                         interviewDate.setCustomValidity(
-                            'Please select the ' + interviewStage + ' date.'
+                            'Please select the ' + scheduleStage + ' date.'
                         );
+
                         interviewDate.reportValidity();
                         interviewDate.focus();
-                    } else if (interviewTime && !interviewTime.value) {
+
+                    } else if (
+                        interviewTime &&
+                        !interviewTime.value
+                    ) {
+
                         interviewTime.setCustomValidity(
-                            'Please select the ' + interviewStage + ' time.'
+                            'Please select the ' + scheduleStage + ' time.'
                         );
+
                         interviewTime.reportValidity();
                         interviewTime.focus();
-                    } else if (interviewer && !interviewer.value.trim()) {
+
+                    } else if (
+                        interviewer &&
+                        !interviewer.value.trim()
+                    ) {
+
                         interviewer.setCustomValidity(
                             'Please enter the interviewer name.'
                         );
+
                         interviewer.reportValidity();
                         interviewer.focus();
                     }
@@ -3024,30 +3398,68 @@ Manage applications and move candidates through each recruitment stage.
                     return;
                 }
 
+
+                // Clear validation.
                 interviewDate.setCustomValidity('');
                 interviewTime.setCustomValidity('');
                 interviewer.setCustomValidity('');
 
+
                 // Prevent past interview dates.
                 if (interviewDate.value < getTodayDate()) {
+
                     interviewDate.setCustomValidity(
                         'Interview date cannot be in the past.'
                     );
+
                     interviewDate.reportValidity();
                     interviewDate.focus();
+
                     return;
                 }
 
-                setHiddenField('interview_date', interviewDate.value);
-                setHiddenField('interview_time', interviewTime.value);
-                setHiddenField('interviewer', interviewer.value.trim());
+
+                // Validate interviewer name length.
+                if (interviewer.value.trim().length > 150) {
+
+                    interviewer.setCustomValidity(
+                        'Interviewer name cannot exceed 150 characters.'
+                    );
+
+                    interviewer.reportValidity();
+                    interviewer.focus();
+
+                    return;
+                }
+
+
+                // Send schedule fields to Flask.
+                setHiddenField(
+                    'interview_date',
+                    interviewDate.value
+                );
+
+                setHiddenField(
+                    'interview_time',
+                    interviewTime.value
+                );
+
+                setHiddenField(
+                    'interviewer',
+                    interviewer.value.trim()
+                );
             }
 
 
-            // Validate email for Accept, Skip and Reject.
+            // ==================================================
+            // VALIDATE EMAIL FOR ACCEPT, SKIP AND REJECT
+            // ==================================================
             if (requiresEmail) {
+
                 const recipient = previewEmailTo.value.trim();
+
                 const subject = previewEmailSubject.value.trim();
+
                 const body = previewEmailBody.value.trim();
 
                 if (
@@ -3056,10 +3468,13 @@ Manage applications and move candidates through each recruitment stage.
                     !body ||
                     !previewEmailTo.checkValidity()
                 ) {
+
                     if (!previewEmailTo.checkValidity()) {
                         previewEmailTo.reportValidity();
+
                     } else if (!subject) {
                         previewEmailSubject.reportValidity();
+
                     } else {
                         previewEmailBody.reportValidity();
                     }
@@ -3067,13 +3482,18 @@ Manage applications and move candidates through each recruitment stage.
                     return;
                 }
 
+
                 setHiddenField('email_to', recipient);
+
                 setHiddenField('email_subject', subject);
+
                 setHiddenField('email_body', body);
             }
 
 
-            // Validate reason for Reject, Skip and Resign.
+            // ==================================================
+            // VALIDATE REASON FOR REJECT, SKIP AND RESIGN
+            // ==================================================
             if (requiresReason) {
 
                 if (!decisionReason) return;
@@ -3081,6 +3501,7 @@ Manage applications and move candidates through each recruitment stage.
                 const reason = decisionReason.value.trim();
 
                 if (!reason) {
+
                     decisionReason.setCustomValidity(
                         decision === 'resign'
                             ? 'Please enter a reason before marking this candidate as resign.'
@@ -3089,19 +3510,40 @@ Manage applications and move candidates through each recruitment stage.
 
                     decisionReason.reportValidity();
                     decisionReason.focus();
+
                     return;
                 }
+
+
+                if (reason.length > 1000) {
+
+                    decisionReason.setCustomValidity(
+                        'Reason cannot exceed 1000 characters.'
+                    );
+
+                    decisionReason.reportValidity();
+                    decisionReason.focus();
+
+                    return;
+                }
+
 
                 decisionReason.setCustomValidity('');
 
                 setHiddenField('remarks', reason);
             }
 
-            // Check original form action.
+
+            // ==================================================
+            // CHECK ORIGINAL FORM ACTION
+            // ==================================================
             const formAction = originalForm.action;
 
             if (!formAction) {
-                console.error('Candidate form action is missing.');
+
+                console.error(
+                    'Candidate form action is missing.'
+                );
 
                 if (window.showCandidateToast) {
                     window.showCandidateToast(
@@ -3114,20 +3556,35 @@ Manage applications and move candidates through each recruitment stage.
             }
 
 
-            // Prevent double submission + show spinner.
+            // ==================================================
+            // PROCESSING MESSAGES
+            // ==================================================
             const processingMessages = {
-                accept: 'Sending acceptance email and updating candidate status...',
-                reject: 'Sending rejection email and updating candidate status...',
-                skip: 'Sending skip email and updating candidate status...',
-                cancel: 'Cancelling candidate...',
-                resign: 'Marking candidate as resigned...'
+
+                accept:
+                    'Sending acceptance email and updating candidate status...',
+
+                reject:
+                    'Sending rejection email and updating candidate status...',
+
+                skip:
+                    'Sending skip email and updating candidate status...',
+
+                cancel:
+                    'Cancelling candidate...',
+
+                resign:
+                    'Marking candidate as resigned...'
             };
 
+
+            // Prevent double submission + show spinner.
             setDecisionProcessing(
                 true,
                 processingMessages[decision] ||
                 'Processing your request...'
             );
+
 
             // Close modal (overlay stays on top).
             if (decisionModal) {
@@ -3140,8 +3597,8 @@ Manage applications and move candidates through each recruitment stage.
 
             pendingDecisionForm = null;
 
-            // Restore the page UI if the user comes back
-            // with the browser Back button.
+
+            // Restore page UI if user returns with browser Back button.
             window.addEventListener(
                 'pageshow',
                 function () {
@@ -3150,11 +3607,16 @@ Manage applications and move candidates through each recruitment stage.
                 { once: true }
             );
 
-            // Give the browser one frame to paint the spinner
-            // before navigating away.
+
+            // Give browser one frame to paint spinner before navigation.
             requestAnimationFrame(function () {
+
                 setTimeout(function () {
-                    HTMLFormElement.prototype.submit.call(submittedForm);
+
+                    HTMLFormElement.prototype.submit.call(
+                        submittedForm
+                    );
+
                 }, 50);
             });
         });

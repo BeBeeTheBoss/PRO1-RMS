@@ -25,6 +25,9 @@ from app.db import get_connection
 from app.routes import login_required
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
+import pytz
+
+TIMEZONE = pytz.timezone("Asia/Yangon")
 import json, requests
 # import fitz  # pymupdf
 import pymupdf
@@ -4643,6 +4646,7 @@ def reject_candidate(candidate_id):
 # SKIP CANDIDATE
 # URL: /candidates/<id>/skip (POST)
 # --------------------------------------------------
+
 @candidate_bp.route(
     "/candidates/<int:candidate_id>/skip",
     methods=["POST"],
@@ -4704,6 +4708,75 @@ def skip_candidate(candidate_id):
         )
         return _candidate_list_redirect(active_tab)
 
+    # ==================================================
+    # SECOND INTERVIEW SCHEDULE
+    # Required only when skipping from Interview Request.
+    # ==================================================
+    interview_date = None
+    interview_time = None
+    interviewer_name = None
+
+    if active_tab == "interview_request":
+
+        raw_interview_date = (
+            request.form.get("interview_date") or ""
+        ).strip()
+
+        raw_interview_time = (
+            request.form.get("interview_time") or ""
+        ).strip()
+
+        interviewer_name = (
+            request.form.get("interviewer") or ""
+        ).strip()
+
+        if (
+            not raw_interview_date
+            or not raw_interview_time
+            or not interviewer_name
+        ):
+            flash(
+                "Second Interview date, time and interviewer "
+                "are required. Candidate status was not changed.",
+                "error",
+            )
+            return _candidate_list_redirect(active_tab)
+
+        if len(interviewer_name) > 150:
+            flash(
+                "Interviewer name cannot exceed 150 characters.",
+                "error",
+            )
+            return _candidate_list_redirect(active_tab)
+
+        try:
+            interview_date = datetime.strptime(
+                raw_interview_date,
+                "%Y-%m-%d",
+            ).date()
+
+            interview_time = datetime.strptime(
+                raw_interview_time,
+                "%H:%M",
+            ).time()
+
+        except ValueError:
+            flash(
+                "Invalid interview date or time.",
+                "error",
+            )
+            return _candidate_list_redirect(active_tab)
+
+        # Prevent past interview dates.
+        today = datetime.now(TIMEZONE).date()
+
+        if interview_date < today:
+            flash(
+                "Interview date cannot be in the past.",
+                "error",
+            )
+            return _candidate_list_redirect(active_tab)
+
     conn = get_connection()
 
     try:
@@ -4735,13 +4808,16 @@ def skip_candidate(candidate_id):
                     candidate_id,
                     active_tab,
                 )
+
                 if not allowed:
                     conn.rollback()
                     flash(error_message, "error")
                     return _candidate_list_redirect(active_tab)
 
-            # STEP 1: Send skip email.
+            # ==================================================
+            # STEP 1: SEND SKIP EMAIL
             # IMPORTANT: Reason is NOT included in email.
+            # ==================================================
             try:
                 _send_candidate_decision_email(
                     recipient,
@@ -4766,7 +4842,63 @@ def skip_candidate(candidate_id):
 
                 return _candidate_list_redirect(active_tab)
 
-            # STEP 2: Move candidate to skip destination.
+            # ==================================================
+            # STEP 2: SAVE SECOND INTERVIEW SCHEDULE
+            # Only for Skip from Interview Request.
+            # ==================================================
+            if active_tab == "interview_request":
+
+                cur.execute(
+                    """
+                    INSERT INTO public.candidate_interviews (
+                        candidate_id,
+                        interview_stage,
+                        interview_date,
+                        interview_time,
+                        interviewer,
+                        status,
+                        created_by,
+                        created_at,
+                        updated_at,
+                        reminder_sent_at
+                    )
+                    VALUES (
+                        %s,
+                        'second_interview',
+                        %s,
+                        %s,
+                        %s,
+                        'scheduled',
+                        %s,
+                        CURRENT_TIMESTAMP,
+                        CURRENT_TIMESTAMP,
+                        NULL
+                    )
+                    ON CONFLICT (
+                        candidate_id,
+                        interview_stage
+                    )
+                    DO UPDATE SET
+                        interview_date = EXCLUDED.interview_date,
+                        interview_time = EXCLUDED.interview_time,
+                        interviewer = EXCLUDED.interviewer,
+                        status = 'scheduled',
+                        reminder_sent_at = NULL,
+                        overdue_reminder_sent_at = NULL,
+                        updated_at = CURRENT_TIMESTAMP
+                    """,
+                    (
+                        candidate_id,
+                        interview_date,
+                        interview_time,
+                        interviewer_name,
+                        session.get("user_id"),
+                    ),
+                )
+
+            # ==================================================
+            # STEP 3: MOVE CANDIDATE TO SKIP DESTINATION
+            # ==================================================
             cur.execute(
                 """
                 UPDATE candidates
@@ -4777,7 +4909,9 @@ def skip_candidate(candidate_id):
                 (skip_status, candidate_id),
             )
 
-            # STEP 3: Save reason in database remarks only.
+            # ==================================================
+            # STEP 4: SAVE REASON IN DATABASE ONLY
+            # ==================================================
             record_status_history(
                 cur,
                 candidate_id,
@@ -4789,16 +4923,24 @@ def skip_candidate(candidate_id):
 
         conn.commit()
 
-        flash(
-            "Skip email sent and candidate moved to "
-            + skip_status.replace("_", " ").title()
-            + ".",
-            "success",
-        )
+        if active_tab == "interview_request":
+            flash(
+                "Skip email sent, Second Interview schedule saved "
+                "and candidate moved to "
+                + skip_status.replace("_", " ").title()
+                + ".",
+                "success",
+            )
+        else:
+            flash(
+                "Skip email sent and candidate moved to "
+                + skip_status.replace("_", " ").title()
+                + ".",
+                "success",
+            )
 
     except HTTPException:
         conn.rollback()
-
         raise
 
     except Exception:

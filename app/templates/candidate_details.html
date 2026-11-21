@@ -1036,7 +1036,7 @@ endblock %} {% block extra_css %}
                         data-current-stage="Interview Request"
                         data-next-status="second_interview">
                         <input type="hidden" name="tab" value="{{ stage_tab }}">
-                        <button type="submit" class="btn btn-skip">Skip to 2nd Interview</button>
+                        <button type="submit" class="btn btn-skip">Skip ( Move to 2nd Interview)</button>
                     </form>
 
                     <form class="inline-form js-stage-decision" method="POST"
@@ -1397,10 +1397,10 @@ endblock %} {% block extra_css %}
   // WORKFLOW DECISION MODAL LOGIC
   // ==========================================
   document.addEventListener("DOMContentLoaded", function () {
-    
+
     function titleCase(value) {
-        return String(value || '')
-            .replace(/_/g, ' ')
+        return String(value || "")
+            .replace(/_/g, " ")
             .replace(/\b\w/g, function (character) {
                 return character.toUpperCase();
             });
@@ -1415,272 +1415,704 @@ endblock %} {% block extra_css %}
     modal.setAttribute("role", "dialog");
     modal.setAttribute("aria-modal", "true");
     modal.style.display = "none";
-    
-    // MODAL SIZE REDUCED: max-width: 420px, padding: 22px, font-size adjustments
-    modal.innerHTML = `
-        <div class="confirm-modal decision-modal" style="max-width: 420px; padding: 22px; background: #fff; border-radius: 16px; width: 100%; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column;">
-            <div class="modal-icon" id="decisionModalIcon" aria-hidden="true" style="width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: #fef2f2; color: #dc2626; font-size: 20px; font-weight: 800; margin-bottom: 12px; flex-shrink: 0;">✓</div>
-            <div class="decision-eyebrow" id="decisionModalEyebrow" style="margin-bottom: 6px; color: #64748b; font-size: 9px; font-weight: 800; letter-spacing: 1.2px; flex-shrink: 0;">CANDIDATE STATUS</div>
-            <h3 id="decisionModalTitle" style="font-size: 18px; margin: 0 0 6px; color: #1e293b; flex-shrink: 0;">Confirm decision</h3>
-            <p id="decisionModalDescription" style="margin: 0 0 14px; color: #64748b; font-size: 12px; line-height: 1.5; flex-shrink: 0;">Are you sure you want to continue?</p>
 
-            <form id="decisionModalForm" method="POST" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-                <div class="email-preview-fields" id="emailPreviewFields" style="display:none; overflow-y: auto; flex: 1; padding-right: 4px;">
-                    
-                    <div class="email-field" id="interviewScheduleFields" style="display:none; margin-bottom:12px; padding:12px; background:#f8faff; border:1px solid #dbeafe; border-radius:10px;">
-                        <div class="interview-schedule-title" id="interviewScheduleTitle" style="margin-bottom:8px; color:#1e40af; font-size:11px; font-weight:800;"></div>
-                        <div class="schedule-row" style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px;">
+    modal.innerHTML = `
+        <div class="confirm-modal decision-modal"
+             style="max-width:760px; padding:24px; background:#fff; border-radius:16px; width:100%; max-height:94dvh; overflow:hidden; display:flex; flex-direction:column;">
+
+            <div class="modal-icon" id="decisionModalIcon"
+                 aria-hidden="true"
+                 style="width:44px;height:44px;display:grid;place-items:center;border-radius:12px;background:#fef2f2;color:#dc2626;font-size:20px;font-weight:800;margin-bottom:12px;flex-shrink:0;">
+                ✓
+            </div>
+
+            <div class="decision-eyebrow" id="decisionModalEyebrow"
+                 style="margin-bottom:6px;color:#64748b;font-size:10px;font-weight:800;letter-spacing:1.2px;flex-shrink:0;">
+                CANDIDATE STATUS
+            </div>
+
+            <h3 id="decisionModalTitle"
+                style="font-size:19px;margin:0 0 6px;color:#1e293b;flex-shrink:0;">
+                Confirm decision
+            </h3>
+
+            <p id="decisionModalDescription"
+               style="margin:0 0 14px;color:#64748b;font-size:13px;line-height:1.5;flex-shrink:0;">
+                Are you sure you want to continue?
+            </p>
+
+            <form id="decisionModalForm" method="POST"
+                  style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
+
+                <div class="email-preview-fields"
+                     id="emailPreviewFields"
+                     style="display:none;overflow-y:auto;flex:1;min-height:0;padding-right:10px;">
+
+                    <!-- INTERVIEW SCHEDULE -->
+                    <div class="email-field"
+                         id="interviewScheduleFields"
+                         style="display:none;margin-bottom:12px;padding:14px;background:#f8faff;border:1px solid #dbeafe;border-radius:10px;">
+
+                        <div class="interview-schedule-title"
+                             id="interviewScheduleTitle"
+                             style="margin-bottom:10px;color:#1e40af;font-size:12px;font-weight:800;">
+                        </div>
+
+                        <div class="schedule-row"
+                             style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+
                             <div class="email-field">
-                                <label style="display:block; margin-bottom:4px; font-size:11px; font-weight:700;">Interview Date <span style="color:red;">*</span></label>
-                                <input type="date" id="interviewDate" style="width:100%; height:36px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px;">
+                                <label style="display:block;margin-bottom:5px;font-size:12px;font-weight:700;">
+                                    Interview Date <span style="color:red;">*</span>
+                                </label>
+
+                                <input type="date"
+                                       id="interviewDate"
+                                       style="width:100%;height:38px;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;">
                             </div>
+
                             <div class="email-field">
-                                <label style="display:block; margin-bottom:4px; font-size:11px; font-weight:700;">Interview Time <span style="color:red;">*</span></label>
-                                <input type="time" id="interviewTime" style="width:100%; height:36px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px;">
+                                <label style="display:block;margin-bottom:5px;font-size:12px;font-weight:700;">
+                                    Interview Time <span style="color:red;">*</span>
+                                </label>
+
+                                <input type="time"
+                                       id="interviewTime"
+                                       style="width:100%;height:38px;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;">
                             </div>
                         </div>
-                        <div class="email-field" style="margin-top:8px;">
-                            <label style="display:block; margin-bottom:4px; font-size:11px; font-weight:700;">Interviewer <span style="color:red;">*</span></label>
-                            <input type="text" id="interviewer" maxlength="150" placeholder="Enter interviewer name" style="width:100%; height:36px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px;">
+
+                        <div class="email-field" style="margin-top:10px;">
+                            <label style="display:block;margin-bottom:5px;font-size:12px;font-weight:700;">
+                                Interviewer <span style="color:red;">*</span>
+                            </label>
+
+                            <input type="text"
+                                   id="interviewer"
+                                   maxlength="150"
+                                   placeholder="Enter interviewer name"
+                                   style="width:100%;height:38px;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;">
                         </div>
                     </div>
 
-                    <div class="email-field" style="margin-bottom:10px;">
-                        <label style="display:block; margin-bottom:4px; font-size:11px; font-weight:700;">
+                    <!-- EMAIL RECIPIENT -->
+                    <div class="email-field" style="margin-bottom:12px;">
+                        <label style="display:block;margin-bottom:5px;font-size:12px;font-weight:700;">
                             To (Recipient Email) <span style="color:red;">*</span>
                         </label>
-                        <input
-                            type="email"
-                            id="previewEmailTo"
-                            readonly
-                            style="width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px;"
-                        >
-                    </div>
-                    <div class="email-field" style="margin-bottom:10px;">
-                        <label style="display:block; margin-bottom:4px; font-size:11px; font-weight:700;">Subject <span style="color:red;">*</span></label>
-                        <input type="text" id="previewEmailSubject" style="width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:12px;">
-                    </div>
-                    <div class="email-field" style="margin-bottom:10px;">
-                        <label style="display:block; margin-bottom:4px; font-size:11px; font-weight:700;">Email Message <span style="color:red;">*</span></label>
-                        <textarea id="previewEmailBody" rows="3" style="width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; min-height:80px; font-size:12px; resize: vertical;"></textarea>
-                    </div>
-                    <p class="small-note" style="font-size:10px; color:#64748b; line-height: 1.4;">Review the recipient and message before sending. Cancelling will not send the email or change the candidate status.</p>
-                </div>
 
-                <!-- RESIGN / SKIP / REJECT REASON -->
-                <div
-                    class="email-field"
-                    id="decisionReasonField"
-                    style="display:none; margin-top:12px;"
-                >
-                    <label
-                        for="decisionReason"
-                        style="display:block; margin-bottom:7px; font-size:12px; font-weight:700; color:#334155;"
-                    >
-                        Reason <span style="color:#dc2626;">*</span>
-                    </label>
+                        <input type="email"
+                               id="previewEmailTo"
+                               readonly
+                               style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;">
+                    </div>
 
-                    <textarea
-                        id="decisionReason"
-                        rows="3"
-                        maxlength="1000"
-                        placeholder="Enter reason..."
-                        style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:9px; font-size:12px; min-height:85px; resize:vertical; outline:none;"
-                    ></textarea>
+                    <!-- EMAIL SUBJECT -->
+                    <div class="email-field" style="margin-bottom:12px;">
+                        <label style="display:block;margin-bottom:5px;font-size:12px;font-weight:700;">
+                            Subject <span style="color:red;">*</span>
+                        </label>
 
-                    <p style="margin:6px 0 0; font-size:10px; color:#64748b;">
-                        Please provide a reason before confirming this action.
+                        <input type="text"
+                               id="previewEmailSubject"
+                               style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;">
+                    </div>
+
+                    <!-- EMAIL MESSAGE -->
+                    <div class="email-field" style="margin-bottom:12px;">
+                        <label style="display:block;margin-bottom:5px;font-size:12px;font-weight:700;">
+                            Email Message <span style="color:red;">*</span>
+                        </label>
+
+                        <textarea id="previewEmailBody"
+                                  rows="5"
+                                  style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;min-height:150px;font-size:13px;resize:vertical;"></textarea>
+                    </div>
+
+                    <p class="small-note"
+                       style="font-size:11px;color:#64748b;line-height:1.5;margin:0 0 14px;">
+                        Review the recipient and message before sending. Cancelling will not send the email or change the candidate status.
                     </p>
+
+                    <!-- REASON: INSIDE EMAIL PREVIEW CONTAINER -->
+                    <div class="email-field"
+                         id="decisionReasonField"
+                         style="display:none;margin-top:14px;padding:14px;background:#fffaf0;border:1px solid #fde68a;border-radius:10px;">
+
+                        <label for="decisionReason"
+                               style="display:block;margin-bottom:7px;font-size:13px;font-weight:700;color:#334155;">
+                            Reason <span style="color:#dc2626;">*</span>
+                        </label>
+
+                        <textarea id="decisionReason"
+                                  rows="4"
+                                  maxlength="1000"
+                                  placeholder="Enter reason..."
+                                  style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:9px;font-size:13px;min-height:110px;resize:vertical;outline:none;"></textarea>
+
+                        <p style="margin:6px 0 0;font-size:11px;color:#64748b;">
+                            Please provide a reason before confirming this action.
+                        </p>
+                    </div>
+
                 </div>
 
-                <div class="modal-actions" style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px; padding-top:16px; border-top: 1px solid #eee; flex-shrink: 0;">
-                    <button type="button" class="btn btn-light" id="cancelDecision" style="min-width:80px; border:1px solid #e2e8f0; padding: 8px 12px; border-radius: 8px; background: #f1f5f9; color: #475569; font-weight: 600; font-size: 12px; cursor: pointer;">Cancel</button>
-                    <button type="submit" class="btn btn-decision-confirm" id="confirmDecision" style="min-width:80px; border:0; padding: 8px 12px; border-radius: 8px; color: white; font-weight: 600; font-size: 12px; cursor: pointer;">Confirm</button>
+                <div class="modal-actions"
+                     style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid #eee;flex-shrink:0;">
+
+                    <button type="button"
+                            class="btn btn-light"
+                            id="cancelDecision"
+                            style="min-width:90px;border:1px solid #e2e8f0;padding:9px 14px;border-radius:8px;background:#f1f5f9;color:#475569;font-weight:600;font-size:13px;cursor:pointer;">
+                        Cancel
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-decision-confirm"
+                            id="confirmDecision"
+                            style="min-width:110px;border:0;padding:9px 14px;border-radius:8px;color:white;font-weight:600;font-size:13px;cursor:pointer;">
+                        Confirm
+                    </button>
                 </div>
             </form>
         </div>
     `;
+
     document.body.appendChild(modal);
 
-    const style = document.createElement('style');
+    // ==========================================
+    // MODAL CSS
+    // ==========================================
+    const style = document.createElement("style");
+
     style.innerHTML = `
-        .modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .48); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 9999; }
-        .modal-backdrop.open { display: flex; }
-        .decision-accept .btn-decision-confirm { background: #059669; }
-        .decision-accept .btn-decision-confirm:hover { background: #047857; }
-        .decision-reject .btn-decision-confirm { background: #dc2626; }
-        .decision-reject .btn-decision-confirm:hover { background: #b91c1c; }
-        .decision-skip .btn-decision-confirm { background: #d97706; }
-        .decision-skip .btn-decision-confirm:hover { background: #b45309; }
-        .decision-cancel .btn-decision-confirm { background: #64748b; }
-        .decision-cancel .btn-decision-confirm:hover { background: #475569; }
-        .decision-resign .btn-decision-confirm { background: #7c3aed; }
-        .decision-resign .btn-decision-confirm:hover { background: #6d28d9; }
-        .decision-accept #decisionModalIcon { color: #047857; background: #ecfdf5; }
-        .decision-reject #decisionModalIcon { color: #b91c1c; background: #fef2f2; }
-        .decision-skip #decisionModalIcon { color: #92400e; background: #fffbeb; }
-        .decision-cancel #decisionModalIcon { color: #475569; background: #f1f5f9; }
-        .decision-resign #decisionModalIcon { color: #6d28d9; background: #f5f3ff; }
-        
-        /* Custom scrollbar for modal content */
-        #emailPreviewFields::-webkit-scrollbar { width: 6px; }
-        #emailPreviewFields::-webkit-scrollbar-track { background: transparent; }
-        #emailPreviewFields::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .modal-backdrop {
+            position:fixed;
+            inset:0;
+            background:rgba(15,23,42,.48);
+            backdrop-filter:blur(5px);
+            display:none;
+            align-items:center;
+            justify-content:center;
+            padding:16px;
+            z-index:9999;
+        }
+
+        .modal-backdrop.open {
+            display:flex;
+        }
+
+        .confirm-modal.decision-modal {
+            width:min(760px, calc(100% - 32px)) !important;
+            max-width:760px !important;
+            max-height:94vh !important;
+            max-height:94dvh !important;
+            display:flex !important;
+            flex-direction:column !important;
+            overflow:hidden !important;
+            box-sizing:border-box;
+        }
+
+        #decisionModalForm {
+            flex:1;
+            min-height:0;
+            overflow:hidden;
+        }
+
+        #emailPreviewFields {
+            flex:1;
+            min-height:0;
+            max-height:calc(94vh - 230px);
+            max-height:calc(94dvh - 230px);
+            overflow-y:auto !important;
+            overflow-x:hidden;
+            padding:0 10px 12px 0;
+            box-sizing:border-box;
+            scrollbar-width:thin;
+            scrollbar-color:#aab4d0 #f1f3f9;
+        }
+
+        #emailPreviewFields::-webkit-scrollbar {
+            width:7px;
+        }
+
+        #emailPreviewFields::-webkit-scrollbar-track {
+            background:#f1f3f9;
+            border-radius:10px;
+        }
+
+        #emailPreviewFields::-webkit-scrollbar-thumb {
+            background:#aab4d0;
+            border-radius:10px;
+        }
+
+        #emailPreviewFields::-webkit-scrollbar-thumb:hover {
+            background:#7d8bb3;
+        }
+
+        /* RESIGN: SHOW ONLY REASON */
+        #emailPreviewFields.reason-only > :not(#decisionReasonField) {
+            display:none !important;
+        }
+
+        #decisionReasonField {
+            margin-top:16px;
+            flex-shrink:0;
+        }
+
+        .decision-accept .btn-decision-confirm {
+            background:#059669;
+        }
+
+        .decision-accept .btn-decision-confirm:hover {
+            background:#047857;
+        }
+
+        .decision-reject .btn-decision-confirm {
+            background:#dc2626;
+        }
+
+        .decision-reject .btn-decision-confirm:hover {
+            background:#b91c1c;
+        }
+
+        .decision-skip .btn-decision-confirm {
+            background:#d97706;
+        }
+
+        .decision-skip .btn-decision-confirm:hover {
+            background:#b45309;
+        }
+
+        .decision-cancel .btn-decision-confirm {
+            background:#64748b;
+        }
+
+        .decision-cancel .btn-decision-confirm:hover {
+            background:#475569;
+        }
+
+        .decision-resign .btn-decision-confirm {
+            background:#7c3aed;
+        }
+
+        .decision-resign .btn-decision-confirm:hover {
+            background:#6d28d9;
+        }
+
+        .decision-accept #decisionModalIcon {
+            color:#047857;
+            background:#ecfdf5;
+        }
+
+        .decision-reject #decisionModalIcon {
+            color:#b91c1c;
+            background:#fef2f2;
+        }
+
+        .decision-skip #decisionModalIcon {
+            color:#92400e;
+            background:#fffbeb;
+        }
+
+        .decision-cancel #decisionModalIcon {
+            color:#475569;
+            background:#f1f5f9;
+        }
+
+        .decision-resign #decisionModalIcon {
+            color:#6d28d9;
+            background:#f5f3ff;
+        }
+
         #previewEmailTo[readonly] {
-            background: #f1f5f9 !important;
-            color: #64748b !important;
-            border: 1px solid #cbd5e1 !important;
-            cursor: not-allowed !important;
-            opacity: 1;
-            box-shadow: none !important;
+            background:#f1f5f9 !important;
+            color:#64748b !important;
+            border:1px solid #cbd5e1 !important;
+            cursor:not-allowed !important;
+            opacity:1;
+            box-shadow:none !important;
+        }
+
+        @media(max-width:768px) {
+            .confirm-modal.decision-modal {
+                width:calc(100% - 20px) !important;
+                max-width:none !important;
+                max-height:95vh !important;
+                max-height:95dvh !important;
+                padding:18px !important;
+            }
+
+            #emailPreviewFields {
+                max-height:calc(95vh - 220px);
+                max-height:calc(95dvh - 220px);
+                padding-right:6px;
+            }
+
+            .schedule-row {
+                grid-template-columns:1fr !important;
+            }
         }
     `;
+
     document.head.appendChild(style);
 
+    // ==========================================
+    // ELEMENT REFERENCES
+    // ==========================================
     const decisionModal = document.getElementById("decisionModal");
-    const decisionModalForm = document.getElementById("decisionModalForm");
     const decisionModalIcon = document.getElementById("decisionModalIcon");
     const decisionModalEyebrow = document.getElementById("decisionModalEyebrow");
     const decisionModalTitle = document.getElementById("decisionModalTitle");
     const decisionModalDescription = document.getElementById("decisionModalDescription");
+
     const confirmDecision = document.getElementById("confirmDecision");
     const cancelDecision = document.getElementById("cancelDecision");
+
     const emailPreviewFields = document.getElementById("emailPreviewFields");
     const previewEmailTo = document.getElementById("previewEmailTo");
     const previewEmailSubject = document.getElementById("previewEmailSubject");
     const previewEmailBody = document.getElementById("previewEmailBody");
-    
-    // Schedule fields
+
     const interviewScheduleFields = document.getElementById("interviewScheduleFields");
     const interviewScheduleTitle = document.getElementById("interviewScheduleTitle");
     const interviewDate = document.getElementById("interviewDate");
     const interviewTime = document.getElementById("interviewTime");
     const interviewer = document.getElementById("interviewer");
+
     const decisionReasonField = document.getElementById("decisionReasonField");
     const decisionReason = document.getElementById("decisionReason");
 
     let pendingDecisionForm = null;
 
+    // ==========================================
+    // INTERVIEW STAGE
+    // ==========================================
     function getInterviewStage(tab) {
         if (tab === "interview_request") return "First Interview";
         if (tab === "first_interview") return "Second Interview";
         return null;
     }
 
+    // Skip from Interview Request goes to Second Interview
+    function getScheduleStage(decision, tab) {
+        if (decision === "skip" && tab === "interview_request") {
+            return "Second Interview";
+        }
+
+        return getInterviewStage(tab);
+    }
+
+    function requiresInterviewSchedule(decision, tab) {
+        if (decision === "accept") {
+            return ["interview_request", "first_interview"].includes(tab);
+        }
+
+        if (decision === "skip" && tab === "interview_request") {
+            return true;
+        }
+
+        return false;
+    }
+
+    // ==========================================
+    // TODAY DATE - ASIA/YANGON
+    // ==========================================
     function getTodayDate() {
         const now = new Date();
-        const yangonTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Yangon" }));
+
+        const yangonTime = new Date(
+            now.toLocaleString("en-US", {
+                timeZone: "Asia/Yangon"
+            })
+        );
+
         const year = yangonTime.getFullYear();
         const month = String(yangonTime.getMonth() + 1).padStart(2, "0");
         const day = String(yangonTime.getDate()).padStart(2, "0");
+
         return year + "-" + month + "-" + day;
     }
 
+    // ==========================================
+    // UPDATE EMAIL WITH INTERVIEW SCHEDULE
+    // ==========================================
     function updateInterviewSchedulePreview() {
         if (!previewEmailBody) return;
+
         const marker = "\n\nInterview Schedule\n";
+
         let baseBody = previewEmailBody.value;
         const idx = baseBody.indexOf(marker);
-        if (idx !== -1) baseBody = baseBody.substring(0, idx);
 
-        if (!interviewDate || !interviewTime || !interviewer || !interviewDate.value || !interviewTime.value || !interviewer.value.trim()) {
+        if (idx !== -1) {
+            baseBody = baseBody.substring(0, idx);
+        }
+
+        if (
+            !interviewDate.value ||
+            !interviewTime.value ||
+            !interviewer.value.trim()
+        ) {
             previewEmailBody.value = baseBody;
             return;
         }
+
         const d = interviewDate.value.split("-");
         const formattedDate = d[2] + "/" + d[1] + "/" + d[0];
+
         const t = interviewTime.value.split(":");
         const hour = Number(t[0]);
         const period = hour >= 12 ? "PM" : "AM";
-        const formattedTime = String(hour % 12 || 12).padStart(2, "0") + ":" + t[1] + " " + period;
-        previewEmailBody.value = baseBody + marker + "Date: " + formattedDate + "\nTime: " + formattedTime + "\nInterviewer: " + interviewer.value.trim();
+
+        const formattedTime =
+            String(hour % 12 || 12).padStart(2, "0") +
+            ":" +
+            t[1] +
+            " " +
+            period;
+
+        previewEmailBody.value =
+            baseBody +
+            marker +
+            "Date: " + formattedDate +
+            "\nTime: " + formattedTime +
+            "\nInterviewer: " + interviewer.value.trim();
     }
 
-    if (interviewDate) interviewDate.addEventListener("change", updateInterviewSchedulePreview);
-    if (interviewTime) interviewTime.addEventListener("change", updateInterviewSchedulePreview);
-    if (interviewer) interviewer.addEventListener("input", updateInterviewSchedulePreview);
-    if (decisionReason) decisionReason.addEventListener("input", function() { decisionReason.setCustomValidity(""); });
+    if (interviewDate) {
+        interviewDate.addEventListener("change", updateInterviewSchedulePreview);
+    }
 
-    document.querySelectorAll(".js-stage-decision").forEach(function(form) {
-        form.addEventListener("submit", function(e) {
+    if (interviewTime) {
+        interviewTime.addEventListener("change", updateInterviewSchedulePreview);
+    }
+
+    if (interviewer) {
+        interviewer.addEventListener("input", updateInterviewSchedulePreview);
+    }
+
+    if (decisionReason) {
+        decisionReason.addEventListener("input", function () {
+            decisionReason.setCustomValidity("");
+        });
+    }
+
+    // ==========================================
+    // OPEN DECISION MODAL
+    // ==========================================
+    forms.forEach(function (form) {
+
+        form.addEventListener("submit", function (e) {
             e.preventDefault();
+
             pendingDecisionForm = this;
+
             const decision = this.dataset.decision;
             const name = this.dataset.candidateName || "Candidate";
             const email = this.dataset.email || "";
             const currentStage = this.dataset.currentStage || "Current Stage";
-            const nextStatus = this.dataset.nextStatus ? titleCase(this.dataset.nextStatus) : "Next Stage";
+
+            const nextStatus = this.dataset.nextStatus
+                ? titleCase(this.dataset.nextStatus)
+                : "Next Stage";
+
             const activeTabField = this.querySelector('input[name="tab"]');
             const activeTab = activeTabField ? activeTabField.value : "";
-            const interviewStage = getInterviewStage(activeTab);
-            const requiresSchedule = decision === "accept" && interviewStage !== null;
 
-            // Reset classes
+            const scheduleStage = getScheduleStage(decision, activeTab);
+            const requiresSchedule = requiresInterviewSchedule(decision, activeTab);
+
+            // RESET MODAL
             decisionModal.className = "modal-backdrop";
+
             emailPreviewFields.style.display = "none";
+            emailPreviewFields.classList.remove("reason-only");
+
             interviewScheduleFields.style.display = "none";
             decisionReasonField.style.display = "none";
+
             previewEmailTo.value = email;
             previewEmailSubject.value = "";
             previewEmailBody.value = "";
+
+            decisionReason.value = "";
+            decisionReason.required = false;
+            decisionReason.placeholder = "Enter reason...";
+
             confirmDecision.disabled = false;
 
-            // Reset schedule fields
-            if (interviewDate) { interviewDate.value = ""; interviewDate.required = false; interviewDate.min = getTodayDate(); }
-            if (interviewTime) { interviewTime.value = ""; interviewTime.required = false; }
-            if (interviewer) { interviewer.value = ""; interviewer.required = false; }
+            // RESET SCHEDULE
+            interviewDate.value = "";
+            interviewDate.required = false;
+            interviewDate.min = getTodayDate();
 
+            interviewTime.value = "";
+            interviewTime.required = false;
+
+            interviewer.value = "";
+            interviewer.required = false;
+
+            // ==================================
+            // ACCEPT
+            // ==================================
             if (decision === "accept") {
+
                 decisionModal.classList.add("decision-accept");
+
                 decisionModalIcon.textContent = "✉";
                 decisionModalEyebrow.textContent = "ACCEPT CANDIDATE";
                 decisionModalTitle.textContent = "Review acceptance email";
-                decisionModalDescription.textContent = "Review and edit the email before moving " + name + " to " + nextStatus + ".";
-                
-                previewEmailSubject.value = "Recruitment Update - " + nextStatus;
-                previewEmailBody.value = "Dear " + name + ",\n\nThank you for your interest in joining our team.\n\nWe are pleased to inform you that you have been accepted to proceed to the next stage of our recruitment process: " + nextStatus + ".\n\nWe will share further information about the next steps with you in due course.\n\nBest regards,\nHR Team\nPro1 Global Home Center";
+
+                decisionModalDescription.textContent =
+                    "Review and edit the email before moving " +
+                    name +
+                    " to " +
+                    nextStatus +
+                    ".";
+
+                previewEmailSubject.value =
+                    "Recruitment Update - " + nextStatus;
+
+                previewEmailBody.value =
+                    "Dear " + name + ",\n\n" +
+                    "Thank you for your interest in joining our team.\n\n" +
+                    "We are pleased to inform you that you have been accepted to proceed to the next stage of our recruitment process: " +
+                    nextStatus +
+                    ".\n\n" +
+                    "We will share further information about the next steps with you in due course.\n\n" +
+                    "Best regards,\nHR Team\nPro1 Global Home Center";
+
                 confirmDecision.textContent = "Send & Accept";
-                
+
                 emailPreviewFields.style.display = "block";
+
                 if (requiresSchedule) {
                     interviewScheduleFields.style.display = "block";
-                    interviewScheduleTitle.textContent = interviewStage + " Schedule";
+                    interviewScheduleTitle.textContent = scheduleStage + " Schedule";
+
                     interviewDate.required = true;
                     interviewTime.required = true;
                     interviewer.required = true;
+
                     interviewDate.min = getTodayDate();
+
                     updateInterviewSchedulePreview();
                 }
-            } else if (decision === "skip") {
+            }
+
+            // ==================================
+            // SKIP
+            // ==================================
+            else if (decision === "skip") {
+
                 decisionModal.classList.add("decision-skip");
+
                 decisionModalIcon.textContent = "⏭";
                 decisionModalEyebrow.textContent = "SKIP STAGE";
                 decisionModalTitle.textContent = "Review skip email";
-                decisionModalDescription.textContent = "Review the email explaining the skipped stage and the stage the candidate will proceed to.";
-                previewEmailSubject.value = "Recruitment Stage Update - " + nextStatus;
-                previewEmailBody.value = "Dear " + name + ",\n\nWe are pleased to inform you that you have successfully progressed past the " + currentStage + " stage of our recruitment process and have been accepted to proceed to the " + nextStatus + " stage.\n\nThank you for your continued interest in joining our company. We will keep you informed of the next steps.\n\nBest regards,\nHR Recruitment Team\nPro1 Global Home Center";
+
+                decisionModalDescription.textContent =
+                    "Review the email and provide a reason for skipping this stage.";
+
+                previewEmailSubject.value =
+                    "Recruitment Stage Update - " + nextStatus;
+
+                previewEmailBody.value =
+                    "Dear " + name + ",\n\n" +
+                    "We are pleased to inform you that you have successfully progressed past the " +
+                    currentStage +
+                    " stage of our recruitment process and have been accepted to proceed to the " +
+                    nextStatus +
+                    " stage.\n\n" +
+                    "Thank you for your continued interest in joining our company. We will keep you informed of the next steps.\n\n" +
+                    "Best regards,\nHR Recruitment Team\nPro1 Global Home Center";
+
                 confirmDecision.textContent = "Send & Skip";
+
+                // Show email and reason in the same scrollable area
                 emailPreviewFields.style.display = "block";
                 decisionReasonField.style.display = "block";
-            } else if (decision === "reject") {
+
+                decisionReason.required = true;
+                decisionReason.placeholder = "Enter reason for skipping this stage...";
+
+                // Skip from Interview Request requires Second Interview schedule
+                if (requiresSchedule) {
+                    interviewScheduleFields.style.display = "block";
+
+                    interviewScheduleTitle.textContent =
+                        scheduleStage + " Schedule";
+
+                    interviewDate.required = true;
+                    interviewTime.required = true;
+                    interviewer.required = true;
+
+                    interviewDate.min = getTodayDate();
+
+                    updateInterviewSchedulePreview();
+                }
+            }
+
+            // ==================================
+            // REJECT
+            // ==================================
+            else if (decision === "reject") {
+
                 decisionModal.classList.add("decision-reject");
+
                 decisionModalIcon.textContent = "✉";
                 decisionModalEyebrow.textContent = "REJECT CANDIDATE";
                 decisionModalTitle.textContent = "Review rejection email";
-                decisionModalDescription.textContent = "Review the rejection email before confirming this decision.";
-                previewEmailSubject.value = "Reject The Recruitment Application";
-                previewEmailBody.value = "Dear " + name + ",\n\nThank you for your interest in joining our company.\n\nAfter careful consideration, we regret to inform you that your application has been rejected at the " + currentStage + " stage of our recruitment process.\n\nWe appreciate the time and effort you have invested in your application and wish you success in your future career.\n\nBest regards,\nHR Recruitment Team\nPro1 Global Home Center";
+
+                decisionModalDescription.textContent =
+                    "Review the rejection email and provide a reason before confirming.";
+
+                previewEmailSubject.value =
+                    "Reject The Recruitment Application";
+
+                previewEmailBody.value =
+                    "Dear " + name + ",\n\n" +
+                    "Thank you for your interest in joining our company.\n\n" +
+                    "After careful consideration, we regret to inform you that your application has been rejected at the " +
+                    currentStage +
+                    " stage of our recruitment process.\n\n" +
+                    "We appreciate the time and effort you have invested in your application and wish you success in your future career.\n\n" +
+                    "Best regards,\nHR Recruitment Team\nPro1 Global Home Center";
+
                 confirmDecision.textContent = "Send & Reject";
+
                 emailPreviewFields.style.display = "block";
                 decisionReasonField.style.display = "block";
-            } else if (decision === "cancel") {
+
+                decisionReason.required = true;
+                decisionReason.placeholder = "Enter reason for rejection...";
+            }
+
+            // ==================================
+            // CANCEL
+            // ==================================
+            else if (decision === "cancel") {
+
                 decisionModal.classList.add("decision-cancel");
+
                 decisionModalIcon.textContent = "↩";
                 decisionModalEyebrow.textContent = "CANCEL CANDIDATE";
                 decisionModalTitle.textContent = "Cancel this candidate?";
-                decisionModalDescription.textContent = "You are cancelling " + name + " from the current recruitment stage. Do you want to continue?";
+
+                decisionModalDescription.textContent =
+                    "You are cancelling " +
+                    name +
+                    " from the current recruitment stage. Do you want to continue?";
+
                 confirmDecision.textContent = "Yes, Cancel";
-            } else if (decision === "resign") {
+            }
+
+            // ==================================
+            // RESIGN
+            // ==================================
+            else if (decision === "resign") {
+
                 decisionModal.classList.add("decision-resign");
 
                 decisionModalIcon.textContent = "🚪";
@@ -1691,10 +2123,12 @@ endblock %} {% block extra_css %}
                     name +
                     " will be moved from Joined to Resigned. Please provide a reason.";
 
-                // Show reason input
+                // Show only reason field
+                emailPreviewFields.style.display = "block";
+                emailPreviewFields.classList.add("reason-only");
+
                 decisionReasonField.style.display = "block";
 
-                // Reset reason input
                 decisionReason.value = "";
                 decisionReason.required = true;
                 decisionReason.placeholder = "Enter reason for resignation...";
@@ -1702,17 +2136,22 @@ endblock %} {% block extra_css %}
                 confirmDecision.textContent = "Yes, Mark Resign";
             }
 
+            // SHOW MODAL
             decisionModal.style.display = "flex";
+
             if (requiresSchedule && interviewDate) {
                 interviewDate.focus();
-            } else if (cancelDecision && cancelDecision.style.display !== "none") {
-                cancelDecision.focus();
+            } else if (decisionReason.required) {
+                decisionReason.focus();
             } else {
                 confirmDecision.focus();
             }
         });
     });
 
+    // ==========================================
+    // CLOSE MODAL
+    // ==========================================
     function closeDecisionModal() {
         if (decisionModal) {
             decisionModal.style.display = "none";
@@ -1720,105 +2159,213 @@ endblock %} {% block extra_css %}
         }
     }
 
-    if (cancelDecision) cancelDecision.addEventListener("click", closeDecisionModal);
+    if (cancelDecision) {
+        cancelDecision.addEventListener("click", closeDecisionModal);
+    }
 
     if (decisionModal) {
-        decisionModal.addEventListener("click", function(e) {
-            if (e.target === decisionModal) closeDecisionModal();
+        decisionModal.addEventListener("click", function (e) {
+            if (e.target === decisionModal) {
+                closeDecisionModal();
+            }
         });
     }
 
-    document.addEventListener("keydown", function(e) {
-        if (e.key === "Escape" && decisionModal && decisionModal.style.display === "flex") {
+    document.addEventListener("keydown", function (e) {
+        if (
+            e.key === "Escape" &&
+            decisionModal &&
+            decisionModal.style.display === "flex"
+        ) {
             closeDecisionModal();
         }
     });
 
+    // ==========================================
+    // CONFIRM DECISION
+    // ==========================================
     if (confirmDecision) {
-        confirmDecision.addEventListener("click", function(e) {
+
+        confirmDecision.addEventListener("click", function (e) {
+
             e.preventDefault();
+
             if (!pendingDecisionForm) return;
 
             const originalForm = pendingDecisionForm;
             const decision = originalForm.dataset.decision;
-            const activeTabField = originalForm.querySelector('input[name="tab"]');
-            const activeTab = activeTabField ? activeTabField.value : "";
-            const interviewStage = getInterviewStage(activeTab);
-            const requiresSchedule = decision === "accept" && interviewStage !== null;
+
+            const activeTabField =
+                originalForm.querySelector('input[name="tab"]');
+
+            const activeTab = activeTabField
+                ? activeTabField.value
+                : "";
+
+            const scheduleStage = getScheduleStage(decision, activeTab);
+            const requiresSchedule = requiresInterviewSchedule(decision, activeTab);
+
             const requiresEmail = ["accept", "skip", "reject"].includes(decision);
             const requiresReason = ["skip", "reject", "resign"].includes(decision);
 
+            // ==================================
+            // HIDDEN FIELD HELPER
+            // ==================================
             function setHiddenField(name, value) {
-                let field = originalForm.querySelector('input[type="hidden"][name="' + name + '"]');
+
+                let field = originalForm.querySelector(
+                    'input[type="hidden"][name="' + name + '"]'
+                );
+
                 if (!field) {
                     field = document.createElement("input");
                     field.type = "hidden";
                     field.name = name;
                     originalForm.appendChild(field);
                 }
+
                 field.value = value;
             }
 
+            // ==================================
+            // VALIDATE INTERVIEW SCHEDULE
+            // ==================================
             if (requiresSchedule) {
-                if (!interviewDate.value || !interviewTime.value || !interviewer.value.trim()) {
-                    if (!interviewDate.value) { interviewDate.setCustomValidity("Please select the " + interviewStage + " date."); interviewDate.reportValidity(); interviewDate.focus(); }
-                    else if (!interviewTime.value) { interviewTime.setCustomValidity("Please select the " + interviewStage + " time."); interviewTime.reportValidity(); interviewTime.focus(); }
-                    else if (!interviewer.value.trim()) { interviewer.setCustomValidity("Please enter the interviewer name."); interviewer.reportValidity(); interviewer.focus(); }
+
+                if (
+                    !interviewDate.value ||
+                    !interviewTime.value ||
+                    !interviewer.value.trim()
+                ) {
+
+                    if (!interviewDate.value) {
+                        interviewDate.setCustomValidity(
+                            "Please select the " + scheduleStage + " date."
+                        );
+
+                        interviewDate.reportValidity();
+                        interviewDate.focus();
+                    }
+
+                    else if (!interviewTime.value) {
+                        interviewTime.setCustomValidity(
+                            "Please select the " + scheduleStage + " time."
+                        );
+
+                        interviewTime.reportValidity();
+                        interviewTime.focus();
+                    }
+
+                    else if (!interviewer.value.trim()) {
+                        interviewer.setCustomValidity(
+                            "Please enter the interviewer name."
+                        );
+
+                        interviewer.reportValidity();
+                        interviewer.focus();
+                    }
+
                     return;
                 }
+
                 interviewDate.setCustomValidity("");
                 interviewTime.setCustomValidity("");
                 interviewer.setCustomValidity("");
+
                 if (interviewDate.value < getTodayDate()) {
-                    interviewDate.setCustomValidity("Interview date cannot be in the past.");
+
+                    interviewDate.setCustomValidity(
+                        "Interview date cannot be in the past."
+                    );
+
                     interviewDate.reportValidity();
                     interviewDate.focus();
+
                     return;
                 }
+
                 setHiddenField("interview_date", interviewDate.value);
                 setHiddenField("interview_time", interviewTime.value);
                 setHiddenField("interviewer", interviewer.value.trim());
             }
 
+            // ==================================
+            // VALIDATE EMAIL
+            // ==================================
             if (requiresEmail) {
-                if (!previewEmailTo.value.trim() || !previewEmailSubject.value.trim() || !previewEmailBody.value.trim() || !previewEmailTo.checkValidity()) {
-                    if (!previewEmailTo.checkValidity()) previewEmailTo.reportValidity();
-                    else if (!previewEmailSubject.value.trim()) previewEmailSubject.reportValidity();
-                    else previewEmailBody.reportValidity();
+
+                if (
+                    !previewEmailTo.value.trim() ||
+                    !previewEmailSubject.value.trim() ||
+                    !previewEmailBody.value.trim() ||
+                    !previewEmailTo.checkValidity()
+                ) {
+
+                    if (!previewEmailTo.checkValidity()) {
+                        previewEmailTo.reportValidity();
+                    }
+
+                    else if (!previewEmailSubject.value.trim()) {
+                        previewEmailSubject.reportValidity();
+                    }
+
+                    else {
+                        previewEmailBody.reportValidity();
+                    }
+
                     return;
                 }
+
                 setHiddenField("email_to", previewEmailTo.value.trim());
                 setHiddenField("email_subject", previewEmailSubject.value.trim());
+
+                // IMPORTANT:
+                // Email body contains ONLY the email message.
+                // Skip / Reject reason is NOT appended to this field.
                 setHiddenField("email_body", previewEmailBody.value.trim());
             }
 
+            // ==================================
+            // VALIDATE REASON
+            // ==================================
             if (requiresReason) {
 
                 const reason = decisionReason.value.trim();
 
                 if (!reason) {
+
                     decisionReason.setCustomValidity(
                         "Please enter a reason before confirming."
                     );
 
                     decisionReason.reportValidity();
                     decisionReason.focus();
+
                     return;
                 }
 
                 decisionReason.setCustomValidity("");
 
-                // Send reason to backend
+                // Reason is sent separately to backend.
+                // It will NOT be included in email_body.
                 setHiddenField("remarks", reason);
             }
+
+            // ==================================
+            // SUBMIT
+            // ==================================
             confirmDecision.disabled = true;
             confirmDecision.textContent = "Processing...";
+
             decisionModal.style.display = "none";
             pendingDecisionForm = null;
+
             HTMLFormElement.prototype.submit.call(originalForm);
         });
     }
+
   });
+
 </script>
 
 {% endblock %}
