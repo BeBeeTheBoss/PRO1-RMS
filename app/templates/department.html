@@ -926,22 +926,28 @@
             </div>
         </div>
 
-        <!-- DEPARTMENT HEADS -->
-        <a class="overview-card department-head-link"
-            href="{{ url_for('main.manage_department_heads') }}"
-            title="View department heads">
+        <!-- INACTIVE DEPARTMENTS -->
+        <div class="overview-card" role="button" tabindex="0"
+            data-department-filter="inactive"
+            title="Show inactive departments">
 
             <div class="overview-icon">
-                <i class="fa-solid fa-user-tie"></i>
+                <i class="fa-solid fa-circle-xmark"></i>
             </div>
 
             <div>
-                <div class="overview-label">Department Heads</div>
+                <div class="overview-label">Inactive Departments</div>
                 <div class="overview-value">
-                    {{ original_head_count }}
+                    {% set ns = namespace(inactive_count=0) %}
+                    {% for dept in departments %}
+                        {% if not dept[3] %}
+                            {% set ns.inactive_count = ns.inactive_count + 1 %}
+                        {% endif %}
+                    {% endfor %}
+                    {{ ns.inactive_count }}
                 </div>
             </div>
-        </a>
+        </div>
 
     </div>
 
@@ -1320,8 +1326,15 @@ document.addEventListener("DOMContentLoaded", function () {
         filteredDepartments = allDepartments.filter(function (row) {
 
             const matchesStatus =
-                currentFilter !== "active" ||
-                row.querySelector(".status.active") !== null;
+                currentFilter === "all" ||
+                (
+                    currentFilter === "active" &&
+                    row.querySelector(".status.active") !== null
+                ) ||
+                (
+                    currentFilter === "inactive" &&
+                    row.querySelector(".status.inactive") !== null
+                );
 
             const searchMatches = matchesSearch(row);
 
